@@ -139,16 +139,17 @@
   .mover .row.clickable:hover,.us-row.clickable:hover{background:var(--panel-2)}
   .idx-constituents{margin-top:6px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   .idx-ch{font-size:12px;font-weight:700;padding:10px 12px;background:var(--panel-2);border-bottom:1px solid var(--line)}
-  .idx-row{display:grid;grid-template-columns:1.6fr .7fr .8fr .62fr .62fr .62fr .62fr;gap:6px;align-items:center;padding:7px 10px;font-size:13px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line)}
+  .idx-row{display:flex;align-items:center;gap:10px;padding:7px 10px;font-size:13px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line)}
   .idx-row:last-child{border-bottom:none}
   .idx-row:not(.idx-hrow){cursor:pointer}
   .idx-row:not(.idx-hrow):hover{background:var(--panel-2)}
-  .idx-hrow{font-size:11px;color:var(--sub);background:transparent}
-  .idx-row>span{text-align:right}
-  .idx-row .idx-nm{text-align:left}
-  .idx-row .board{margin-left:6px;font-size:10px;color:var(--sub)}
-  .idx-row .w-col{text-align:right;color:var(--midstream);font-weight:600;font-variant-numeric:tabular-nums}
-  @media(max-width:620px){.idx-row{grid-template-columns:1.2fr .66fr .8fr .58fr .58fr .58fr .58fr}}
+  .idx-hrow{font-size:11px;color:var(--sub);background:transparent;font-weight:700}
+  .idx-nm{flex:1;min-width:0;text-align:left;display:flex;align-items:center;gap:6px;overflow:hidden}
+  .idx-nm .board{font-size:10px;color:var(--sub);border:1px solid var(--line);padding:0 5px;border-radius:5px;flex-shrink:0;white-space:nowrap}
+  .idx-row .w-col{color:var(--midstream);font-weight:600;min-width:48px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .idx-row .m{font-size:12px;min-width:52px;text-align:right;flex-shrink:0}
+  .idx-row .m.price{font-weight:600;min-width:66px}
+  @media(max-width:620px){.idx-row{flex-wrap:wrap;gap:6px}.idx-row .m{min-width:44px}.idx-row .w-col{min-width:40px}.idx-row .m.price{min-width:54px}}
 
 
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
@@ -159,18 +160,26 @@
   .card-head .ic svg{width:17px;height:17px}
   .card-head h3{font-size:14px;font-weight:650}
   .card-head .cnt{margin-left:auto;font-size:11px;color:var(--sub);background:var(--panel-2);padding:2px 8px;border-radius:10px}
-  .col-head{display:grid;grid-template-columns:1.5fr .9fr .7fr .7fr .7fr .7fr;gap:6px;padding:8px 10px 6px;font-size:11px;color:var(--sub);border-bottom:1px solid var(--line);text-align:right}
-  .col-head .c0{text-align:left}
+  .col-head{display:flex;align-items:center;gap:12px;padding:8px 10px 6px;font-size:11px;color:var(--sub);border-bottom:1px solid var(--line)}
+  .col-head .ch-id{flex:1;min-width:0;text-align:left}
+  .col-head .ch-pd{text-align:right;min-width:88px;flex-shrink:0}
+  .col-head .ch-extra{display:flex;gap:12px;justify-content:flex-end;min-width:150px;flex-shrink:0}
   .rows{padding:4px 6px 8px}
-  .stock{display:grid;grid-template-columns:1.5fr .9fr .7fr .7fr .7fr .7fr;gap:6px;align-items:center;padding:7px 8px;border-radius:9px;transition:background .12s}
+  /* 个股行：参考总览「领涨领跌 TOP5」的呈现（名称在左，现价+涨跌幅在右，5/20/60日弱化） */
+  .stock{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:9px;transition:background .12s}
   .stock:hover{background:var(--panel-2)}
-  .stock .name{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:2px;min-width:0}
-  .stock .name .top{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .stock .name .board{font-size:10px;color:var(--sub);border:1px solid var(--line);padding:0 5px;border-radius:5px;flex-shrink:0}
-  .stock .name .code{font-size:10px;color:#5d6675}
-  .stock .m{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;font-weight:600}
-  .stock .m.price{font-size:14px}
-  .stock .m.dim{color:var(--sub);font-weight:500}
+  .stock .s-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .stock .s-nm{font-size:13px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stock .s-sub{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--sub);min-width:0;overflow:hidden}
+  .stock .s-sub .board{font-size:10px;color:var(--sub);border:1px solid var(--line);padding:0 5px;border-radius:5px;flex-shrink:0;white-space:nowrap}
+  .stock .s-sub .code{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .stock .s-sub .etf-idx{font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stock .s-pd{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:88px;flex-shrink:0}
+  .stock .s-pd .price{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;line-height:1.15}
+  .stock .s-pd .day{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;line-height:1.15}
+  .stock .s-extra{display:flex;gap:12px;align-items:center;font-size:11px;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .stock .s-extra .m{text-align:right}
+  .stock .s-extra .m.dim{color:var(--sub);font-weight:500}
   .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
   .bg-up{background:var(--up-soft)}.bg-down{background:var(--down-soft)}
   .hidden{display:none!important}
@@ -187,7 +196,12 @@
     .ov-layers{grid-template-columns:1fr}
     .toprow{grid-template-columns:1fr}
     input[type=search]{width:150px}
-    .stock,.col-head{grid-template-columns:1.4fr .85fr .65fr .65fr .65fr .65fr;font-size:12px;gap:6px}
+    .stock{flex-wrap:wrap;gap:8px}
+    .stock .s-id{order:1;flex:1;min-width:0}
+    .stock .s-pd{order:2;min-width:72px}
+    .stock .s-extra{order:3;width:100%;justify-content:flex-end;gap:16px;padding-top:3px;margin-top:2px;border-top:1px dashed var(--line)}
+    .col-head .ch-pd{min-width:72px}
+    .col-head .ch-extra{min-width:120px}
     body{overflow-x:hidden}
   }
 
@@ -288,15 +302,16 @@
   .tag.t-gray{color:var(--sub);background:var(--panel-2);border:1px solid var(--line)}
   .tag.hot{color:#0b0d10;background:#fbbf24}
   /* ============ ETF 面板：跟踪指数标签 + 指数详情成分表 ============ */
-  .etf-idx{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.4;display:inline-block;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:1px 8px}
+  .etf-idx{font-size:10.5px;color:var(--sub);font-variant-numeric:tabular-nums}
   .etf-cons{display:flex;flex-direction:column;gap:2px;margin-top:6px;border:1px solid var(--line);border-radius:10px;overflow:hidden;padding:4px}
-  .etf-row{display:grid;grid-template-columns:1fr 94px 56px 60px;gap:8px;align-items:center;padding:6px 6px;border-radius:7px}
+  .etf-row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px}
   .etf-row.etf-hrow{color:var(--sub);font-weight:700;font-size:11.5px;border-bottom:1px solid var(--line);border-radius:0;padding-bottom:4px}
   .etf-row[data-detail]{cursor:pointer}
-  .etf-row[data-detail]:hover{background:var(--panel)}
-  .etf-nm{font-weight:600;color:var(--fg)}
-  .etf-code{color:var(--sub);font-variant-numeric:tabular-nums;font-size:11.5px}
-  .etf-w{color:var(--midstream);font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+  .etf-row[data-detail]:hover{background:var(--panel-2)}
+  .etf-nm{flex:1;min-width:0;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .etf-code{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;flex-shrink:0;white-space:nowrap}
+  .etf-w{color:var(--midstream);font-variant-numeric:tabular-nums;font-weight:600;text-align:right;flex-shrink:0;min-width:54px}
+  .etf-day{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;flex-shrink:0;min-width:66px}
   /* 个股详情：成分权重 */
   .w-block{background:linear-gradient(135deg,#161b22,#1a2030);border:1px solid var(--line);border-left:3px solid var(--midstream);border-radius:12px;padding:12px 14px;margin-bottom:12px}
   .w-title{font-size:13px;font-weight:700;color:var(--fg);margin-bottom:8px}
@@ -712,34 +727,36 @@ function boardTag(code){
 function fmt(n,d=2){return (isFinite(n)?(+n):0).toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:d});}
 function sign(n){return n>0?'+':'';}
 function cls(n){return n>0?'up':(n<0?'down':'flat');}
+/* 个股行：参考总览「领涨领跌 TOP5」的呈现方式（名称在左、现价+涨跌幅在右，5/20/60日弱化）。
+   subExtra 仅用于 ETF 行的跟踪指数说明；个股行留空。文字内容（代码 + 主板）保持不变。 */
+function stockRowHTML(code,name,board,code2,subExtra){
+  const sub=(board?`<span class="board">${board}</span>`:'')+`<span class="code">${escHtml(code2)}</span>`+(subExtra?`<span class="etf-idx">${escHtml(subExtra)}</span>`:'');
+  return `<div class="stock" data-code="${code}" data-name="${escHtml(name)}">
+    <div class="s-id"><div class="s-nm">${escHtml(name)}</div><div class="s-sub">${sub}</div></div>
+    <div class="s-pd"><div class="m price flat">—</div><div class="m day flat">—</div></div>
+    <div class="s-extra"><span class="m p5 dim">—</span><span class="m p20 dim">—</span><span class="m p60 dim">—</span></div>
+  </div>`;
+}
 
 /* ============== 渲染 ============== */
 function buildCard(sector,ind,layer){
-  const rows=sector.stocks.map(s=>{const ca=s.c||('na-'+s.n);return `
-    <div class="stock" data-code="${ca}" data-name="${s.n}">
-      <div class="name"><div class="top">${s.n}<span class="board">${boardTag(s.c)}</span></div><div class="code">${s.c||'未覆盖'}</div></div>
-      <div class="m price flat">—</div>
-      <div class="m day flat">—</div>
-      <div class="m p5 dim">—</div>
-      <div class="m p20 dim">—</div>
-      <div class="m p60 dim">—</div>
-    </div>`;}).join('');
+  const rows=sector.stocks.map(s=>{const ca2=s.c||('na-'+s.n);return stockRowHTML(ca2,s.n,boardTag(s.c),s.c||'未覆盖','');}).join('');
   const accent=layer.color||ind.color;
   return `<div class="card" style="--accent:${accent}">
     <div class="card-head is-index" data-idx="${ind.key}|${layer.key}|${sector.title}"><div class="ic" style="color:${accent}">${ICONS[sector.icon]||ICONS.chip}</div><h3>${sector.title}</h3><span class="idx-chip">—</span><span class="cnt">${sector.stocks.length}</span></div>
-    <div class="col-head"><span class="c0">个股</span><span>现价</span><span>日</span><span>5日</span><span>20日</span><span>60日</span></div>
+    <div class="col-head"><span class="ch-id">个股</span><span class="ch-pd">现价 / 涨跌幅</span><span class="ch-extra"><span>5日</span><span>20日</span><span>60日</span></span></div>
     <div class="rows">${rows}</div></div>`;
 }
 function ca(s){return s.c||('na-'+s.n);}
 function render(){
   const app=document.getElementById('app');
-  const etfRows=ETFS.map(s=>{const c=ca(s);return `<div class="stock" data-code="${c}" data-name="${s.n}"><div class="name"><div class="top">${s.n}<span class="board">${boardTag(s.c)}</span></div><div class="code">${s.c||'未覆盖'}</div><div class="etf-idx">${ETF_INFO[c]?escHtml(ETF_INFO[c].index):''}${ETF_INFO[c]&&ETF_INFO[c].cons&&ETF_INFO[c].cons.length?' · '+ETF_INFO[c].cons.length+'只成分':''}</div></div><div class="m price flat">—</div><div class="m day flat">—</div><div class="m p5 dim">—</div><div class="m p20 dim">—</div><div class="m p60 dim">—</div></div>`;}).join('');
+  const etfRows=ETFS.map(s=>{const c=ca(s);const info=ETF_INFO[c]||{};const subExtra=info.index?('跟踪 '+info.index):'';return stockRowHTML(c,s.n,boardTag(s.c),s.c||'未覆盖',subExtra);}).join('');
   let html=`<section class="toprow">
     <section class="panel overview" id="overview"></section>
     <section class="panel etf-panel" data-industry="ai">
       <div class="card" style="--accent:var(--downstream)">
         <div class="card-head"><div class="ic" style="color:var(--downstream)">${ICONS.etf}</div><h3>核心 ETF 速览</h3><span class="cnt">${ETFS.length}</span></div>
-        <div class="col-head"><span class="c0">ETF</span><span>现价</span><span>日</span><span>5日</span><span>20日</span><span>60日</span></div>
+        <div class="col-head"><span class="ch-id">ETF</span><span class="ch-pd">现价 / 涨跌幅</span><span class="ch-extra"><span>5日</span><span>20日</span><span>60日</span></span></div>
         <div class="rows">${etfRows}</div>
       </div>
     </section>
@@ -1087,10 +1104,10 @@ function buildIndexIntroHTML(name,consts,eqw){
   h+=`<div class="intro-ol">本指数为「${escHtml(name)}」成分股的<b>等权合成指数</b>（前复权），反映该环节/板块整体涨跌。成分权重为等权（每只约 ${eqw!=null?eqw.toFixed(1)+'%':'—'}）。下列成分按当日涨跌幅排序，点击任意个股可查看其详情。</div>`;
   const rows=[...consts].map(({c,n})=>({c,n,d:data[c]})).sort((a,b)=>(b.d&&b.d.day!=null?b.d.day:-1e9)-(a.d&&a.d.day!=null?a.d.day:-1e9));
   h+='<div class="idx-constituents"><div class="idx-ch">指数成分涨跌排序（点击查看个股详情）</div>';
-  h+='<div class="idx-row idx-hrow"><span class="idx-nm">名称</span><span class="w-col">权重</span><span>现价</span><span>日</span><span>5日</span><span>20日</span><span>60日</span></div>';
+  h+='<div class="idx-row idx-hrow"><span class="idx-nm">名称</span><span class="w-col">权重</span><span class="m price">现价</span><span class="m">日</span><span class="m">5日</span><span class="m">20日</span><span class="m">60日</span></div>';
   rows.forEach(r=>{const d=r.d||{};const cell=v=>v==null?'—':(v>=0?'+':'')+v.toFixed(2)+'%';
     const dayc=d.day!=null?cls(d.day):'flat';
-    h+=`<div class="idx-row" data-detail="${r.c}"><span class="idx-nm">${escHtml(r.n)}<span class="board">${boardTag(r.c)}</span></span><span class="w-col">${eqw!=null?eqw.toFixed(1)+'%':'—'}</span><span class="m">${d.price!=null?fmt(d.price):'—'}</span><span class="m ${dayc}">${d.day!=null?cell(d.day):'—'}</span><span class="m ${d.p5!=null?cls(d.p5):''}">${d.p5!=null?cell(d.p5):'—'}</span><span class="m ${d.p20!=null?cls(d.p20):''}">${d.p20!=null?cell(d.p20):'—'}</span><span class="m ${d.p60!=null?cls(d.p60):''}">${d.p60!=null?cell(d.p60):'—'}</span></div>`;
+    h+=`<div class="idx-row" data-detail="${r.c}"><span class="idx-nm">${escHtml(r.n)}<span class="board">${boardTag(r.c)}</span></span><span class="w-col">${eqw!=null?eqw.toFixed(1)+'%':'—'}</span><span class="m price">${d.price!=null?fmt(d.price):'—'}</span><span class="m ${dayc}">${d.day!=null?cell(d.day):'—'}</span><span class="m ${d.p5!=null?cls(d.p5):''}">${d.p5!=null?cell(d.p5):'—'}</span><span class="m ${d.p20!=null?cls(d.p20):''}">${d.p20!=null?cell(d.p20):'—'}</span><span class="m ${d.p60!=null?cls(d.p60):''}">${d.p60!=null?cell(d.p60):'—'}</span></div>`;
   });
   h+='</div></div>';return h;
 }
@@ -1134,15 +1151,15 @@ function setIntroTitle(t){const s=document.getElementById('dIntro');if(!s)return
 function buildEtfIntroHTML(code,info){
   let h='<div class="intro-enrich">';
   const nm=(codeMeta[code]&&codeMeta[code].name)||code;
-  h+=`<div class="intro-ol">${escHtml(nm)} 跟踪指数「<b>${escHtml(info.index)}</b>」。以下为前十大成分股（按权重降序），点击任意成分可下钻查看个股 K 线与技术面。</div>`;
+  h+=`<div class="intro-ol">${escHtml(nm)} 跟踪指数「<b>${escHtml(info.index)}</b>」。以下为成分股（按当日涨跌幅排序），点击任意成分可下钻查看个股 K 线与技术面。</div>`;
   const cons=[...(info.cons||[])].sort((a,b)=>(b.w||0)-(a.w||0));
   h+='<div class="etf-cons">';
-  h+='<div class="etf-row etf-hrow"><span>成分股</span><span>代码</span><span style="text-align:right">权重</span><span style="text-align:right">日涨跌</span></div>';
+  h+='<div class="etf-row etf-hrow"><span class="etf-nm">成分股</span><span class="etf-code">代码</span><span class="etf-w">权重</span><span class="etf-day">日涨跌</span></div>';
   cons.forEach(r=>{
     const dd=data[r.c]||{};
     const dayc=dd.day!=null?cls(dd.day):'flat';
     const dayTxt=dd.day!=null?sign(dd.day)+dd.day.toFixed(2)+'%':'—';
-    h+=`<div class="etf-row" data-detail="${r.c}"><span class="etf-nm">${escHtml(r.n)}</span><span class="etf-code">${r.c}</span><span class="etf-w">${(r.w||0).toFixed(2)}%</span><span class="${dayc}" style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">${dayTxt}</span></div>`;
+    h+=`<div class="etf-row" data-detail="${r.c}"><span class="etf-nm">${escHtml(r.n)}</span><span class="etf-code">${r.c}</span><span class="etf-w">${(r.w||0).toFixed(2)}%</span><span class="etf-day ${dayc}">${dayTxt}</span></div>`;
   });
   h+='</div></div>';
   return h;
