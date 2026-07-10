@@ -196,10 +196,14 @@
     .ov-layers{grid-template-columns:1fr}
     .toprow{grid-template-columns:1fr}
     input[type=search]{width:150px}
-    .stock{flex-wrap:wrap;gap:8px}
+    .stock{flex-wrap:nowrap;gap:6px;padding:8px 8px}
     .stock .s-id{order:1;flex:1;min-width:0}
-    .stock .s-pd{order:2;min-width:72px}
-    .stock .s-extra{order:3;width:100%;justify-content:flex-end;gap:16px;padding-top:3px;margin-top:2px;border-top:1px dashed var(--line)}
+    .stock .s-pd{order:2;min-width:62px}
+    .stock .s-pd .price{font-size:13px}
+    .stock .s-pd .day{font-size:10.5px}
+    .stock .s-extra{order:3;flex-shrink:0;gap:7px;justify-content:flex-end}
+    .stock .s-extra .m{font-size:10px}
+    .stock .s-extra .m.dim{font-size:10px}
     .col-head .ch-pd{min-width:72px}
     .col-head .ch-extra{min-width:120px}
     body{overflow-x:hidden}
@@ -211,7 +215,7 @@
   .modal-mask{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)}
   .modal-panel{position:relative;width:min(960px,100%);height:100%;background:var(--bg);border-left:1px solid var(--line);display:flex;flex-direction:column;animation:slideIn .25s ease;overflow:hidden}
   @keyframes slideIn{from{transform:translateX(30px);opacity:.35}to{transform:none;opacity:1}}
-  .d-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(23,26,33,.98),rgba(23,26,33,.9))}
+  .d-head{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(23,26,33,.98),rgba(23,26,33,.9))}
   .d-head .nm{font-size:19px;font-weight:800}
   .d-head .meta{font-size:12px;color:var(--sub);margin-top:2px}
   .d-head .px{margin-left:auto;text-align:right}
@@ -221,7 +225,7 @@
   .d-close:hover{border-color:var(--down);color:var(--down)}
   .d-back{display:inline-flex;align-items:center;gap:5px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);height:34px;padding:0 13px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600;flex-shrink:0}
   .d-back:hover{border-color:var(--midstream);color:var(--midstream)}
-  .d-body{padding:16px 20px 40px;overflow-y:auto;flex:1}
+  .d-body{padding:16px 20px 40px;overflow-y:auto;flex:1;min-height:0}
   .d-section{margin-bottom:22px}
   .d-section h3{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
   .d-section h3::before{content:"";width:4px;height:14px;border-radius:2px;background:var(--midstream)}
@@ -249,14 +253,14 @@
   .verdict .vreason li{margin:2px 0}
   .d-note{font-size:11.5px;color:var(--sub);margin-top:6px;line-height:1.6}
   @media(max-width:620px){
-    .modal-panel{width:100%}
+    .modal-panel{width:100%;height:100%;max-height:100vh}
     .chart-box{height:300px}
     .d-head{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"back title close" "px px px";gap:8px 10px;align-items:center;padding:12px 14px}
     .d-back{grid-area:back}
     .d-head>div:first-of-type{grid-area:title}
     .d-head .px{grid-area:px;margin-left:0;width:100%;text-align:left}
     .d-close{grid-area:close}
-    .d-body{padding:12px 14px 36px}
+    .d-body{padding:12px 14px 36px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
     .ov-movers{grid-template-columns:1fr}
   }
   /* ============ 公司介绍 / 公告 ============ */
@@ -1610,7 +1614,7 @@ function renderNewsBlock(arr,link){
 function jsonpAnn(list,link,fail){
   let done=false;
   const cb='_emAnn'+Math.random().toString(36).slice(2);
-  const url='https://np-anotice-stock.eastmoney.com/api/security/ann?sr=-1&page_size=5&page_index=1&ann_type=0&client_source=web&stock_list='+list+'&cb='+cb;
+  const url='https://np-anotice-stock.eastmoney.com/api/security/ann?sr=-1&page_size=5&page_index=1&client_source=web&stock_list='+list+'&cb='+cb;
   const timer=setTimeout(()=>{if(done)return;done=true;cleanup();fail('公告获取超时，');},7000);
   function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
   window[cb]=function(json){
@@ -1629,15 +1633,16 @@ function jsonpAnn(list,link,fail){
 function jsonpNews(list,link,fail){
   let done=false;
   const cb='_emNews'+Math.random().toString(36).slice(2);
-  const url='https://np-listapi.eastmoney.com/comm/web/getNewsByCode?client=PC&code='+list+'&num=6&page=1&cb='+cb;
+  const inner={uid:'',keyword:list,type:['cmsArticleWebOld'],client:'web',clientType:'web',clientVersion:'curr',param:{cmsArticleWebOld:{searchScope:'default',sort:'default',pageIndex:1,pageSize:6,preTag:'',postTag:''}}};
+  const url='https://search-api-web.eastmoney.com/search/jsonp?cb='+cb+'&param='+encodeURIComponent(JSON.stringify(inner));
   const timer=setTimeout(()=>{if(done)return;done=true;cleanup();fail('要闻获取超时，');},7000);
   function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
   window[cb]=function(json){
     if(done)return;done=true;cleanup();
     try{
-      const arr=(((json&&json.data)||{}).list)||(((json&&json.data)||{}).newsList)||[];
+      const arr=(((json&&json.result)||{}).cmsArticleWebOld)||[];
       if(!arr.length){fail('近期暂无公开要闻，');return;}
-      const out=arr.map(it=>({title:it.title||'',date:(it.date||it.datetime||it.showtime||'').slice(0,10),pop:it.popularity!=null?it.popularity:it.count,col:it.column||it.mediaName}));
+      const out=arr.map(it=>({title:(it.title||'').replace(/<[^>]+>/g,''),date:(it.date||'').slice(0,10),col:it.mediaName||''}));
       if(!renderNewsBlock(out,link))fail('近期暂无公开要闻，');
     }catch(e){fail('要闻解析失败，');}
   };
