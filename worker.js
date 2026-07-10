@@ -47,7 +47,7 @@ async function fetchAnn(code) {
   const list = emAnnCode(code);
   if (!list) return [];
   const url = 'https://np-anotice-stock.eastmoney.com/api/security/ann?sr=-1&page_size=5'
-    + '&page_index=1&ann_type=0&client_source=web&stock_list=' + list;
+    + '&page_index=1&client_source=web&stock_list=' + list;
   const r = await fetch(url, { headers: { 'User-Agent': UA, 'Referer': EM_REFERER, 'Accept': '*/*' } });
   const data = JSON.parse(stripJsonp(await r.text()));
   const arr = (data.data && data.data.list) || [];
@@ -60,20 +60,21 @@ async function fetchAnn(code) {
 async function fetchNews(code) {
   const list = emAnnCode(code);
   if (!list) return [];
-  const url = 'https://np-listapi.eastmoney.com/comm/web/getNewsByCode?client=PC&code=' + list + '&num=6&page=1';
+  const inner = {uid:'',keyword:list,type:['cmsArticleWebOld'],client:'web',clientType:'web',clientVersion:'curr',param:{cmsArticleWebOld:{searchScope:'default',sort:'default',pageIndex:1,pageSize:6,preTag:'',postTag:''}}};
+  const url = 'https://search-api-web.eastmoney.com/search/jsonp?cb=_emnews&param=' + encodeURIComponent(JSON.stringify(inner));
   const r = await fetch(url, { headers: { 'User-Agent': UA, 'Referer': EM_REFERER, 'Accept': '*/*' } });
   const data = JSON.parse(stripJsonp(await r.text()));
-  const arr = (data.data && (data.data.list || data.data.newsList)) || [];
+  const arr = (data.result && data.result.cmsArticleWebOld) || [];
   const out = [];
   for (const it of arr.slice(0, 6)) {
     if (!it || typeof it !== 'object') continue;
-    const title = it.title || '';
+    const title = (it.title || '').replace(/<[^>]+>/g, '');
     if (!title) continue;
     out.push({
-      date: (it.date || it.datetime || it.showtime || '').slice(0, 10),
+      date: (it.date || '').slice(0, 10),
       title,
       pop: it.popularity != null ? it.popularity : (it.count || ''),
-      col: it.column || it.mediaName || ''
+      col: it.mediaName || ''
     });
   }
   return out;
