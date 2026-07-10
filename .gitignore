@@ -1,0 +1,18 @@
+# 调试/临时文件（不纳入部署仓库）
+__pycache__/
+*.pyc
+_*.py
+_*.js
+_perf_*.json
+_profiles_*.json
+_codes_all.txt
+_perf_codes_*.txt
+*.png
+page_served.html
+dom_dump.html
+served_check.html
+_check_syntax.js
+_dump_perf.js
+_smoke.js
+_test_index.js
+_test_struct.js

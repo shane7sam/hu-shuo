@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>胡说·产业链投研 · 总览</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel-2:#1d212b; --line:#2a2f3a;
+    --text:#e6e9ef; --sub:#9aa3b2;
+    --up:#f0384a; --down:#16b87a; --flat:#8a93a3;
+    --up-soft:rgba(240,56,74,.12); --down-soft:rgba(22,184,122,.12);
+    --upstream:#10b981; --midstream:#3b82f6; --downstream:#f59e0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(15,17,21,.96),rgba(15,17,21,.82));backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 20px}
+  .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#6366f1,#22d3ee);display:grid;place-items:center;font-weight:800;color:#fff;font-size:15px}
+  .brand h1{font-size:18px;font-weight:700;letter-spacing:.3px}
+  .brand .tag{font-size:12px;color:var(--sub);margin-top:1px}
+  .spacer{flex:1}
+  .status{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--sub)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--down);box-shadow:0 0 0 0 rgba(22,184,122,.6)}
+  .dot.live{background:var(--up);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(240,56,74,.55)}70%{box-shadow:0 0 0 7px rgba(240,56,74,0)}100%{box-shadow:0 0 0 0 rgba(240,56,74,0)}}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  input[type=search]{background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;width:210px;font-size:13px;outline:none}
+  input[type=search]:focus{border-color:var(--midstream)}
+  button{background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--midstream);color:#fff}
+  .toggle{display:flex;gap:6px}
+  .toggle button.active{background:var(--midstream);border-color:var(--midstream);color:#fff}
+  main{padding:18px 20px 60px;max-width:1540px;margin:0 auto}
+  .legend{display:flex;gap:12px;font-size:12px;color:var(--sub);align-items:center}
+  .up-chip{color:var(--up)}.down-chip{color:var(--down)}
+  .layer{margin-bottom:30px}
+  .layer-head{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
+  .layer-badge{font-size:13px;font-weight:700;color:#0b0d10;padding:5px 12px;border-radius:20px}
+  .layer-title{font-size:17px;font-weight:700}
+  .layer-sub{font-size:12px;color:var(--sub)}
+
+  /* 总览 */
+  .overview{background:linear-gradient(135deg,#161922,#1b2030);border:1px solid var(--line);border-radius:18px;padding:20px 20px 22px;margin-bottom:26px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+  .ov-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  .ov-title-wrap{display:flex;flex-direction:column;gap:3px}
+  .ov-top h2{font-size:22px;font-weight:800;letter-spacing:.3px}
+  .ov-sub{font-size:12.5px;color:var(--sub)}
+  .ov-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ov-pill{font-size:12px;font-weight:700;padding:4px 11px;border-radius:20px;border:1px solid var(--line);background:var(--panel-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ov-pill.up{color:var(--up);border-color:color-mix(in srgb,var(--up) 45%,transparent)}
+  .ov-pill.down{color:var(--down);border-color:color-mix(in srgb,var(--down) 45%,transparent)}
+  .ov-pill.ghost{color:var(--sub);font-weight:600}
+  .ov-pill.warn{color:#f59e0b;border-color:color-mix(in srgb,#f59e0b 45%,transparent)}
+  .stamp{font-size:12px;color:var(--sub)}
+
+  /* 市场脉搏 hero */
+  .ov-pulse{display:grid;grid-template-columns:1.7fr 1fr;gap:14px;margin-bottom:18px}
+  .pulse-card{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+  .pulse-fig{font-size:34px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .pulse-fig small{font-size:16px;font-weight:700;margin-left:2px}
+  .pulse-label{font-size:12.5px;color:var(--sub)}
+  .dist{margin-top:2px}
+  .dist-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
+  .dist-bar .seg{height:100%}
+  .dist-bar .seg.up{background:var(--up)}
+  .dist-bar .seg.down{background:var(--down)}
+  .dist-bar .seg.flat{background:var(--flat)}
+  .dist-legend{display:flex;gap:14px;margin-top:7px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+  .pulse-side{display:grid;grid-template-rows:1fr 1fr;gap:14px}
+  .pulse-mini{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--flat);border-radius:12px;padding:11px 14px;display:flex;flex-direction:column;gap:2px;position:relative}
+  .pulse-mini.up-edge{border-left-color:var(--up)}
+  .pulse-mini.down-edge{border-left-color:var(--down)}
+  .pulse-mini .pm-k{font-size:11.5px;color:var(--sub);font-weight:600}
+  .pulse-mini .pm-v{font-size:15px;font-weight:700}
+  .pulse-mini .pm-d{position:absolute;right:14px;top:11px;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+
+  /* 区块标题 */
+  .ov-section-title{font-size:13px;font-weight:700;color:var(--sub);margin:4px 0 10px;display:flex;align-items:center;gap:8px}
+  .ov-section-title::before{content:'';width:4px;height:14px;border-radius:3px;background:var(--midstream)}
+
+  /* 环节热力卡片 */
+  .ov-layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+  .lyr{border:1px solid var(--line);border-left:3px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel-2);transition:transform .12s,box-shadow .12s}
+  .lyr:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+  .lyr-h{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .lyr-badge{font-size:11px;font-weight:700;color:#0b0d10;padding:2px 9px;border-radius:20px}
+  .lyr-name{font-size:13px;font-weight:600}
+  .lyr-cnt{margin-left:auto;font-size:11px;color:var(--sub)}
+  .lyr-body{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+  .lyr-avg{margin-left:auto;font-size:13px;font-weight:600}
+  .lyr-ratio{height:5px;border-radius:3px;background:var(--panel);overflow:hidden;margin-top:9px;border:1px solid var(--line)}
+  .lyr-ratio i{display:block;height:100%;background:var(--up);border-radius:3px}
+
+  /* 个股风云 */
+  .ov-movers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px}
+  .mover{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .mover h4{font-size:13px;color:var(--sub);margin-bottom:8px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .mover h4::before{content:'';width:8px;height:8px;border-radius:50%}
+  .mover.up h4::before{background:var(--up)}
+  .mover.down h4::before{background:var(--down)}
+  .mover.mid h4::before{background:var(--midstream)}
+  .mover .row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .mover .row:last-child{border-bottom:none}
+  .mover .row .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;line-height:1.25}
+  .mover .row .sec{font-size:10.5px;color:var(--sub);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mover .row .pct{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  .commentary{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--midstream);border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.95;color:#d4d9e2}
+  .commentary b{color:#fff}
+  .ov-us{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:18px}
+  .ov-us h4{font-size:13px;color:var(--sub);font-weight:600;margin-bottom:8px}
+  .us-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px 18px}
+  .us-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px dashed var(--line)}
+  .us-row:last-child{border-bottom:none}
+  .us-nm{font-weight:600;display:flex;flex-direction:column;line-height:1.3}
+  .us-sec{font-size:11px;color:var(--sub);font-weight:400}
+
+  /* 首页顶部两栏：左 = AI 产业链总览，右 = 核心 ETF 速览 */
+  .toprow{display:grid;grid-template-columns:1fr;gap:18px;align-items:stretch;margin-bottom:26px}
+  .toprow .overview{margin-bottom:0}
+  .toprow .etf-panel{margin-bottom:0}
+  .toprow .etf-panel .card{height:100%}
+  .toprow .etf-panel .rows{max-height:340px;overflow-y:auto}
+
+  /* 子集指数：环节/板块指数标签 + 指数详情页成分表 */
+  .layer-head.is-index,.card-head.is-index{cursor:pointer}
+  .layer-head.is-index:hover .layer-title,.card-head.is-index:hover h3{text-decoration:underline}
+  .idx-chip{margin-left:auto;font-size:11px;font-weight:700;padding:2px 9px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .idx-chip::before{content:'指数 '}
+  .idx-chip.up{color:var(--up);border-color:color-mix(in srgb,var(--up) 45%,transparent)}
+  .idx-chip.down{color:var(--down);border-color:color-mix(in srgb,var(--down) 45%,transparent)}
+  .idx-chip.up::before{content:'指数 ▲ '}
+  .idx-chip.down::before{content:'指数 ▼ '}
+  .lyr.is-index{cursor:pointer}
+  .lyr.is-index:hover{box-shadow:0 0 0 1px var(--line)}
+  .mover .row.clickable,.us-row.clickable{cursor:pointer}
+  .mover .row.clickable:hover,.us-row.clickable:hover{background:var(--panel-2)}
+  .idx-constituents{margin-top:6px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .idx-ch{font-size:12px;font-weight:700;padding:10px 12px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+  .idx-row{display:grid;grid-template-columns:1.6fr .7fr .8fr .62fr .62fr .62fr .62fr;gap:6px;align-items:center;padding:7px 10px;font-size:13px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line)}
+  .idx-row:last-child{border-bottom:none}
+  .idx-row:not(.idx-hrow){cursor:pointer}
+  .idx-row:not(.idx-hrow):hover{background:var(--panel-2)}
+  .idx-hrow{font-size:11px;color:var(--sub);background:transparent}
+  .idx-row>span{text-align:right}
+  .idx-row .idx-nm{text-align:left}
+  .idx-row .board{margin-left:6px;font-size:10px;color:var(--sub)}
+  .idx-row .w-col{text-align:right;color:var(--midstream);font-weight:600;font-variant-numeric:tabular-nums}
+  @media(max-width:620px){.idx-row{grid-template-columns:1.2fr .66fr .8fr .58fr .58fr .58fr .58fr}}
+
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;border-top:3px solid var(--accent);transition:transform .15s,box-shadow .15s}
+  .card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.28)}
+  .card-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .card-head .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 18%,transparent)}
+  .card-head .ic svg{width:17px;height:17px}
+  .card-head h3{font-size:14px;font-weight:650}
+  .card-head .cnt{margin-left:auto;font-size:11px;color:var(--sub);background:var(--panel-2);padding:2px 8px;border-radius:10px}
+  .col-head{display:grid;grid-template-columns:1.5fr .9fr .7fr .7fr .7fr .7fr;gap:6px;padding:8px 10px 6px;font-size:11px;color:var(--sub);border-bottom:1px solid var(--line);text-align:right}
+  .col-head .c0{text-align:left}
+  .rows{padding:4px 6px 8px}
+  .stock{display:grid;grid-template-columns:1.5fr .9fr .7fr .7fr .7fr .7fr;gap:6px;align-items:center;padding:7px 8px;border-radius:9px;transition:background .12s}
+  .stock:hover{background:var(--panel-2)}
+  .stock .name{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:2px;min-width:0}
+  .stock .name .top{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stock .name .board{font-size:10px;color:var(--sub);border:1px solid var(--line);padding:0 5px;border-radius:5px;flex-shrink:0}
+  .stock .name .code{font-size:10px;color:#5d6675}
+  .stock .m{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;font-weight:600}
+  .stock .m.price{font-size:14px}
+  .stock .m.dim{color:var(--sub);font-weight:500}
+  .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
+  .bg-up{background:var(--up-soft)}.bg-down{background:var(--down-soft)}
+  .hidden{display:none!important}
+  footer{color:var(--sub);font-size:12px;text-align:center;padding:24px;border-top:1px solid var(--line);line-height:1.8}
+  @media(max-width:900px){
+    .toprow{grid-template-columns:1fr}
+    .toprow .etf-panel .rows{max-height:none}
+    .ov-movers{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:620px){
+    .grid{grid-template-columns:1fr}
+    .ov-pulse{grid-template-columns:1fr}
+    .ov-movers{grid-template-columns:1fr}
+    .ov-layers{grid-template-columns:1fr}
+    .toprow{grid-template-columns:1fr}
+    input[type=search]{width:150px}
+    .stock,.col-head{grid-template-columns:1.4fr .85fr .65fr .65fr .65fr .65fr}
+  }
+
+  /* ============ 详情弹层 ============ */
+  .modal{position:fixed;inset:0;z-index:60;display:flex;align-items:stretch;justify-content:flex-end}
+  .modal.hidden{display:none}
+  .modal-mask{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)}
+  .modal-panel{position:relative;width:min(960px,100%);height:100%;background:var(--bg);border-left:1px solid var(--line);display:flex;flex-direction:column;animation:slideIn .25s ease;overflow:hidden}
+  @keyframes slideIn{from{transform:translateX(30px);opacity:.35}to{transform:none;opacity:1}}
+  .d-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(23,26,33,.98),rgba(23,26,33,.9))}
+  .d-head .nm{font-size:19px;font-weight:800}
+  .d-head .meta{font-size:12px;color:var(--sub);margin-top:2px}
+  .d-head .px{margin-left:auto;text-align:right}
+  .d-head .px .p{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+  .d-head .px .pe{font-size:12px;color:var(--sub);margin-top:2px}
+  .d-close{background:var(--panel-2);border:1px solid var(--line);color:var(--text);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:16px;flex-shrink:0}
+  .d-close:hover{border-color:var(--down);color:var(--down)}
+  .d-body{padding:16px 20px 40px;overflow-y:auto;flex:1}
+  .d-section{margin-bottom:22px}
+  .d-section h3{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .d-section h3::before{content:"";width:4px;height:14px;border-radius:2px;background:var(--midstream)}
+  .chart-box{width:100%;height:360px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+  .band-toggle{margin-left:auto;font-size:12px;font-weight:500;color:var(--sub);display:inline-flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
+  .band-toggle input{accent-color:#ec4899;width:14px;height:14px;cursor:pointer}
+  .band-note{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.7;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+  .band-note b{color:#c9d1e0;font-weight:600}
+  .band-note .bl{display:inline-block;width:18px;height:0;border-top:2px dashed;vertical-align:middle;margin:0 2px}
+  .band-note .bl.pe{border-color:#ec4899}
+  .band-note .bl.pb{border-color:#facc15}
+  .tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .tech-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .tech-card h4{font-size:13px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .tech-card .vals{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:#d4d9e2;font-variant-numeric:tabular-nums}
+  .tech-card .vals b{color:#fff}
+  .tech-card .desc{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.7}
+  .t{font-size:11px;font-weight:700;padding:1px 8px;border-radius:10px;white-space:nowrap}
+  .t.up{background:var(--up-soft);color:var(--up)}.t.down{background:var(--down-soft);color:var(--down)}.t.flat{background:rgba(138,147,163,.15);color:var(--flat)}
+  .verdict{background:linear-gradient(135deg,#171a21,#1b2030);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px}
+  .verdict .vh{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .verdict .vlabel{font-size:22px;font-weight:800}
+  .verdict .score{font-size:12px;color:var(--sub)}
+  .verdict .vreason{font-size:13px;line-height:1.9;color:#d4d9e2;margin:0;padding-left:18px}
+  .verdict .vreason li{margin:2px 0}
+  .d-note{font-size:11.5px;color:var(--sub);margin-top:6px;line-height:1.6}
+  @media(max-width:620px){
+    .modal-panel{width:100%}
+    .chart-box{height:300px}
+    .d-head{flex-wrap:wrap}
+    .d-head .px{margin-left:0;width:100%;text-align:left}
+  }
+  /* ============ 公司介绍 / 公告 ============ */
+  .intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .intro-grid .ig{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .intro-grid .ig h4{margin:0 0 6px;font-size:12.5px;color:var(--midstream);font-weight:700}
+  .intro-grid .ig p{margin:0;font-size:12.5px;color:var(--sub);line-height:1.75}
+  @media(max-width:620px){.intro-grid{grid-template-columns:1fr}}
+  .intro-enrich{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .intro-ol{font-size:13.5px;line-height:1.7;color:var(--fg);font-weight:600;padding:2px 0 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .intro-rows{display:flex;flex-direction:column;gap:11px}
+  .intro-rows .ir{display:grid;grid-template-columns:104px 1fr;gap:10px;align-items:start}
+  .intro-rows .irk{flex:0 0 104px;font-size:12px;font-weight:700;color:var(--midstream);padding-top:1px;line-height:1.5}
+  .intro-rows .ir p{margin:0;font-size:12.5px;color:var(--sub);line-height:1.78}
+  .intro-rows .ir.risk .irk{color:#f59e0b}
+  .intro-rows .ir.risk p{color:#d9a441}
+  .perf{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--sub);line-height:1.7}
+  .perf .perf-row{display:grid;grid-template-columns:108px 1fr;gap:10px}
+  .perf .perf-k{flex:0 0 108px;font-weight:700;color:#22d3ee}
+  @media(max-width:620px){.perf .perf-row{grid-template-columns:1fr;gap:1px}.perf .perf-k{margin-bottom:1px}}
+  @media(max-width:620px){.intro-rows .ir{grid-template-columns:1fr;gap:3px}.intro-rows .irk{margin-bottom:1px}}
+  .news-list{list-style:none;margin:6px 0 0;padding:0}
+  .news-list li{display:flex;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .news-list li:last-child{border-bottom:none}
+  .news-list .nd{color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 84px}
+  .news-list .nt{color:var(--text);line-height:1.5}
+  .news-list a{color:var(--midstream);text-decoration:none}
+  .news-list a:hover{text-decoration:underline}
+  /* 公告 / 要闻 双区块 */
+  .news-block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+  .news-block:last-child{margin-bottom:0}
+  .news-h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--midstream);margin-bottom:4px}
+  .news-src{font-size:11px;font-weight:500;color:var(--sub);background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:1px 8px}
+  .news-list li{align-items:flex-start}
+  .news-list .nd{flex:0 0 78px}
+  .news-list .nt{flex:1;min-width:0}
+  .news-loading,.news-empty{color:var(--sub);font-size:12px;display:block}
+  .news-list .tag{flex:0 0 auto;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 6px;line-height:1.5;white-space:nowrap;align-self:center}
+  .tag.t-red{color:#fff;background:var(--down)}
+  .tag.t-blue{color:#fff;background:#3b82f6}
+  .tag.t-green{color:#0b0d10;background:#16b87a}
+  .tag.t-orange{color:#0b0d10;background:#f59e0b}
+  .tag.t-gray{color:var(--sub);background:var(--panel-2);border:1px solid var(--line)}
+  .tag.hot{color:#0b0d10;background:#fbbf24}
+  /* ============ ETF 面板：跟踪指数标签 + 指数详情成分表 ============ */
+  .etf-idx{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.4;display:inline-block;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:1px 8px}
+  .etf-cons{display:flex;flex-direction:column;gap:2px;margin-top:6px;border:1px solid var(--line);border-radius:10px;overflow:hidden;padding:4px}
+  .etf-row{display:grid;grid-template-columns:1fr 94px 56px 60px;gap:8px;align-items:center;padding:6px 6px;border-radius:7px}
+  .etf-row.etf-hrow{color:var(--sub);font-weight:700;font-size:11.5px;border-bottom:1px solid var(--line);border-radius:0;padding-bottom:4px}
+  .etf-row[data-detail]{cursor:pointer}
+  .etf-row[data-detail]:hover{background:var(--panel)}
+  .etf-nm{font-weight:600;color:var(--fg)}
+  .etf-code{color:var(--sub);font-variant-numeric:tabular-nums;font-size:11.5px}
+  .etf-w{color:var(--midstream);font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+  /* 个股详情：成分权重 */
+  .w-block{background:linear-gradient(135deg,#161b22,#1a2030);border:1px solid var(--line);border-left:3px solid var(--midstream);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .w-title{font-size:13px;font-weight:700;color:var(--fg);margin-bottom:8px}
+  .w-sub{font-size:11px;color:var(--sub);font-weight:600;margin:8px 0 5px}
+  .w-rows{display:flex;flex-direction:column;gap:3px}
+  .w-row{display:grid;grid-template-columns:1fr 46px 88px;gap:8px;align-items:center;padding:5px 8px;border-radius:8px;cursor:pointer;background:var(--panel)}
+  .w-row:hover{background:var(--panel-2);box-shadow:0 0 0 1px var(--line)}
+  .w-nm{font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .w-tag{font-size:10px;font-weight:700;color:var(--sub);text-align:center;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:1px 0}
+  .w-w{text-align:right;color:var(--midstream);font-weight:700;font-variant-numeric:tabular-nums}
+  /* ETF 详情现展示完整 K 线/技术面，不再隐藏其它 section */
+  .perf-na{color:var(--sub);font-style:italic}
+  .pct{font-variant-numeric:tabular-nums}
+  .pct.up{color:var(--up);font-weight:700}
+  .pct.down{color:var(--down);font-weight:700}
+  .pct.flat{color:var(--flat);font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">胡</div>
+      <div><h1>胡说·产业链投研</h1><div class="tag">AI产业链 · 商业航天 · 人形机器人 · 医药生物 核心标的总览</div></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="legend">
+      <span><span class="up-chip">●</span> 涨</span><span><span class="down-chip">●</span> 跌</span>
+      <span style="color:var(--upstream)">● AI产业链</span><span style="color:#f97316">● 商业航天</span><span style="color:#06b6d4">● 人形机器人</span><span style="color:#a855f7">● 医药生物</span>
+    </div>
+    <div class="controls">
+      <input type="search" id="search" placeholder="搜索个股 / 代码 / 板块…">
+      <div class="toggle" id="layerFilter">
+        <button data-ind="ai" class="active">AI产业链</button>
+        <button data-ind="space">商业航天</button>
+        <button data-ind="robot">人形机器人</button>
+        <button data-ind="bio">医药生物</button>
+      </div>
+      <button id="refresh">立即刷新</button>
+    </div>
+    <div class="status"><span class="dot" id="liveDot"></span><span id="statusText">连接中…</span><span id="clock"></span></div>
+  </div>
+</header>
+<main id="app"></main>
+<footer>
+  实时行情：腾讯证券（<code>qt.gtimg.cn</code>，JSONP 浏览器直连）；A 股 / 港股 / 美股前复权日 K 线：腾讯（<code>proxy.finance.qq.com</code>，浏览器直连）。区间涨跌为前复权收盘价口径。<br>
+  日涨跌为实时报价，5/20/60 日为前复权区间涨跌幅；北交所仅有实时报价、无浏览器可直连的日 K 线源，故其 5/20/60 日显示「—」。本页为纯静态站点，可托管于 GitHub Pages 等任意静态空间，仅供信息展示，不构成投资建议。
+</footer>
+<div id="detail" class="modal hidden">
+  <div class="modal-mask"></div>
+  <div class="modal-panel">
+    <div class="d-head" id="dHead">
+      <div><div class="nm"></div><div class="meta"></div></div>
+      <div class="px"></div>
+      <button class="d-close" title="关闭 (Esc)">✕</button>
+    </div>
+    <div class="d-body">
+      <div class="d-section"><h3>公司介绍</h3><div id="dIntro"></div></div>
+      <div class="d-section"><h3>日 K 线（前复权 · 含均线 MA / 成交量）
+        <label class="band-toggle"><input type="checkbox" id="bandToggle" checked> 估值带 PE/PB</label></h3>
+        <div class="chart-box" id="dKline"></div>
+        <div class="band-note" id="bandNote"><span class="bl pe"></span>PE 带（粉）·<span class="bl pb"></span>PB 带（黄）：三条虚线为价格处于历史 25% / 50% / 75% 分位时对应的 PE / PB，区间底纹为正常估值区。<b>平带估算</b>——EPS / BVPS 视为区间恒定，仅反映估值相对位置，非交易所逐日真实估值带。</div>
+      </div>
+      <div class="d-section"><h3>技术面综合分析</h3><div class="tech" id="dTech"></div></div>
+      <div class="d-section"><h3>重大公告 · 近期要闻</h3><div id="dNews"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+
+const LAYERS=[
+ {key:'up',name:'上游：基础材料与器件层',sub:'为算力提供底层材料、基板与光通信基础',color:'var(--upstream)',sectors:[
+   {icon:'silicon',title:'单晶硅 / 硅片',stocks:[{n:'沪硅产业',c:'sh688126'}, {n:'TCL中环',c:'sz002129'}, {n:'立昂微',c:'sh605358'}]},
+   {icon:'silicon',title:'碳化硅材料',stocks:[{n:'天岳先进',c:'sh688234'}, {n:'天科合达',c:'sh603660'}, {n:'三安光电',c:'sh600703'}]},
+   {icon:'flask',title:'半导体材料 · 光刻胶',stocks:[{n:'南大光电',c:'sz300346'}, {n:'彤程新材',c:'sh603650'}, {n:'上海新阳',c:'sz300236'}, {n:'晶瑞电材',c:'sz300655'}]},
+   {icon:'flask',title:'半导体材料 · 电子特气',stocks:[{n:'华特气体',c:'sh688268'}, {n:'金宏气体',c:'sh688106'}, {n:'南大光电',c:'sz300346'}, {n:'中船特气',c:'sh688146'}, {n:'昊华科技',c:'sh600378'}, {n:'雅克科技',c:'sz002409'}, {n:'凯美特气',c:'sz002549'}, {n:'林德',c:'usLIN'}, {n:'空气化工',c:'usAPD'}]},
+   {icon:'copper',title:'铜箔 · 电解/压延铜箔',stocks:[{n:'建滔积层板',c:'hk01888'}, {n:'铜冠铜箔',c:'sz301217'}, {n:'中一科技',c:'sz301150'}, {n:'嘉元科技',c:'sh688388'}]},
+   {icon:'pcb',title:'PCB 基材 · 电子级石英布/超薄玻纤布',stocks:[{n:'重庆国际',c:'sz301526'}, {n:'宏和科技',c:'sh603256'}]},
+   {icon:'pcb',title:'PCB 基材 · 高频高速覆铜板 CCL',stocks:[{n:'生益科技',c:'sh600183'}, {n:'华正新材',c:'sh603186'}, {n:'南亚新材',c:'sh688519'}, {n:'金安国纪',c:'sz002636'}]},
+   {icon:'fiber',title:'光通信材料 · 光纤',stocks:[{n:'长飞光纤',c:'sh601869'}, {n:'亨通光电',c:'sh600487'}, {n:'中天科技',c:'sh600522'}, {n:'烽火通信',c:'sh600498'}, {n:'康宁',c:'usGLW'}, {n:'Coherent',c:'usCOHR'}]},
+   {icon:'pcb',title:'玻璃基板',stocks:[{n:'京东方A',c:'sz000725'}, {n:'沃格光电',c:'sh603773'}, {n:'戈碧迦',c:'bj835438'}, {n:'帝尔激光',c:'sz300776'}, {n:'汇成真空',c:'sz301392'}]},
+   {icon:'optic',title:'光通信芯片',stocks:[{n:'源杰科技',c:'sh688498'}, {n:'长光华芯',c:'sh688048'}, {n:'仕佳光子',c:'sh688313'}, {n:'光迅科技',c:'sz002281'}]}
+ ]},
+ {key:'mid',name:'中游：核心硬件层',sub:'AI 算力芯片、存储与光互联，是全链价值核心',color:'var(--midstream)',sectors:[
+   {icon:'chip',title:'半导体设备',stocks:[{n:'中微公司',c:'sh688012'}, {n:'北方华创',c:'sz002371'}, {n:'拓荆科技',c:'sh688072'}, {n:'华峰测控',c:'sh688200'}, {n:'长川科技',c:'sz300604'}]},
+   {icon:'chip',title:'AI 芯片 · 训练推理 GPU',stocks:[{n:'寒武纪',c:'sh688256'}, {n:'壁仞科技',c:'hk06082'}, {n:'海光信息',c:'sh688041'}, {n:'沐曦股份',c:'sh688802'}, {n:'景嘉微',c:'sz300474'}, {n:'摩尔线程',c:'sh688795'}, {n:'英伟达',c:'usNVDA'}, {n:'AMD',c:'usAMD'}, {n:'英特尔',c:'usINTC'}]},
+   {icon:'chip',title:'AI 芯片 · 专用加速芯片 ASIC/TPU',stocks:[{n:'寒武纪',c:'sh688256'}, {n:'平头哥(阿里)',c:'usBABA'}, {n:'百度昆仑芯',c:'usBIDU'}, {n:'腾讯紫霄',c:'hk00700'}, {n:'谷歌TPU',c:'usGOOGL'}, {n:'亚马逊Trainium',c:'usAMZN'}, {n:'微软Maia',c:'usMSFT'}]},
+   {icon:'chip',title:'AI 服务器 CPU',stocks:[{n:'龙芯中科',c:'sh688047'}, {n:'海光信息',c:'sh688041'}, {n:'英特尔',c:'usINTC'}, {n:'AMD',c:'usAMD'}]},
+   {icon:'chip',title:'功率半导体',stocks:[{n:'士兰微',c:'sh600460'}, {n:'华润微',c:'sh688396'}, {n:'扬杰科技',c:'sz300373'}, {n:'东微半导',c:'sh688261'}, {n:'斯达半导',c:'sh603290'}]},
+   {icon:'silicon',title:'晶圆代工与先进封装',stocks:[{n:'中芯国际',c:'sh688981'}, {n:'长电科技',c:'sh600584'}, {n:'华虹半导体',c:'sh688347'}, {n:'通富微电',c:'sz002156'}]},
+   {icon:'pcb',title:'PCB',stocks:[{n:'沪电股份',c:'sz002463'}, {n:'鹏鼎控股',c:'sz002938'}, {n:'深南电路',c:'sz002916'}, {n:'兴森科技',c:'sz002436'}, {n:'胜宏科技',c:'sz300476'}]},
+   {icon:'mem',title:'存储芯片 · DDR5 高速内存',stocks:[{n:'兆易创新',c:'sh603986'}, {n:'北京君正',c:'sz300223'}, {n:'澜起科技',c:'sh688008'}, {n:'聚辰股份',c:'sh688123'}, {n:'美光',c:'usMU'}]},
+   {icon:'mem',title:'存储芯片 · NAND Flash 存储颗粒',stocks:[{n:'兆易创新',c:'sh603986'}, {n:'西部数据',c:'usWDC'}, {n:'美光',c:'usMU'}]},
+   {icon:'optic',title:'光互联与光模块 · 光器件',stocks:[{n:'光库科技',c:'sz300620'}, {n:'腾景科技',c:'sh688195'}, {n:'天孚通信',c:'sz300394'}, {n:'博创科技',c:'sz300548'}, {n:'II-VI(Coherent)',c:'usCOHR'}]},
+   {icon:'optic',title:'光互联与光模块 · 光模块',stocks:[{n:'中际旭创',c:'sz300308'}, {n:'新易盛',c:'sz300502'}, {n:'天孚通信',c:'sz300394'}, {n:'光迅科技',c:'sz002281'}, {n:'华工科技',c:'sz000988'}, {n:'剑桥科技',c:'sh603083'}, {n:'立讯精密',c:'sz002475'}, {n:'Coherent',c:'usCOHR'}, {n:'Marvell',c:'usMRVL'}, {n:'英特尔',c:'usINTC'}, {n:'博通',c:'usAVGO'}, {n:'Macom',c:'usMTSI'}]},
+   {icon:'server',title:'网络与互联设备',stocks:[{n:'中兴通讯',c:'sz000063'}, {n:'紫光股份',c:'sz000938'}, {n:'锐捷网络',c:'sz301165'}, {n:'思科',c:'usCSCO'}, {n:'ARISTA',c:'usANET'}, {n:'瞻博(Juniper)',c:'usJNPR'}]}
+ ]},
+ {key:'down',name:'下游：系统集成与应用层',sub:'服务器、数据中心、云平台到模型与终端应用',color:'var(--downstream)',sectors:[
+   {icon:'server',title:'AI 服务器',stocks:[{n:'浪潮信息',c:'sz000977'}, {n:'工业富联',c:'sh601138'}, {n:'中科曙光',c:'sh603019'}, {n:'中兴通讯',c:'sz000063'}, {n:'紫光股份',c:'sz000938'}, {n:'华勤技术',c:'sh603296'}, {n:'戴尔',c:'usDELL'}, {n:'HPE',c:'usHPE'}, {n:'超微(Supermicro)',c:'usSMCI'}, {n:'联想',c:'usLNVGY'}]},
+   {icon:'data',title:'数据中心 / IDC',stocks:[{n:'润泽科技',c:'sz300442'}, {n:'世纪互联',c:'usVNET'}, {n:'数据港',c:'sh603881'}, {n:'光环新网',c:'sz300383'}, {n:'奥飞数据',c:'sz300738'}, {n:'万国数据',c:'usGDS'}, {n:'Equinix',c:'usEQIX'}, {n:'Digital Realty',c:'usDLR'}]},
+   {icon:'cool',title:'液冷散热',stocks:[{n:'英维克',c:'sz002837'}, {n:'申菱环境',c:'sz301018'}, {n:'高澜股份',c:'sz300499'}, {n:'同飞股份',c:'sz300990'}, {n:'曙光数创',c:'bj872808'}, {n:'Vertiv',c:'usVRT'}, {n:'nVent',c:'usNVT'}]},
+   {icon:'cloud',title:'云计算与AI平台',stocks:[{n:'阿里云',c:'usBABA'}, {n:'腾讯云',c:'hk00700'}, {n:'百度云',c:'usBIDU'}, {n:'AWS',c:'usAMZN'}, {n:'Azure',c:'usMSFT'}, {n:'Google Cloud',c:'usGOOGL'}]},
+   {icon:'llm',title:'大语言模型 LLM',stocks:[{n:'通义千问(阿里)',c:'usBABA'}, {n:'百度(文心)',c:'usBIDU'}, {n:'腾讯(混元)',c:'hk00700'}, {n:'谷歌(Gemini)',c:'usGOOGL'}, {n:'Meta(LLaMA)',c:'usMETA'}]},
+   {icon:'app',title:'AI 应用 · 智能驾驶',stocks:[{n:'小马智行',c:'usPONY'}, {n:'蔚来',c:'usNIO'}, {n:'特斯拉(FSD)',c:'usTSLA'}, {n:'Waymo',c:'usGOOGL'}, {n:'Cruise',c:'usGM'}, {n:'Zoox',c:'usAMZN'}]},
+   {icon:'app',title:'AI 应用 · 机器人',stocks:[{n:'科大讯飞',c:'sz002230'}, {n:'优必选',c:'hk09880'}, {n:'特斯拉',c:'usTSLA'}, {n:'Optimus',c:'usTSLA'}]}
+ ]}
+];
+
+const ETFS=[{n:'科创新材料ETF',c:'sh589180'}, {n:'半导体设备ETF',c:'sh560780'}, {n:'通信ETF',c:'sh515880'}, {n:'科创芯片ETF',c:'sh588890'}, {n:'云计算ETF',c:'sz159273'}, {n:'机器人ETF',c:'sz159559'}, {n:'双创人工智能ETF',c:'sz159142'}];
+
+const ETF_INFO={
+ 'sh589180':{index:'上证科创板新材料指数',cons:[{c:'sh688126',n:'沪硅产业',w:7.09},{c:'sh688122',n:'西部超导',w:7.04},{c:'sh688019',n:'安集科技',w:6.41},{c:'sh688065',n:'凯赛生物',w:3.89},{c:'sh688548',n:'广钢气体',w:3.86},{c:'sh688234',n:'天岳先进',w:3.84},{c:'sh688778',n:'厦钨新能',w:3.17},{c:'sh688102',n:'斯瑞新材',w:3.14},{c:'sh688005',n:'容百科技',w:3.09},{c:'sh688388',n:'嘉元科技',w:3.09},]},
+ 'sh560780':{index:'中证半导体材料设备指数',cons:[{c:'sh688012',n:'中微公司',w:14.9},{c:'sz002371',n:'北方华创',w:12.93},{c:'sh688072',n:'拓荆科技',w:7.42},{c:'sz300604',n:'长川科技',w:6.33},{c:'sh688120',n:'华海清科',w:5.08},{c:'sh688361',n:'中科飞测',w:3.81},{c:'sh688126',n:'沪硅产业',w:3.8},{c:'sz300346',n:'南大光电',w:3.69},{c:'sz300666',n:'江丰电子',w:3.51},{c:'sh688019',n:'安集科技',w:3.44},]},
+ 'sh515880':{index:'中证全指通信设备指数',cons:[{c:'sz300502',n:'新易盛',w:15.0},{c:'sz300308',n:'中际旭创',w:13.66},{c:'sh601138',n:'工业富联',w:10.42},{c:'sz300394',n:'天孚通信',w:7.14},{c:'sz000063',n:'中兴通讯',w:5.35},{c:'sh600487',n:'亨通光电',w:5.3},{c:'sh600522',n:'中天科技',w:4.2},{c:'sz300136',n:'信维通信',w:3.22},{c:'sh600498',n:'烽火通信',w:2.11},{c:'sz002281',n:'光迅科技',w:2.09},]},
+ 'sh588890':{index:'上证科创板芯片指数',cons:[{c:'sh688981',n:'中芯国际',w:9.8},{c:'sh688041',n:'海光信息',w:9.66},{c:'sh688256',n:'寒武纪',w:9.56},{c:'sh688008',n:'澜起科技',w:7.8},{c:'sh688012',n:'中微公司',w:7.3},{c:'sh688521',n:'芯原股份',w:4.05},{c:'sh688525',n:'佰维存储',w:3.76},{c:'sh688072',n:'拓荆科技',w:3.39},{c:'sh688498',n:'源杰科技',w:3.28},{c:'sh688347',n:'华虹公司',w:2.35},]},
+ 'sz159273':{index:'中证云计算与大数据主题指数',cons:[{c:'sz300502',n:'新易盛',w:11.64},{c:'sz300308',n:'中际旭创',w:10.62},{c:'hk00700',n:'腾讯控股',w:8.27},{c:'hk09988',n:'阿里巴巴-W',w:8.02},{c:'sh603019',n:'中科曙光',w:6.91},{c:'sz300442',n:'润泽科技',w:3.97},{c:'sz000977',n:'浪潮信息',w:3.47},{c:'sh688111',n:'金山办公',w:3.25},{c:'sz000938',n:'紫光股份',w:3.0},{c:'sz002261',n:'拓维信息',w:2.59},]},
+ 'sz159559':{index:'中证机器人指数',cons:[{c:'sh688017',n:'绿的谐波',w:6.29},{c:'sz002472',n:'双环传动',w:4.66},{c:'sz300024',n:'机器人',w:4.41},{c:'sh688169',n:'石头科技',w:4.13},{c:'sz300432',n:'富临精工',w:3.23},{c:'sh603486',n:'科沃斯',w:3.23},{c:'sz002230',n:'科大讯飞',w:3.05},{c:'sz002050',n:'三花智控',w:2.95},{c:'sz300124',n:'汇川技术',w:2.94},{c:'sh603728',n:'鸣志电器',w:2.85},]},
+ 'sz159142':{index:'中证科创创业人工智能指数',cons:[{c:'sz300502',n:'新易盛',w:10.96},{c:'sh688008',n:'澜起科技',w:10.15},{c:'sz300308',n:'中际旭创',w:9.95},{c:'sh688256',n:'寒武纪',w:7.0},{c:'sh688521',n:'芯原股份',w:5.26},{c:'sz300442',n:'润泽科技',w:4.68},{c:'sh688111',n:'金山办公',w:3.81},{c:'sz300857',n:'协创数据',w:3.59},{c:'sz300418',n:'昆仑万维',w:3.05},{c:'sz300223',n:'北京君正',w:2.51},]},
+};
+
+
+/* ============== 商业航天 / 人形机器人 / 医药生物（简单框架，仿 AI 产业链结构） ============== */
+const SPACE_LAYERS=[
+ {key:'sp_sat',name:'卫星制造与载荷',short:'卫星制造',color:'#f97316',sectors:[
+   {icon:'server',title:'整机 / 整星制造',stocks:[{n:'中国卫星',c:'sh600118'}, {n:'上海沪工',c:'sh603131'}, {n:'航天电子',c:'sh600879'}]},
+   {icon:'chip',title:'卫星载荷与星载设备',stocks:[{n:'航天电子',c:'sh600879'}, {n:'振芯科技',c:'sz300101'}]}
+ ]},
+ {key:'sp_launch',name:'火箭发射与动力',short:'火箭发射',color:'#f97316',sectors:[
+   {icon:'server',title:'运载火箭 / 动力',stocks:[{n:'航天动力',c:'sh600343'}, {n:'斯瑞新材',c:'sh688102'}, {n:'超捷股份',c:'sz301005'}]}
+ ]},
+ {key:'sp_comm',name:'卫星通信与导航',short:'卫星通信',color:'#f97316',sectors:[
+   {icon:'fiber',title:'卫星通信 / 地面站',stocks:[{n:'中国卫通',c:'sh601698'}, {n:'华力创通',c:'sz300045'}, {n:'震有科技',c:'sh688418'}, {n:'三维通信',c:'sz002115'}]},
+   {icon:'app',title:'北斗导航与终端',stocks:[{n:'北斗星通',c:'sz002151'}, {n:'华测导航',c:'sz300627'}, {n:'中海达',c:'sz300177'}]}
+ ]},
+ {key:'sp_mat',name:'航天材料与部件',short:'材料部件',color:'#f97316',sectors:[
+   {icon:'flask',title:'高温合金 / 特种材料',stocks:[{n:'钢研高纳',c:'sz300034'}, {n:'图南股份',c:'sz300855'}, {n:'菲利华',c:'sz300395'}]},
+   {icon:'chip',title:'连接器 / 电子部件',stocks:[{n:'航天电器',c:'sz002025'}, {n:'中航光电',c:'sz002179'}]}
+ ]}
+];
+const ROBOT_LAYERS=[
+ {key:'rb_body',name:'本体与总成',short:'整机本体',color:'#06b6d4',sectors:[
+   {icon:'app',title:'人形机器人本体',stocks:[{n:'拓普集团',c:'sh601689'}, {n:'三花智控',c:'sz002050'}, {n:'埃斯顿',c:'sz002747'}, {n:'汇川技术',c:'sz300124'}]}
+ ]},
+ {key:'rb_redu',name:'减速器',short:'减速器',color:'#06b6d4',sectors:[
+   {icon:'chip',title:'谐波 / RV 减速器',stocks:[{n:'绿的谐波',c:'sh688017'}, {n:'双环传动',c:'sz002472'}, {n:'中大力德',c:'sz002896'}, {n:'丰立智能',c:'sz301368'}]}
+ ]},
+ {key:'rb_screw',name:'丝杠与关节',short:'丝杠关节',color:'#06b6d4',sectors:[
+   {icon:'chip',title:'行星滚柱丝杠 / 轴承',stocks:[{n:'五洲新春',c:'sh603667'}, {n:'北特科技',c:'sh603009'}, {n:'贝斯特',c:'sz300580'}, {n:'恒立液压',c:'sh601100'}]}
+ ]},
+ {key:'rb_sensor',name:'传感器与视觉',short:'传感器',color:'#06b6d4',sectors:[
+   {icon:'chip',title:'力觉 / 视觉传感器',stocks:[{n:'柯力传感',c:'sh603662'}, {n:'奥比中光',c:'sh688322'}, {n:'汉威科技',c:'sz300007'}]}
+ ]},
+ {key:'rb_motor',name:'电机与控制器',short:'电机控制',color:'#06b6d4',sectors:[
+   {icon:'chip',title:'空心杯电机 / 伺服',stocks:[{n:'鸣志电器',c:'sh603728'}, {n:'江苏雷利',c:'sz300660'}, {n:'步科股份',c:'sh688160'}]}
+ ]}
+];
+const BIO_LAYERS=[
+ {key:'bio_inno',name:'创新药',short:'创新药',color:'#a855f7',sectors:[
+   {icon:'flask',title:'化学 / 生物创新药',stocks:[{n:'恒瑞医药',c:'sh600276'}, {n:'百济神州',c:'sh688235'}, {n:'信达生物',c:'hk01801'}, {n:'君实生物',c:'sh688180'}, {n:'复星医药',c:'sh600196'}]}
+ ]},
+ {key:'bio_cro',name:'CXO / 研发外包',short:'CXO',color:'#a855f7',sectors:[
+   {icon:'flask',title:'CRO / CDMO',stocks:[{n:'药明康德',c:'sh603259'}, {n:'康龙化成',c:'sz300759'}, {n:'泰格医药',c:'sz300347'}, {n:'凯莱英',c:'sz002821'}]}
+ ]},
+ {key:'bio_dev',name:'医疗器械与设备',short:'医疗器械',color:'#a855f7',sectors:[
+   {icon:'server',title:'医疗设备 / IVD',stocks:[{n:'迈瑞医疗',c:'sz300760'}, {n:'联影医疗',c:'sh688271'}, {n:'鱼跃医疗',c:'sz002223'}, {n:'新产业',c:'sz300832'}]}
+ ]},
+ {key:'bio_vac',name:'疫苗与生物制品',short:'疫苗生物',color:'#a855f7',sectors:[
+   {icon:'flask',title:'疫苗 / 血制品',stocks:[{n:'智飞生物',c:'sz300122'}, {n:'长春高新',c:'sz000661'}, {n:'沃森生物',c:'sz300142'}, {n:'天坛生物',c:'sh600161'}]}
+ ]}
+];
+const INDUSTRIES=[
+  {key:'ai',   label:'AI产业链',  color:'#6366f1', layers:LAYERS},
+  {key:'space',label:'商业航天',  color:'#f97316', layers:SPACE_LAYERS},
+  {key:'robot',label:'人形机器人',color:'#06b6d4', layers:ROBOT_LAYERS},
+  {key:'bio',  label:'医药生物',  color:'#a855f7', layers:BIO_LAYERS},
+];
+const SHORT={up:'上游',mid:'中游',down:'下游'};
+function allLayers(){return INDUSTRIES.flatMap(i=>i.layers);}
+function layerShort(l){return SHORT[l.key]||l.short||l.name;}
+function activeLayers(){const ind=INDUSTRIES.find(i=>i.key===activeIndustry)||INDUSTRIES[0];return ind.layers;}
+
+/*__PROFILES_START__*/
+const PROFILES={
+'sh688126':{one_liner:'国内300mm大硅片国产替代主力，晶圆制造的底层基础材料供应商，与AI算力芯片（逻辑/存储）强相关但处在产业链最上游、离终端应用较远。',biz:'半导体硅片，300mm大硅片为主力，200mm及以下硅片为辅；境内/海外销售并重。',edge:'国内少数能量产12英寸大硅片的企业，300mm产品已通过中芯国际、长江存储、华虹等头部晶圆厂认证（据公开资料认证产品750+款）；临港、太原项目规模化扩产，产能居国内前列。',role_in_ai:'AI角色是‘卖铲子’的最上游：AI训练/推理芯片（GPU、HBM、逻辑SoC）均需在大硅片上制造，沪硅是大硅片国产替代核心。但它不是AI芯片或设备厂商，收入受硅片行业价格周期影响大，与AI景气间接挂钩而非直接。',risk:'全球硅片价格承压、300mm硅片单价同比下降拖累盈利；持续高资本开支与折旧压力；进口依赖度仍高（中国300mm硅片进口依赖超80%），客户验证与量产爬坡存在不确定性。',perf:{'y2025':'营收37.16亿元（+9.69%），归母净亏15.08亿元（亏损同比扩大55.33%）','q1_2026':'营收10.84亿元（+35.22%），归母净亏4.83亿元（亏损同比扩大131.67%）','h1_2026':'暂无披露'}},
+'sz002129':{one_liner:'全球光伏硅片龙头，半导体硅片是其占比小且仍在亏损的第二主业，与AI直接相关度低。',biz:'光伏新能源材料为主，核心为单晶硅片、太阳能电池及组件，下游覆盖光伏电站。',edge:'光伏单晶硅片全球领先（G12大尺寸、N型技术），规模与成本优势明显；半导体材料以6/8英寸硅片为主并推进12英寸，但体量和技术成熟度远不及专业硅片厂。',role_in_ai:'在AI产业链中并非核心环节：光伏硅片与AI无关；半导体硅片主要供功率器件、模拟芯片等成熟制程，不直接用于先进逻辑/存储。归类为‘半导体材料’易被高估——其半导体业务占比不足两成且持续亏损。',risk:'光伏主链供需错配、价格跌破现金成本导致连续两年巨亏；半导体材料业务占比小且仍亏损；行业高开工竞争、存货跌价（2024年存货跌价约33亿元）风险高。',perf:{'y2025':'营收290.50亿元（+2.22%），归母净亏92.64亿元（同比减亏5.65%）','q1_2026':'营收65.49亿元（+7.34%），归母净亏16.47亿元（同比减亏13.62%）','h1_2026':'暂无披露'}},
+'sh605358':{one_liner:'国内稀缺的‘硅片+功率器件+化合物射频/光电芯片’垂直一体化平台，跨材料与器件两端。',biz:'半导体硅片（12英寸为主）、半导体功率器件与化合物半导体射频芯片；12英寸硅片为核心增长业务。',edge:'重掺硅片技术优势突出，是国内极少数的半导体垂直一体化平台（从硅材料到功率/射频芯片闭环）；12英寸硅片出货量快速提升，外延片订单饱满。',role_in_ai:'跨多环节：硅片供应功率/模拟芯片制造，化合物半导体射频芯片用于5G/光通信/射频前端（间接服务于数据中心与通信设备）。但主营以成熟制程硅片为主，并非AI先进逻辑/存储核心材料，更偏‘功率与射频’支撑而非算力核心。',risk:'折旧摊销约9.38亿元、硅片及功率器件降价致上市以来亏损；应收账款体量大（曾占归母净资产超10倍）；化合物半导体放量与客户导入存不确定性。',perf:{'y2025':'营收35.91亿元（+16.12%），归母净亏1.42亿元（同比减亏46.40%）','q1_2026':'营收9.99亿元（+21.81%），归母净利722.46万元','h1_2026':'暂无披露'}},
+'sz300346':{one_liner:'国内唯一实现ArF光刻胶规模化量产并向头部晶圆厂稳定供货的企业，同时是全球MO源龙头与氢类电子特气供应商。',biz:'电子特气/MO源、半导体前驱体材料、光刻胶及配套材料，先进制程用前驱体为核心增长引擎。',edge:'ArF光刻胶是国内唯一规模化量产且向头部晶圆厂稳定供货者（据公开互动，供应中芯国际、长鑫等，受益日系出口审批收紧的国产替代窗口）；MO源全球份额领先，氢类特气为前驱体/沉积关键材料。',role_in_ai:'直接卡点先进制程：ArF光刻胶用于28/14nm等逻辑与存储芯片光刻，是AI芯片制造的关键耗材；MO源/前驱体用于薄膜沉积。是少数真正触碰‘先进制程光刻材料’环节的本土公司。',risk:'ArF光刻胶收入仍仅千万级、尚未满产，短期对业绩贡献有限；日系供给收紧是机会也反映‘独苗’脆弱性；特气/MO源价格波动。',perf:{'y2025':'营收25.85亿元（+9.93%），归母净利3.20亿元（+18.00%）','q1_2026':'营收6.62亿元（+5.45%），归母净利1.24亿元（+29.97%）','h1_2026':'暂无披露'}},
+'sh603650':{one_liner:'以特种橡胶助剂为基本盘、半导体光刻胶（KrF国内第一）与显示面板光刻胶双线突破的平台型材料商。',biz:'新材料综合服务商，主营电子化学品（光刻胶及配套试剂、显示面板材料，占营收约28.78%且高增）、汽车/轮胎用特种橡胶助剂、全生物降解材料（可降解塑料）等。',edge:'KrF光刻胶国内市占率稳居第一，I线/化学放大I线（ICA）高速增长；面板光刻胶本土第一大供应商（在京东方等份额超50%）；CMP抛光垫新建产能补齐‘光刻+抛光’版图。',role_in_ai:'多环节材料商：半导体光刻胶主要用于成熟制程（I线/KrF为主，ArF刚验证），服务功率/模拟/显示驱动IC，非AI先进逻辑核心；面板光刻胶供显示面板。与AI直接关联弱于南大光电的ArF，更偏成熟制程与显示配套。',risk:'光刻胶以成熟制程为主、ArF占比小；CMP抛光垫尚处试产未放量；传统橡胶助剂为基本盘，新材料贡献仍需时间。',perf:{'y2025':'营收34.29亿元（+4.85%），归母净利5.63亿元（+8.86%）','q1_2026':'营收10.49亿元（+22.51%），归母净利1.82亿元（+13.83%）','h1_2026':'暂无披露'}},
+'sz300236':{one_liner:'国内电镀液及清洗液龙头，唯一满足芯片90-14nm铜制程全部技术节点电镀/清洗要求的本土企业，并拓展光刻胶与抛光液。',biz:'半导体材料平台，五大材料布局：电镀液及添加剂、清洗液、刻蚀液、CMP研磨液、光刻胶；另有传统建筑涂料业务（内卷承压）。',edge:'国内唯一能满足90-14nm铜互连制程全部技术节点对电镀、清洗产品要求的本土企业；在上海与合肥布局晶圆及先进封装材料产能，客户覆盖国内主流晶圆厂与封测厂。',role_in_ai:'位于晶圆制造与先进封装的化学材料环节：电镀/清洗液是芯片制造（含AI逻辑/存储产线）与先进封装（CoWoS类）的必需耗材，先进封装恰是AI芯片产能瓶颈之一，故与AI算力扩产间接强相关。',risk:'高端光刻胶、抛光液等仍处客户导入与放量初期；研发投入与新增产能折旧压制利润；相对国际巨头产品矩阵仍窄。',perf:{'y2025':'营收19.37亿元（+31.28%），归母净利3.01亿元（+71.12%）','q1_2026':'营收5.77亿元（+33.05%），归母净利1.04亿元（+102.59%）','h1_2026':'暂无披露'}},
+'sz300655':{one_liner:'高纯湿电子化学品（双氧水/硫酸/氨水）放量、光刻胶成熟制程布局的本土材料商，2024年因商誉减值与折旧首亏。',biz:'主营电子化学品，以高纯湿化学品（高纯双氧水、氨水等）、光刻胶及配套试剂、锂电池材料（NMP等）为核心；高纯湿化学品为第一大业务（占营收约58%）。',edge:'G5级高纯双氧水、高纯硫酸等达到晶圆制造最高纯度等级并大批量出货；高纯化学品销量规模居本土前列，绑定国内晶圆厂湿法清洗/显影环节。',role_in_ai:'跨湿电子化学品与光刻胶两环节：高纯化学品用于晶圆清洗/显影（先进与成熟制程都用），是制造必需配套；光刻胶以成熟制程为主，与AI先进逻辑制造关联弱。整体属‘卖水’型基础材料，非卡点环节。',risk:'大额商誉减值、固定资产折旧与利息支出拖累致首亏；光刻胶仍以中低端为主；新增产能消化与价格竞争。',perf:{'y2025':'营收16.10亿元（+12.17%），归母净利1.49亿元（+183.16%）','q1_2026':'营收4.19亿元（+13.39%），归母净利669.18万元（-84.62%）','h1_2026':'暂无披露'}},
+'sh688268':{one_liner:'国内唯一多款光刻气同时通过ASML与日本GIGAPHOTON认证的电子特气平台商，是光刻机光源的‘卡点’材料。',biz:'电子特种气体（含光刻气、EUV氦气等）研发生产销售，主营半导体用特气；核心特气产品销量提升但价格承压。',edge:'国内唯一一家多款稀混光刻气（含微量氟）同时通过荷兰ASML和日本GIGAPHOTON认证的气体企业（全球仅四家之一），相关产品已在各大半导体产线规模化应用；覆盖国内8/12英寸集成电路产线。',role_in_ai:'直接卡点：光刻气是光刻机激光光源激发的必需混合气，没有它光刻机无法稳定工作，是先进制程制造的‘咽喉’耗材，与AI芯片光刻高度相关。属真正被‘卡脖子’的环节，稀缺性高于普通电子特气。',risk:'2024年营收下滑（价格波动/需求节奏）；特气赛道竞争加剧、部分品类降价；多基地建设资本开支与费用计提压力。',perf:{'y2025':'营收14.19亿元（+1.70%），归母净利1.35亿元（-26.75%）','q1_2026':'营收3.84亿元（+13.70%），归母净利3387.66万元（-23.70%）','h1_2026':'暂无披露'}},
+'sh688106':{one_liner:'大型综合气体供应商，以电子特种气体+电子大宗载气配套晶圆厂为主，是‘供气站’型配套而非单点卡点材料。',biz:'电子特种气体、大宗气体及天然气研发销售，覆盖半导体、面板等泛半导体领域；电子特气为主力，正推进新疆BOG提氦项目',edge:'综合气体供应链与区域客户覆盖广，超纯氨等单品具规模优势；能为晶圆厂提供‘特气+大宗载气+现场制气’一体化配套，客户黏性较高。',role_in_ai:'位于电子特气与大宗气体配套环节，供晶圆厂制造所需各类气体（含清洗、沉积、外延等），是AI芯片产能扩张的‘基础设施配套’，但属通用供气而非不可替替代的卡点材料，技术稀缺性低于华特/中船的光刻气与NF3/WF6。',risk:'部分产品价格处周期底部、净利大幅下滑；综合气体中低端占比高、毛利承压；电子特气收入占比仍有限。',perf:{'y2025':'营收27.77亿元（+9.95%），归母净利1.32亿元（-34.44%）','q1_2026':'营收6.63亿元（+6.53%），归母净利486.91万元（-88.93%）','h1_2026':'暂无披露'}},
+'sh688146':{one_liner:'中船集团旗下电子特气龙头，三氟化氮、六氟化钨产能全球第一，是刻蚀/沉积环节国产替代核心。',biz:'电子特种气体（六氟化钨、三氟化氮等）及三氟甲磺酸系列产品的研发、生产与销售，半导体材料，电子特气为核心收入来源。',edge:'三氟化氮、六氟化钨产能均居世界第一，六氟化钨全球市占率超70%；产品应用于台积电3nm、中芯国际等先进制程，是国内电子特气收入第一、唯一进入全球前十的中国供应商。',role_in_ai:'刻蚀与沉积用电子特气（NF3清洗、WF6钨沉积）是先进逻辑/存储制造必需，直接服务AI芯片产线，国产替代刚性需求强。属‘先进制程必备耗材’，卡点程度与华特光刻气同属高稀缺环节。',risk:'三氟化氮等主要产品竞争加剧、毛利率下滑；2024年增收不增利；高端前驱体等新品类放量与客户认证进度不确定。',perf:{'y2025':'营收22.60亿元（+15.88%），归母净利3.46亿元（+12.43%）','q1_2026':'营收7.01亿元（+36.00%），归母净利1.01亿元（+16.86%）','h1_2026':'暂无披露'}},
+'sh600378':{one_liner:'中国中化旗下高端化工材料平台型央企，电子特气（含氟气+离子注入掺杂气）是其子集，并非纯半导体材料标的。',biz:'高端氟材料（量价齐升）、电子特气（六氟丁二烯/六氟化钨等，毛利率高）、制冷剂、锂电材料及航空化工材料，公司称“3+1”业务板块。',edge:'央企平台、研发与资源壁垒高；六氟化钨产能国内第二（仅次于中船特气），是长鑫存储等DRAM厂核心电子特气供应商；离子注入掺杂气（磷烷/砷烷/硼烷）技术门槛高、供应稀缺。',role_in_ai:'电子特气板块间接支撑芯片制造——含氟特气用于刻蚀/清洗、掺杂气用于离子注入，服务长鑫等存储产线（AI算力所需DRAM/HBM的本土供应链）。但电子特气仅占集团收入一小部分，主体是高端氟材料（氟制冷剂/氟聚合物），与AI关联被‘半导体材料’标签放大。',risk:'电子特气非最大板块、业绩由氟材料周期主导；化工产品价格回落与并表消化压力；相对中船特气专注度低。',perf:{'y2025':'营收166.89亿元（+19.49%），归母净利14.44亿元（+37.07%）','q1_2026':'营收42.31亿元（+34.02%），归母净利3.08亿元（+66.73%）','h1_2026':'暂无披露'}},
+'sz002409':{one_liner:'半导体材料平台型公司（前驱体+光刻胶+LDS 设备），前驱体已覆盖 12 寸晶圆客户。',biz:'电子材料平台型：半导体前驱体、光刻胶/电子特气、LNG保温绝热板材、阻燃剂。',edge:'半导体前驱体销售额近 20 亿、已实现 12 寸晶圆客户端全覆盖；LDS 材料输送设备对标欧美、局部领先，国内市场占有率领先。',role_in_ai:'处于 AI 芯片制造材料环节——前驱体/光刻胶是 GPU 等先进制程必需耗材，但属「卖水人」式间接供应，不直接制造 AI 硬件。',risk:'客户集中（晶圆厂）、半导体材料认证周期长，LNG 板材业务受能源周期与项目节奏影响。',perf:{'y2025':'营收86.11亿元（+25.49%），归母净利10.00亿元（+14.77%）','q1_2026':'营收19.73亿元（-6.85%），归母净利2.67亿元（+2.47%）','h1_2026':'暂无披露'}},
+'sz002549':{one_liner:'食品级CO2龙头跨界电子特气，光刻气获ASML子公司Cymer认证（国内唯二之一），但电子特气收入占比仍极小。',biz:'工业气体与电子特种气体（食品级/电子级二氧化碳、氢气、稀有气体等），以气体分离提纯为核心。',edge:'光刻气（激光混配气）通过ASML子公司Cymer认证（国内仅两家之一），纯度达6N级（99.9999%），覆盖ArF/KrF等高端光刻气；传统食品级CO2客户与渠道稳固。',role_in_ai:'光刻气是光刻机激光光源混合气、与华特气体同属‘光刻机咽喉’材料，理论上直接服务先进制程，但公司收入规模极小、电子特气尚处认证后放量初期（产能约6000m³/年待扩），实际对AI产业链的供给贡献目前有限。',risk:'电子特气收入占比极低（<2%），传统CO2/可燃气为基本盘；光刻气产能受限、客户导入需18-24个月；此前业绩靠股权激励费用减少扭亏，主业盈利质量待观察。',perf:{'y2025':'营收6.27亿元（+6.57%），归母净利6855.57万元（同比扭亏，+241.16%）','q1_2026':'营收1.54亿元（-5.56%），归母净利1073.20万元（-66.20%）','h1_2026':'暂无披露'}},
+'usLIN':{one_liner:'全球最大工业气体公司，半导体电子特气与现场制气(on-site)双轮驱动，是AI芯片晶圆厂扩产的刚性\'卖水人\'。',biz:'全球工业气体龙头，气体业务（工业/医用/电子特气）与工程业务（Linde Engineering）两大板块。',edge:'全球最大工业气体供应网络与现场制气长协模式锁定客户；超高纯电子特气提纯与大宗气体一体化能力；2003年在苏州建成中国首家国际气体公司规模化电子特气基地，可供应上百种特气。',role_in_ai:'真实角色是晶圆制造的气体基础设施提供商，而非普通\'材料商\'：为芯片厂供应沉积/刻蚀/清洗用超高纯电子特气及现场大宗氮气/氧气，AI算力芯片扩产直接拉动其电子气与on-site需求。',risk:'重资本开支（on-site项目投入大）、能源价格波动、欧美/中国工业端需求疲弱、大型并购后的整合与执行风险。',perf:{'y2025':'营收339.86亿美元（+2.96%），归母净利68.98亿美元（+5.06%）','q1_2026':'营收87.81亿美元（+8%），归母净利18.57亿美元（+11%）','h1_2026':'暂无披露'}},
+'usAPD':{one_liner:'全球前三工业气体巨头，以现场制气、空分液氧氮及电子特气服务半导体/面板厂，与林德高度同质、同为晶圆厂\'卖水人\'。',biz:'全球工业气体与特种气体龙头，业务涵盖工业气体（大气气体、氢气、CO2）、特种气体、氦气、液化天然气(LNG)相关，按区域（美洲/EMEA/亚太）及能源、化工、电子、医疗等行业客户供气。',edge:'大型空分与现场制气技术、全球供气网络；液氢/绿氢布局行业领先；与林德、法液空、大阳日酸同列全球电子特气第一梯队。',role_in_ai:'与林德一致，是芯片/面板厂的气体基础设施供应商，提供电子特气与大宗气体，属AI芯片扩产刚性上游；并非AI\'材料\'而是底层气体供应链。',risk:'重资本与能源成本；大型绿氢/基建项目资本开支与执行风险；出售LNG后增长更依赖工业气体与氢能景气。',perf:{'y2025':'营收120.4亿美元（-1%），归母净亏3.95亿美元（由盈转亏）','q1_2026':'营收31.02亿美元（+5.8%），归母净利润6.78亿美元（+10%）','h1_2026':'暂无披露'}},
+'hk01888':{one_liner:'全球覆铜板市占率第一（Prismark：2022年>15%）的FR-4及高性能覆铜板龙头，AI服务器与汽车板需求拉动量价齐升。',biz:'覆铜面板（CCL）龙头，产品含环氧玻璃纤维覆铜板、纸覆铜板、阻燃板（FR-4/PP/CEM-1）等；纵向一体化布局铜箔、玻璃纱/布、漂白木浆纸等上游原材料，受益AI算力与PCB涨价。',edge:'垂直一体化（铜箔+玻纤布+树脂+覆铜板）带来成本优势；规模全球第一、议价权强；AI相关高阶材料布局推进。',role_in_ai:'传统归类为\'覆铜板\'，实际是AI服务器PCB最直接的核心基材之一——高多层/高速覆铜板需求大增，公司是全球份额最大供应商之一；但主力仍以中端FR-4为主，高端高速材料占比相对生益科技偏低（据公开资料/推测）。',risk:'覆铜板强周期、铜/玻纤等原料价格波动；AI高端材料竞争中被生益及台系厂商挤压；地产与消费电子需求拖累传统业务。',perf:{'y2025':'营收204.00亿港元（+10%），归母净利润24.42亿港元（+84%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz301217':{one_liner:'国内高精度电子铜箔厂商，PCB铜箔+锂电铜箔双主业，正押注AI服务器用高端HVLP铜箔。',biz:'主营PCB铜箔与锂电池铜箔，PCB铜箔占比约55%、锂电池铜箔约39%，另有铜箔日用品等业务；高端HVLP铜箔为增量方向。',edge:'背靠铜陵有色保障铜原料；6μm极薄锂电铜箔量产能力；切入高端PCB铜箔（HVLP）以对接AI高速板。',role_in_ai:'AI服务器PCB需超低轮廓(HVLP/RTLP)铜箔降信号损耗，公司推进高端PCB铜箔；但当前利润仍被中低端锂电铜箔与HTE拖累，AI贡献尚小、处投入期。',risk:'锂电铜箔产能过剩、加工费低迷致毛利率极低（0.19%）；高端产品放量不确定；铜价波动。',perf:{'y2025':'营收66.89亿元（+41.75%），归母净利润0.63亿元（扭亏）','q1_2026':'营收18.42亿元（+32.04%），归母净利润1.06亿元（+2138.17%）','h1_2026':'暂无披露'}},
+'sz301150':{one_liner:'以锂电铜箔为主（2024占比约78%）的电解铜箔厂，标准铜箔占约21%，与AI直接关联弱。',biz:'各类单/双面光高性能电解铜箔（锂电铜箔、电子电路铜箔）研发生产销售。',edge:'锂电铜箔6μm量产、产能利用率高（2023年约102.6%）；客户覆盖动力/储能电池厂。',role_in_ai:'主营为动力电池铜箔，与AI直接关联弱；电子电路铜箔(标准铜箔)可供给覆铜板/PCB厂，但高端HVLP类贡献有限，AI标签更多是主题层面（据公开资料）。',risk:'锂电铜箔加工费下行致2024年由盈转亏；行业产能过剩；客户集中与应收账款减值风险。',perf:{'y2025':'营收58.74亿元（+22.73%），归母净利润0.65亿元（+177.6%）','q1_2026':'营收17.97亿元（+43.94%），归母净利润0.71亿元（+2297.1%）','h1_2026':'暂无披露'}},
+'sh688388':{one_liner:'高性能锂电铜箔为主（2024占营收超八成）、高度依赖宁德时代的铜箔厂商，近年陷入上市首亏。',biz:'各类高性能电解铜箔（锂电铜箔、标准铜箔）研发制造，应用于动力电池、储能及PCB；锂电铜箔为主力，受益铜箔加工费涨价与高端产品放量',edge:'极薄锂电铜箔(≤6μm)量产能力；宁德时代核心供应商；但\'宁王依赖症\'客户集中度高。',role_in_ai:'与AI直接关联弱，主营动力/储能锂电铜箔；标准铜箔可流向PCB但占比小且亏损，AI算力受益有限。',risk:'客户高度集中（宁德）；锂电铜箔加工费下滑致上市首亏；扩产项目效益不达预期；经营现金流为负（-12.54亿元）。',perf:{'y2025':'营收96.43亿元（+47.85%），归母净利润0.57亿元（扭亏）','q1_2026':'营收34.45亿元（+73.94%），归母净利润1.21亿元（+392.77%）','h1_2026':'暂无披露'}},
+'sz301526':{one_liner:'云天化旗下老牌玻璃纤维厂商，主业风电/热塑玻纤纱，正切入AI服务器用特种电子布（二代/三代Low-CTE）。',biz:'玻璃纤维及制品（玻纤纱、电子布、低介电布等）的研发、生产与销售，应用于风电、电子电气、汽车、基建等领域。',edge:'玻纤全系列产品（粗纱到细纱）与成本控制、云天化集团产业链；在二代布(LDK2)规模与三代Low-CTE产品布局（据雪球/公开资料）。',role_in_ai:'真实角色跨两端：传统是风电/建材玻纤，AI侧是服务器PCB用低损耗/低膨胀(Low-CTE)电子布的玻纤纱供应商，属AI PCB上游\'卖铲人\'，但电子布占比仍小、传统业务占主导。',risk:'玻纤强周期、传统业务景气波动；电子布新产能爬坡与良率；中国巨石/中材科技等龙头竞争。',perf:{'y2025':'营收86.58亿元（+17.60%），归母净利润2.72亿元（扭亏）','q1_2026':'营收22.15亿元（+18.51%），归母净利润2.70亿元（+412.94%）','h1_2026':'暂无披露'}},
+'sh603256':{one_liner:'全球领先高端电子级玻璃纤维布供应商，主攻超薄/极薄布与AI服务器用特种电子布（Low-CTE）。',biz:'中高端电子级玻璃纤维布，含普通E玻纤布、高性能特种低介电电子布（LD布）等，应用于AI服务器/消费电子PCB。',edge:'超薄/极薄电子布技术壁垒高（纱到布一体化）；AI服务器用Low-CTE特种布量产；高端客户认证壁垒。',role_in_ai:'是AI服务器PCB用高端电子布核心供应商之一，特种布（低介电/低膨胀）直接用于高速高频PCB基材，AI红利真实且毛利极高（61%）；与常见\'玻纤\'归类不同，实际卡位AI PCB最关键环节之一。',risk:'规模偏小（营收约10亿级）；依赖下游PCB与终端AI投资节奏；普通布价格周期；扩产资本开支。',perf:{'y2025':'营收11.71亿元（+40.31%），归母净利润2.02亿元（+785.55%）','q1_2026':'营收4.42亿元（+79.72%），归母净利润1.40亿元（+354.22%）','h1_2026':'暂无披露'}},
+'sh600183':{one_liner:'全球第二大、国内第一大覆铜板龙头，AI服务器用M7/M8/M9高速高频基材核心供应商，并向下游PCB延伸。',biz:'覆铜板、粘结片、印制电路板(PCB，子公司生益电子)为主，高频高速覆铜板及高端PCB占比提升。',edge:'自主研发M7/M8/M9高速高频基材（适配AI低损耗需求）；据公开报道产品通过英伟达等认证；规模全球第二、覆铜板+PCB全链布局。',role_in_ai:'典型\'卖铲人\'，是AI服务器PCB基材国产替代核心；其高速材料是GPU主板/交换机必需基材，AI是高端产品放量主驱动，与单纯FR-4厂商定位明显不同。',risk:'高端产品客户认证与良率；AI资本开支周期波动；铜/玻纤/树脂成本；台系厂商（如台光电）竞争。',perf:{'y2025':'营收284.31亿元（+39.45%），归母净利润33.34亿元（+91.75%）','q1_2026':'营收81.41亿元（+45.09%），归母净利润11.58亿元（+105.47%）','h1_2026':'暂无披露'}},
+'sh603186':{one_liner:'覆铜板厂商，2024仍亏损、2025扭亏，布局高频高速及IC载板类材料。',biz:'覆铜板(CCL)、粘结片及复合材料（铝塑膜、蜂窝板等）；覆铜板为主，受益AI服务器高端板材需求。',edge:'覆铜板+导热材料+粘结片产品矩阵；定增募资扩高端覆铜板；高频高速材料布局推进。',role_in_ai:'以中端覆铜板为主，AI高速材料处投入/放量早期，属AI PCB潜在二供梯队，真实AI贡献尚低于生益科技与南亚新材。',risk:'2024仍亏损、毛利率承压；扩产资本开支与回报不确定；覆铜板强周期。',perf:{'y2025':'营收43.69亿元（+13.05%），归母净利润2.77亿元（扭亏）','q1_2026':'营收12.34亿元（+19.84%），归母净利润0.31亿元（+68.04%）','h1_2026':'暂无披露'}},
+'sh688519':{one_liner:'内资覆铜板领军企业，高速材料(M2–M10)加速放量，2025年业绩大增377%。',biz:'覆铜板（CCL）及粘结片研发生产，高端高速覆铜板为主力产品，受益PCB/AI服务器需求。',edge:'高速覆铜板全覆盖M2–M10，M6/M7层级量产是增长引擎；专精特新\'小巨人\'、制造业单项冠军企业。',role_in_ai:'AI服务器PCB用高速覆铜板的实质性受益者，M6/M7等高速材料已量产并进入AI供应链，是AI PCB基材国产替代重要玩家。',risk:'2024年覆铜板毛利率仅3%（价格战）；传统产品盈利薄；客户认证；强周期与扩产节奏。',perf:{'y2025':'营收52.28亿元（+55.52%），归母净利润2.40亿元（+377.60%）','q1_2026':'营收18.32亿元（+92.36%），归母净利润1.50亿元（+610.83%）','h1_2026':'暂无披露'}},
+'sz002636':{one_liner:'以覆铜板(CCL)为核心主业的电子基础材料企业，靠中低端FR-4放量反转，在AI算力链中属间接受益的周期股而非直接供应商',biz:'覆铜板(CCL)龙头，主营覆铜板（主力）、PCB印制电路板、医疗器械制造。',edge:'内资覆铜板产能规模前三/行业前列，年产量超3800万张；在铝基板及无卤环保等细分领域具技术优势；拥有覆铜板+电子布(安徽宁国6000万米电子布扩建项目)的产销一体化布局，规模与一体化构成主要壁垒。',role_in_ai:'公司公开回应“与AI算力暂无交集”“覆铜板未见AI服务器身影”“未与英伟达、华为接触”；其以传统FR-4为主，在M9级高频高速覆铜板上无公开认证进展，产品等级与认证落后于龙头生益科技。真实角色是：AI算力需求爆发挤占中低端FR-4产能、造成行业供给收缩与覆铜板涨价，公司间接受益于价格红利，而非AI服务器的直接材料供应商——与市场上“AI概念股”的归类并不一致。',risk:'高端产品(M9/M8)认证与等级落后龙头，AI直接收益有限且持续性存疑；业绩强周期属性突出(2023年亏损7881万元，2026Q1扣非净利暴增主要源于涨价)；估值已反映较多乐观预期；定增扩产(约15亿元/宁国3000万张高等级覆铜板项目)能否真正兑现高端化待验证；实控人韩涛个人持股集中。',perf:{'y2025':'营收44.80亿元（+10.67%），归母净利润3.01亿元（+711.54%）','q1_2026':'营收12.60亿元（+31.36%），归母净利润2.02亿元（+763.91%）','h1_2026':'暂无披露'}},
+'sh601869':{one_liner:'全球棒纤缆一体化光纤龙头，靠AI数据中心光互联组件（子公司博创科技）切入数通，并押注空芯光纤新赛道。',biz:'光纤预制棒、光纤、光缆、光器件及光模块研发生产销售；光模块等组件约贡献两成营收，推进国际化与业务多元化。',edge:'预制棒占光纤成本约70%，公司自给率高，成本据公开资料较同行低15%-20%，毛利率稳定约28%-29%；在8国设生产基地，海外布局深；空芯光纤等新技术储备领先。',role_in_ai:'真实角色是AI数据中心\'物理连接层\'供应商：光互联组件用于数据中心内部互联，而非GPU/算力本身。与常见\'光纤光缆=算力概念\'的粗泛归类不同，其AI收入实质来自数通光模块/器件（占约17%），传统棒纤缆仍受运营商集采价格周期影响。',risk:'传统光纤光缆价格竞争与运营商集采压价；AI光互联组件占比仍小（约17%），空芯光纤商业化与放量节奏不确定；海外贸易与地缘风险。',perf:{'y2025':'营收142.52亿元（+16.85%），归母净利润8.14亿元（+20.40%）','q1_2026':'营收36.95亿元（+27.70%），归母净利润4.95亿元（+226.40%）','h1_2026':'暂无披露'}},
+'sh600487':{one_liner:'以智能电网、铜导体、海洋能源为主业的信息与能源互联服务商，光通信（含光模块）只是其中一小块、非AI主驱动。',biz:'通信网络（光纤光缆、海洋通信与电力电缆）、智能电网、海洋能源（海缆及海工敷设）、光模块/量子通信等；海洋业务与光纤为增长主线。',edge:'海缆与海洋通信毛利率高（33.53%）且增长快，是利润支柱；光电一体化与全球交付能力；光器件业务含光模块自产能力。',role_in_ai:'在AI链条中属\'基础设施材料/连接\'环节：光纤光棒是数据中心互联的底层介质，公司也自产光模块，但光通信仅占营收约11%，其AI相关收入占比远低于电网/海洋/铜导体。不宜简单归为\'AI算力股\'。',risk:'整体毛利率偏低（约13.6%），光通信占比小、AI弹性有限；海洋业务交付与确认节奏波动大；铜价与原材料成本敏感。',perf:{'y2025':'营收668.55亿元（+11.45%），归母净利润26.80亿元（-3.20%）','q1_2026':'营收177.91亿元（+34.09%），归母净利润11.05亿元（+98.53%）','h1_2026':'暂无披露'}},
+'sh600522':{one_liner:'电力传输与海洋工程为主、光通信为辅的全球光电海缆企业，AI数据中心仅通过光通信及网络板块间接受益。',biz:'通信（光纤光缆）、电力（电缆）、海洋（海缆/海工）、新能源（储能/光伏）等业务板块；AI特种光纤与海缆高毛利交付拉动结构升级。',edge:'海洋光电复合缆与电网全产品链齐全，海缆/电网为盈利主力；光通信及网络盈利能力相对坚挺。',role_in_ai:'AI相关收入来自光通信及网络（光纤光缆，约17%营收）用于数据中心互联，但该板块2024年收入同比-11.19%。本质仍是能源+通信基建公司，AI直接敞口有限，与\'AI标的\'归类匹配度不高。',risk:'2024年海风景气/海洋业务不及预期、光通信下滑致利润下降；铜产品等大宗敞口；新能源板块波动。',perf:{'y2025':'营收525.00亿元（+9.24%），归母净利润29.02亿元（+2.25%）','q1_2026':'营收131.42亿元（+34.71%），归母净利润9.19亿元（+46.42%）','h1_2026':'暂无披露'}},
+'sh600498':{one_liner:'光通信系统与光纤线缆龙头，同时自研服务器/存储等算力设备并量产800G光模块，是少数跨\'光连接+算力硬件\'两环节的A股公司。',biz:'光纤通信、数据通信及无线通信系统设备与解决方案，覆盖光传输、光纤光缆、路由器/交换机等，主供运营商及政企市场',edge:'央企（中国信科）背景、运营商客户优质订单充足；同时具备光模块（800G量产）与算力服务器/存储能力，垂直覆盖\'光电+算力\'；盈利质量提升（营收降、利润升）。',role_in_ai:'与常见\'仅光通信\'归类不同，它实际横跨两个AI环节：①光模块/光传输（数据中心GPU互联的物理层），②算力设备（服务器/存储，第二成长曲线）。是A股中少见的\'光+算\'兼具标的，但算力业务体量及毛利率仍待验证。',risk:'2024年营收同比下滑8.44%，传统系统设备需求承压；算力服务器业务放量与客户落地不确定；毛利率提升的可持续性待观察。',perf:{'y2025':'营收249.19亿元（-12.72%），归母净利4.36亿元（-37.98%）','q1_2026':'营收45.10亿元（+11.40%），归母净利0.38亿元（-30.44%）','h1_2026':'暂无披露'}},
+'usGLW':{one_liner:'全球光纤与特种玻璃巨头，AI数据中心光纤（Optical Communications）成为新增长极，2024年该板块因AI采用而高速放量。',biz:'光通信（光纤光缆）、显示科技（玻璃基板）、特种材料（玻璃/陶瓷）、汽车、生命科学及环境科技等业务板块。',edge:'光纤预制棒与拉丝技术全球领先，Gen 10.5等新一代数据中心光纤产能与良率优势；2025年披露AI数据中心连接相关订单积压超100亿美元（据公开报道），深度绑定云厂商。',role_in_ai:'AI算力基建的\'卖铲人\'底座——为AI数据中心提供光缆/光纤互联介质，处于GPU集群物理连接最底层，需求由云厂商AI capex直接拉动。与\'显示玻璃公司\'的旧印象不同，Optical Communications已是其AI叙事核心。',risk:'Display Technologies等板块受面板周期影响；光通信产能扩张资本开支重；汇率与海外市场政策风险。',perf:{'y2025':'营收156.29亿美元（+19%），归母净利15.96亿美元（+216%）','q1_2026':'营收41.4亿美元（+20%），归母净利3.71亿美元（+136%）','h1_2026':'暂无披露'}},
+'usCOHR':{one_liner:'垂直整合的光模块/激光器/材料巨头（原II-VI），AI数据中心800G/1.6T数通光模块是其增长核心，而非仅材料或激光设备。',biz:'光子学与光通信（数据中心光模块/激光器）、化合物半导体材料（碳化硅等）、激光与网络产品；AI数据中心光器件为核心增长引擎。',edge:'数通收发器垂直整合度业内最高——自产硅光、VCSEL阵列、透镜、滤光片、耦合器、隔离器，缓解供应链不确定性；2022年并购Coherent后补全光模块与材料能力。',role_in_ai:'真实角色是AI数据中心GPU间高速互联的\'数通光模块\'核心供应商（800G放量、1.6T在研），位于光模块环节而非算力芯片本身。与\'材料/激光\'的旧归类不同，Network（数通）已是AI弹性最大板块。',risk:'并购整合后营收仍下滑、债务负担；光模块价格年降与竞争（中际旭创等）；AI需求波动与云厂商资本开支节奏敏感。',perf:{'y2025':'营收58.1亿美元（+23%），归母净亏0.76亿美元','q1_2026':'营收15.8亿美元（+17%），归母净利2.26亿美元（同比扭亏）','h1_2026':'暂无披露'}},
+'sh688234':{one_liner:'全球导电型碳化硅（SiC）衬底龙头，处于材料最上游，2024 年扭亏。',biz:'碳化硅(SiC)半导体衬底（导电型/半绝缘型），应用于功率器件、车规及AI电源，推进8英寸衬底。',edge:'据富士经济 2026 年 3 月报告，2025 年全球导电型 SiC 衬底市场份额 27.6% 居第一；前瞻性布局 8 英寸及 12 英寸（300mm）大尺寸衬底。',role_in_ai:'处于 AI 供电链最上游材料端——SiC 衬底用于制造功率器件以支撑 AI 数据中心高效电源，是「卖铲子」的间接环节，与芯片/服务器制造相隔多层。',risk:'衬底价格下行、海外大厂（Wolfspeed 等）竞争、下游 SiC 器件需求波动。',perf:{'y2025':'营收14.65亿元（-17.15%），归母净亏2.08亿元（同比转亏）','q1_2026':'营收3.66亿元（-10.41%），归母净亏0.61亿元（同比转亏）','h1_2026':'暂无披露'}},
+'sh603660':{one_liner:'国内最早实现产业化、全球前三的导电型碳化硅（SiC）衬底厂商，正冲刺科创板IPO，处于大额亏损期。',biz:'碳化硅(SiC)衬底材料研发与生产（导电型/半绝缘型晶锭、晶片），拟冲刺科创板（截至当前未上市）。',edge:'国内最早SiC衬底产业化企业，导电型衬底全球前三；背靠中科院技术体系，实现‘衬底+外延’一体化，客户覆盖新能源与功率器件链条。',role_in_ai:'SiC衬底是功率器件基底，用于新能源车、光伏逆变器、服务器/数据中心电源等节能场景，间接支撑AI算力基础设施的能效，但并不直接参与芯片制造逻辑环节。归类为‘半导体材料’准确，但属第三代半导体、与先进制程光刻/硅片链条不同。',risk:'营收连续下滑、毛利率转负、两年亏损超15亿元、经营现金流持续承压；SiC衬底价格战激烈；IPO申报期业绩恶化、产能消化与客户验证风险高。',perf:{'y2025':'营收10.46亿元（-21.39%），归母净亏4.95亿元（亏损扩大）','q1_2026':'营收1.73亿元（-39.55%），归母净亏1.64亿元（亏损扩大）','h1_2026':'暂无披露'}},
+'sh600703':{one_liner:'化合物半导体（LED+碳化硅/射频/氮化镓）IDM 厂商，SiC 功率器件处于投入期。',biz:'化合物半导体：LED外延芯片、射频/滤波器、光芯片、SiC功率器件，Mini/Micro LED与碳化硅为方向。',edge:'化合物半导体全链条布局（氮化镓/砷化镓/碳化硅/磷化铟等），与意法半导体合资建设碳化硅晶圆厂。',role_in_ai:'间接角色：碳化硅功率器件用于 AI 数据中心电源与新能源车、射频用于通信基础设施，并非 AI 算力直接供应商，属供电与通信配套环节。',risk:'集成电路板块毛利率为负、扣非持续亏损，SiC 产能爬坡与价格竞争压力。',perf:{'y2025':'营收179.49亿元（+11.45%），归母净亏3.53亿元（同比转亏）','q1_2026':'营收29.07亿元（-32.59%），归母净利0.67亿元（-68.15%）','h1_2026':'暂无披露'}},
+'sz000725':{one_liner:'全球显示面板龙头（LCD+OLED），本质是显示器件制造商，并非 AI 算力链核心供应商。',biz:'半导体显示面板龙头，主营LCD/OLED显示器件（TV/IT/手机/车载面板）、物联网创新（智慧终端与系统方案）、MLED、传感及智慧医工等。',edge:'累计专利超 10 万件，LCD 五大主流应用及车载面板出货量全球第一，拥有全球首条 8.6 代 AMOLED 产线。',role_in_ai:'与 AI 算力链条弱相关，属「终端显示需求」的间接拉动（AI PC、车载、可穿戴等面板升级），不直接供应芯片或服务器硬件；归类上更偏消费电子/面板而非 AI 核心环节。',risk:'面板强周期、价格景气波动大，OLED 仍处盈利爬坡，创新业务占比尚小。',perf:{'y2025':'营收2045.90亿元（+3.13%），归母净利58.57亿元（+10.03%）','q1_2026':'营收510.01亿元（+0.80%），归母净利17.07亿元（+5.78%）','h1_2026':'暂无披露'}},
+'sh603773':{one_liner:'FPD光电玻璃精加工与显示器件厂商，借玻璃基TGV（玻璃通孔）载板切入先进封装/半导体材料，但当前收入仍靠显示、持续亏损。',biz:'显示面板玻璃薄化、镀膜及精密加工；布局Mini/Micro LED玻璃基板、玻璃基载板（半导体封装）、商业航天相关业务。',edge:'玻璃薄化、镀膜、TGV激光打孔等精密加工能力；玻璃基载板在先进封装（半导体/AI芯片封装）被视为潜在替代硅/有机载板的路线，具材料差异化。',role_in_ai:'与常被贴的\'AI概念\'不同，当前AI直接收入极少——主体是显示玻璃精加工（周期品）。其AI关联在\'间接材料\'层：TGV玻璃载板可用于AI芯片先进封装，但尚处投入/产业化早期、未贡献规模收入。',risk:'连续亏损（2024年亏1.22亿），显示业务周期波动；TGV玻璃基载板产业化与客户认证不及预期；研发投入与折旧压力。',perf:{'y2025':'营收25.51亿元（+14.88%），归母净亏1.58亿元（亏损扩大）','q1_2026':'营收5.94亿元（+8.48%），归母净亏0.51亿元（亏损扩大）','h1_2026':'暂无披露'}},
+'bj835438':{one_liner:'北交所光学玻璃与特种功能玻璃材料商，产品用于摄像头/镜头，属AI视觉的\'材料\'底层，但自身与算力链无直接关系。',biz:'光学玻璃与特种功能玻璃（含玻璃基板等）研发、生产、销售，应用于光电、半导体、车载显示等领域；北交所上市。',edge:'光学玻璃配方与熔制技术壁垒，规模化生产能力国内前三；特种功能玻璃差异化。',role_in_ai:'在AI链条中处于最上游\'光学材料\'层：光学玻璃是摄像头/镜头（消费电子、车载、安防视觉）的基材，可服务于AI视觉，但与AI算力/模型无关。属典型被\'蹭AI光学概念\'但实质弱相关的公司。',risk:'客户高度集中（曾单一客户占逾4亿），收入大幅下滑；光学玻璃价格竞争；与AI直接关联弱、概念兑现风险高。',perf:{'y2025':'营收4.74亿元（-32.81%），归母净亏1.13亿元（同比转亏）','q1_2026':'营收0.58亿元（-54.25%），归母净亏0.35亿元（同比转亏）','h1_2026':'暂无披露'}},
+'sz300776':{one_liner:'光伏激光设备隐形冠军（PERC/TOPCon/XBC市占率约80%），TGV/先进封装激光技术可外溢至半导体封装，但当前收入几乎全来自光伏。',biz:'精密激光加工解决方案及配套设备，以光伏激光设备为主，向先进封装、PCB设备布局。',edge:'光伏激光设备市占率约80%，近乎独享市场；激光消融/掺杂/转印等工艺know-how深厚；TGV激光打孔技术可延伸至先进封装/玻璃基载板。',role_in_ai:'与\'AI设备\'归类基本不直接匹配——主体是新能源（光伏）制造设备，非算力链。其AI关联仅在技术外溢：TGV激光工艺可用于AI芯片先进封装/玻璃载板，但当前收入几乎全部来自光伏，AI贡献可忽略。',risk:'客户与供应商集中（含重叠）；光伏产能扩张周期下行拖累设备订单；海外收入2025年下滑明显；先进封装新业务放量不确定。',perf:{'y2025':'营收20.33亿元（+0.93%），归母净利5.19亿元（-1.59%）','q1_2026':'营收4.23亿元（-24.68%），归母净利1.64亿元（+0.33%）','h1_2026':'暂无披露'}},
+'sz301392':{one_liner:'真空镀膜设备（PVD/ALD/卷绕式）国家级专精特新供应商，服务于光学镜头、屏幕、半导体等制造，是AI硬件上游的\'设备\'层。',biz:'真空镀膜设备（蒸发镀膜、磁控溅射、离子镀等）研发制造，应用于消费电子、半导体、光伏及光学器件领域',edge:'高端精密镀膜装备稀缺标的，国产替代逻辑；设备应用于半导体、光学镜头等高端制造，客户跨消费电子与工业品。',role_in_ai:'在AI链条中属上游\'设备/工艺\'层：真空镀膜用于光学镜头、屏幕、半导体等AI硬件的制造环节，对AI是间接支撑而非核心算力组件。与\'AI设备股\'的强归类相比，其AI直接敞口有限、主要随消费电子与半导体资本开支波动。',risk:'下游（消费电子）周期波动；客户集中；2024年净利下滑16%、经营现金流转负；半导体领域突破与订单不确定。',perf:{'y2025':'营收4.70亿元（-9.73%），归母净利0.22亿元（-67.32%）','q1_2026':'营收1.14亿元（+16.56%），归母净利0.27亿元（+230.38%）','h1_2026':'暂无披露'}},
+'sh688256':{one_liner:'国产云端 AI 训练/推理芯片（思元系列）设计公司，靠卖 AI 加速卡和智能计算集群赚钱，并高度依赖单一大客户。',biz:'云端智能芯片及加速卡（思元系列）、训练/推理芯片、边缘及终端智能芯片及基础系统软件平台。',edge:'全栈自研 MLU 指令集/芯片架构，思元系列芯片算力与能效支撑国产替代红利；客户 2024 年起由单一大客户向多元拓展。',role_in_ai:'属云端 AI 训练/推理芯片环节，被归类「AI/GPU 芯片」，但实为 NPU/ASIC 类 AI 加速芯片而非通用 GPU，是国产 AI 算力核心供应商之一。',risk:'客户极度集中（第一大占近八成），2024 年仍亏损、盈利刚于 2025 年转正；先进制程与供应链受外部限制，市值约 9000 亿元估值偏高。',perf:{'y2025':'营收64.97亿元（+453.21%），归母净利20.59亿元（同比扭亏）','q1_2026':'营收28.85亿元（+159.56%），归母净利10.13亿元（+185.04%）','h1_2026':'暂无披露'}},
+'sh688041':{one_liner:'国产 CPU（x86 授权）与 DCU（类 GPU 的 AI 加速卡）高端处理器设计商，同时卡位通用计算与 AI 算力两条线。',biz:'国产CPU（海光系列x86兼容）与DCU（深算系列GPGPU）算力芯片，面向服务器/数据中心，“双芯战略”。',edge:'CPU 兼容成熟的 x86 生态（Wintel/Linux），DCU 兼容 ROCm 类软件栈；研发投入 34.46 亿元、费率 37.61%，受益于政企/金融/电信国产化采购。',role_in_ai:'DCU 用于 AI 训练与推理，属「AI 算力芯片」；但 CPU 本身并非 AI 芯片，而是通用算力底座——跨通用计算+AI 加速双环节，归类上比单纯 AI 芯片更广。',risk:'x86 架构源自 AMD 授权，技术迭代受授权约束；DCU 与 CUDA 生态差距明显、占比未公开；面临华为昇腾、寒武纪等竞争。',perf:{'y2025':'营收143.77亿元（+56.92%），归母净利25.45亿元（+31.79%）','q1_2026':'营收40.34亿元（+68.06%），归母净利6.87亿元（+35.82%）','h1_2026':'暂无披露'}},
+'sz300474':{one_liner:'以军用图形显控/小型雷达起家、正转型通用 GPU（JM 系列）与边端侧 AI SoC 的芯片设计公司。',biz:'图形显控、高性能GPU芯片、边端侧AI SoC芯片、小型专用化雷达，推进GPU+AI双线战略。',edge:'军用显控领域长期积累；JM11 实现从「可用」到「好用」跨越；推进「高性能 GPU+边端侧 AI SoC」双线以构建云—边—端算力闭环。',role_in_ai:'实际角色偏「国产替代 GPU+军工电子」，边端侧 AI SoC 属 AI 边缘推理环节，但并非云端训练主力，与「AI 芯片龙头」归类不一致。',risk:'军品订单波动大（小型雷达收入腰斩）；GPU 商业化仍早期、持续亏损；38 亿定增募投回报不确定，民品生态与软件适配薄弱。',perf:{'y2025':'营收7.20亿元（+54.41%），归母净亏1.65亿元（亏损扩大）','q1_2026':'营收0.84亿元（-17.87%），归母净亏0.56亿元（亏损扩大）','h1_2026':'暂无披露'}},
+'usNVDA':{one_liner:'全球AI算力的实际标准供应商，靠GPU硬件+CUDA软件栈卖“算力底座”，数据中心已占其近九成收入。',biz:'GPU与数据中心加速计算（Hopper/Blackwell/Rubin平台）、游戏显卡、专业可视化、汽车与机器人；数据中心为绝对核心。',edge:'CUDA软件生态+全栈（GPU、DPU网卡、交换机、NIM/AI Enterprise软件）构成强壁垒；Blackwell架构与台积电CoWoS先进封装供给主导；云客户迁移成本极高，生态锁定效应强。',role_in_ai:'位于AI产业链最上游“算力供给”环节，几乎所有大模型训练与推理（OpenAI、各大云厂商、xAI等）都依赖其GPU；并非单纯芯片公司而是“硬件+网络+软件”平台，真实角色是AI基础设施的“卖铲人”。与“GPU厂商”的常见归类一致，但低估了其平台属性。',risk:'中国出口管制（H20等对华特供版被禁）压低在华收入；营收高度集中于少数超大规模云客户（微软、Meta等前几大客户贡献相当比例，据公开分析）；估值高、AMD与各家自研芯片加剧竞争；先进封装产能依赖台积电CoWoS。',perf:{'y2025':'营收2159亿美元（+65%），归母净利1201亿美元（+65%）','q1_2026':'营收816亿美元（+85%），归母净利583亿美元（+211%）','h1_2026':'暂无披露'}},
+'usAMD':{one_liner:'英伟达之外唯一规模化的通用AI GPU供应商，靠Instinct MI系列在数据中心GPU市场抢份额，同时有EPYC CPU基本盘。',biz:'CPU（Ryzen/EPYC）、GPU（Radeon/Instinct MI系列AI加速卡）、嵌入式与自适应SoC，数据中心AI为增长核心。',edge:'CDNA架构+Infinity Fabric互联；MI300X以192GB HBM3高容量对标H100；ROCm软件栈+收购ZT Systems补强整机系统能力；与OEM（超微、戴尔等）渠道广。',role_in_ai:'位于算力上游，是英伟达在训练/推理GPU上最主要的“第二来源”；真实角色是AI加速卡的替代供给方，被云厂商用作英伟达的备胎与议价筹码，并非独立生态主导者。与“AMD=CPU公司”的旧归类不同，其AI GPU已成一极，但份额仍远小于英伟达。',risk:'AI GPU份额仍远小于英伟达（个位数百分比级）；ROCm生态弱于CUDA、软件壁垒不足；MI系列良率与供应依赖台积电；为抢份额毛利率承压。',perf:{'y2025':'营收346亿美元（+34%），归母净利43亿美元（+164%）','q1_2026':'营收103亿美元（+38%），归母净利14亿美元（+95%）','h1_2026':'暂无披露'}},
+'usINTC':{one_liner:'传统x86 CPU霸主正艰难转型，自研Gaudi AI加速卡+至强CPU试图切入AI算力，但整体远落后于英伟达。',biz:'全球CPU/半导体龙头，业务含客户端计算（PC CPU）、数据中心与AI（服务器CPU/GPU）、代工（Intel Foundry）、网络与边缘、Altera（FPGA，已部分出售）等。',edge:'x86生态与至强CPU在通用计算/推理存量市场仍广；Gaudi 3官方称平均推理较竞品快50%、能效高40%；若18A制程成功，自有晶圆厂可成差异化。',role_in_ai:'位于算力上游但属追赶者，Gaudi加速卡实际部署量很小，多用于推理/家用场景的补充，远未成为大模型训练主流；真实角色是“提供含AI能力的CPU与低价加速卡”，与“AI芯片龙头”叙事不符。',risk:'AI加速器存在感弱、Gaudi销量不及预期；代工业务巨额亏损拖累整体；制程落后台积电致份额流失；战略摇摆与高层变动。',perf:{'y2025':'营收529亿美元（同比持平），归母净亏3亿美元（同比减亏）','q1_2026':'营收136亿美元（+7%），归母净亏37亿美元（亏损同比扩大）','h1_2026':'暂无披露'}},
+'sh688047':{one_liner:'采用 100% 自研 LoongArch 指令集的国产 CPU 公司，主攻工控与电子政务，而非 AI 加速。',biz:'国产CPU（龙芯系列）及配套芯片，覆盖桌面、服务器、嵌入式CPU；面向党政办公、安全应用及开放市场工控/信息化应用方案。',edge:'国内唯一 100% 自研指令集 LoongArch，不受国外 CPU 架构授权约束，配套 Loongnix 等自主基础软件生态。',role_in_ai:'基本不扮演 AI 角色——是自主通用 CPU，用于 PC/服务器/工控，与「AI 算力芯片」归类不一致，更应归入信创/自主可控主线。',risk:'持续大额亏损（2024 年亏 6.24 亿元）；工控市场停滞；软件生态薄弱（适配应用少）；研发投入 5.31 亿元占营收约 105%，盈利遥遥无期。',perf:{'y2025':'营收6.35亿元（+26%），归母净亏4.55亿元（同比减亏）','q1_2026':'营收1.35亿元（+8%），归母净亏1.14亿元（同比减亏）','h1_2026':'暂无披露'}},
+'sh603986':{one_liner:'聚焦利基存储（NOR Flash/SLC NAND/利基 DRAM）与 MCU 的国产芯片设计公司，是 AI 端侧/边缘设备的底层存储元件供应商。',biz:'存储芯片（NOR Flash/NAND Flash/DRAM自研）、微控制器（MCU）、传感器（触控/指纹）三大产品线；EEPROM等利基存储为辅。',edge:'NOR Flash 国内第一、全球前列；SLC NAND 与利基型 DRAM 形成矩阵，并切入汽车/工业等高端利基市场；产品覆盖消费电子、工业、通讯、汽车电子，利基 DRAM 份额由约 1.7% 升至约 20%（据公开资料）。',role_in_ai:'属于 AI 硬件的「卖铲人」——提供端侧/边缘 AI 设备（手机、PC、汽车、AIoT）所需的存储芯片，而非用于大模型训练的高带宽/HBM 或 AI 算力芯片。与「存储芯片」归类一致，但需明确其不直接供应 AI 训练核心存储。',risk:'存储价格强周期，业绩随行业供需大幅波动；利基市场竞争与降价压力；前五大客户约占收入 37%，客户集中；与海外巨头（美光/华邦/旺宏）在高端产品上仍有差距。',perf:{'y2025':'营收92.03亿元（+25%），归母净利16.48亿元（+49%）','q1_2026':'营收41.88亿元（+119%），归母净利14.61亿元（+523%）','h1_2026':'暂无披露'}},
+'sz300223':{one_liner:'以ISSI车规/工业利基存储(约61%)为基本盘、辅以边缘计算MPU(约26%)与模拟互联芯片的\'存储+计算\'平台型公司。',biz:'集成电路设计：存储芯片（占比约61%）、计算芯片（微处理器/智能视频，约27%）、模拟与互联芯片；受益存储周期上行。',edge:'通过收购ISSI掌握车规SRAM全球第一(市占20-35%)、车规存储认证周期数年构筑高壁垒；\'存储+计算+模拟\'车规平台化，X系列MPU支持边缘AI。',role_in_ai:'不在训练/推理算力主链；其存储主要用于车载(ADAS/BMS/域控)边缘侧与工业，X系列MPU用于AIoT/机器人/安防等边缘AI推理。属\'边缘/终端AI\'与\'车载AI\'的存储与算力配套，而非数据中心训练/推理。',risk:'利基存储受全球存储周期与车市波动影响，2024归母净利下滑；计算芯片占比仅约26%、规模仍小；存储以车规/工业为主、未直接受益AI数据中心HBM热潮。',perf:{'y2025':'营收47.41亿元（+13%），归母净利3.76亿元（+3%）','q1_2026':'营收15.60亿元（+47%），归母净利3.19亿元（+332%）','h1_2026':'暂无披露'}},
+'sh688008':{one_liner:'全球内存接口芯片(含RCD)龙头(市占约36.8%)，并拓展PCIe Retimer/CXL MXC等\'运力\'芯片，是AI服务器内存带宽瓶颈的关键配套。',biz:'内存接口芯片（DDR5系列）全球领先，另含PCIe Retimer、CKD、MXC、津逮服务器平台及AI相关互连芯片；内存接口为主力',edge:'主导DDR5 RCD国际标准制定，2024内存接口芯片全球市占约36.8%居首；津逮/PCIe Retimer/CXL MXC等\'运力\'芯片解决AI服务器内存与互连带宽瓶颈，技术领先且客户绑定深。',role_in_ai:'真实角色是AI服务器的\'内存与互连运力\'核心配套——RCD决定DDR5 DIMM容量与速率，PCIe Retimer/CXL MXC缓解CPU-GPU/内存带宽瓶颈，直接受益于AI服务器内存容量与带宽提升。属AI算力基础设施\'运力\'层，而非\'算力\'层。',risk:'下游客户集中(内存模组厂/服务器OEM)，大客户订单波动影响大；DDR5渗透与AI服务器出货放缓将拖累增速；面临瑞萨等国际厂商竞争。',perf:{'y2025':'营收54.56亿元（+50%），归母净利22.36亿元（+58%）','q1_2026':'营收14.61亿元（+20%），归母净利8.47亿元（+61%）','h1_2026':'暂无披露'}},
+'sh688123':{one_liner:'全球EEPROM与DDR5 SPD(串行检测)芯片领先者(与澜起合作，SPD市占超40%)，卡位服务器/PC内存模组配套。',biz:'EEPROM、音圈马达驱动芯片(VCM Driver)、智能卡芯片、汽车级DDR5 SPD EEPROM、NOR Flash等存储及驱动芯片。',edge:'EEPROM耐擦写达400万次、存储200年、车规AEC-Q100故障率<0.1PPM等指标领先；与澜起合作的DDR5 SPD形成双寡头(对瑞萨)格局，卡位服务器/PC内存模组。',role_in_ai:'通过DDR5 SPD芯片(与澜起配套)卡位AI服务器与PC内存模组，SPD记录模组参数、是DDR5必需元件；EEPROM用于模组/板卡。属\'内存模组配套\'环节，随AI服务器DRAM扩容间接受益，非算力芯片。',risk:'业绩高度依赖EEPROM与DDR5 SPD，随内存与PC/服务器周期波动；SPD双寡头(对瑞萨)格局下议价与份额存变；客户集中。',perf:{'y2025':'营收12.21亿元（+19%），归母净利3.64亿元（+25%）','q1_2026':'营收2.80亿元（+7%），归母净利0.31亿元（同比-69%）','h1_2026':'暂无披露'}},
+'usMU':{one_liner:'全球第三大存储芯片厂，DRAM为主、HBM与数据中心SSD随AI爆发，是训练/推理集群核心存储供应商。',biz:'DRAM（含HBM）、NAND闪存及存储方案，AI数据中心内存/存储为核心增长驱动。',edge:'全球仅三家能量产HBM的厂商之一，HBM3E已量产供货；1-beta DRAM与232层NAND先进节点，深度绑定OpenAI/谷歌/微软等云巨头数据中心。',role_in_ai:'处于AI训练/推理最上游核心存储——HBM直供GPU(英伟达等)做训练/推理高带宽内存，数据中心DRAM(DDR5)与SSD支撑AI集群；同时消费/汽车DRAM/NAND占比仍高。其产品同时覆盖训练(占比高)、推理与边缘端。',risk:'HBM落后于SK海力士/三星，份额追赶存不确定性；NAND份额偏低(约13.3%)且计划退出移动NAND；受美对华出口管制与地缘政治影响；存储强周期属性。',perf:{'y2025':'营收374亿美元（+49%），归母净利85亿美元（+998%）','q1_2026':'营收239亿美元（+196%），归母净利138亿美元（+771%）','h1_2026':'暂无披露'}},
+'usWDC':{one_liner:'已分拆闪迪、聚焦HDD的纯机械硬盘厂，凭借大容量低成本成为AI数据中心冷/温数据存储主力。',biz:'机械硬盘(HDD)及数据中心存储；2025年2月分拆闪存(Sandisk)业务，现聚焦HDD。',edge:'全球仅三家HDD大厂之一(与希捷/东芝)，大容量企业级HDD(26TB+ CMR/UltraSMR)在AI冷数据存储具成本优势；长期可靠性与垂直整合(介质+主控)壁垒。',role_in_ai:'AI中扮演\'大容量数据存储\'角色，企业级HDD以低成本承载AI训练数据/模型仓库/冷数据，是数据中心温冷存储主力(SSD部分已分拆)。主要用于训练数据湖与推理结果归档，非高带宽训练内存。',risk:'已剥离高增长NAND/SSD、纯HDD长期面临SSD替代与需求结构性下滑；AI存储红利主要靠HDD大容量，但受云资本开支与HDD技术路线(如HAMR)竞争影响；估值弹性弱于纯AI存储标的。',perf:{'y2025':'营收95亿美元（+51%），归母净利19亿美元（同比扭亏）','q1_2026':'营收30亿美元（+25%），归母净利18亿美元（+209%）','h1_2026':'暂无披露'}},
+'sz300620':{one_liner:'以光纤激光器件起家、现以薄膜铌酸锂(TFLN)高速光调制器切入AI光互联核心环节的光器件厂商，同时布局车载激光雷达光源。',biz:'光纤激光器与光通信器件（铌酸锂调制器、光纤器件），AI高速光模块及薄膜铌酸锂(TFLN)光器件为核心增量。',edge:'薄膜铌酸锂调制器具备110GHz+带宽、低功耗、高线性度，是800G→1.6T/3.2T超高速光模块电光调制的关键器件；公司在国内TFLN调制器的量产与客户验证上处于领先梯队。',role_in_ai:'处于AI光互联的\'光芯片/调制器\'环节，是高速光模块与CPO的电光转换核心。常被简单归为\'光模块\'概念，但实际是上游调制器/器件供应商而非整机模块厂；其TFLN调制器被市场认为已切入英伟达/谷歌等供应链（据市场公开讨论，公司年报未明确披露具体客户）。',risk:'TFLN规模放量与客户导入节奏不确定；激光雷达车载业务尚处培育期；收入仍含较多传统激光器件，AI相关收入占比取决于调制器放量进度。',perf:{'y2025':'营收14.74亿元（+48%），归母净利1.77亿元（+164%）','q1_2026':'营收4.26亿元（+61%），归母净利0.45亿元（+313%）','h1_2026':'归母净利1.4亿元至1.5亿元（+170%至+190%）'}},
+'sh688195':{one_liner:'AI光模块上游的精密光学元组件与光纤器件\'卖铲人\'，为光互联提供透镜、滤光片、光纤器件等基础元件。',biz:'精密光学元器件（透镜、棱镜、滤光片、光纤器件），主力用于光通信（AI算力高速互联）及光纤激光。',edge:'精密光学冷加工/镀膜等核心工艺，可批量交付高速率、大带宽光互联所需光学元件；直接受益AI算力驱动的数据中心光模块升级需求。',role_in_ai:'处于AI产业链最上游的\'光学元件/材料加工\'环节，产品嵌入光模块与光通信设备内部，并非整机模块厂。与常见\'光模块\'归类不同，属间接受益的\'卖铲子\'环节，弹性取决于下游光模块出货量。',risk:'营收规模偏小、客户集中度高；上游元件单价与毛利率易受下游价格战传导；AI相关收入占比虽高但绝对额有限。',perf:{'y2025':'营收5.86亿元（+32%），归母净利0.71亿元（+2%）','q1_2026':'营收1.71亿元（+51%），归母净利0.14亿元（+11%）','h1_2026':'暂无披露'}},
+'sz300394':{one_liner:'光器件一站式平台型供应商，从无源/有源器件到光引擎，卡位 CPO 光互连上游环节。',biz:'光通信精密元器件供应商，主营光器件（无源/有源光器件、光引擎、800G/1.6T高速光模块组件），为数据中心/AI算力提供光连接方案。',edge:'提供「无源+有源+集成共研」一站式光互连方案；据公开资料其光引擎市占率约 70%；卡位 CPO 等新技术。',role_in_ai:'为中际旭创、新易盛等光模块厂供应上游器件与光引擎，是 AI 光互连的「卖水人」；归类上属于光模块上游而非模块本身，跨「器件/光引擎」环节。',risk:'高度依赖下游光模块厂需求与 AI 资本开支周期；CPO 渗透节奏不确定；估值偏高。',perf:{'y2025':'营收51.63亿元（+59%），归母净利20.17亿元（+50%）','q1_2026':'营收13.30亿元（+41%），归母净利4.92亿元（+46%）','h1_2026':'暂无披露'}},
+'sz300548':{one_liner:'由电信PLC器件转型、现已以并表子公司长芯盛的AOC有源光缆与MPO连接器为核心的\'数据中心内部光互连\'厂商（2025年更名长芯博创）。',biz:'光通信器件，主力为高速光模块/有源光缆（AOC）、SuperPoP超节点机柜高密度布线配套器件、950整机配套高密度布线产品；控股子公司长芯盛（布线）。',edge:'控股全球AOC/MPO连接器龙头长芯盛，在数据中心内部互联线缆与连接器领域具规模与渠道优势；800G多模AOC完成验证、1.6T AEC与Marvell合作。',role_in_ai:'真实角色是\'数据中心内短距光互连(AOC/铜缆/连接器)\'，而非对外高速光模块整机主力。常被并入\'光模块\'概念，但其真正卡位是机柜/交换机间互连的线缆与连接，与中际旭创等模块厂环节不同；另有空芯光纤等前瞻布局。',risk:'原名博创、2025年更名牌面变化；长芯盛并表带来的少数股东损益与整合风险；电信业务下滑拖累，整体盈利对单一子公司依赖度高。',perf:{'y2025':'营收25.33亿元（+45%），归母净利3.35亿元（+365%）','q1_2026':'营收6.71亿元（+25%），归母净利1.30亿元（+45%）','h1_2026':'暂无披露'}},
+'sz300308':{one_liner:'全球高速光模块绝对龙头，AI 数据中心 800G/1.6T 光模块核心交付者，深度绑定海外云厂商与英伟达。',biz:'高速光模块（数据中心/AI算力用800G、1.6T等），为英伟达等云厂商核心供应商；苏州、泰国等基地量产。',edge:'全球光模块出货量领先，1.6T 已批量出货进入规模化爬坡；据公开资料为英伟达 1.6T 光模块独家供应商、占其 800G 采购份额约 35%–40%；海外大规模产能部署保障交付。',role_in_ai:'是 AI 训练集群 GPU 之间高速互连的物理层核心，800G 已成 AI 标配、1.6T 放量，并延伸布局 CPO；与「光模块」归类一致，但已向上游集成。',risk:'前三大客户占比达 62.5%、客户高度集中；海外收入约 90%，面临贸易/关税与地缘风险；1.6T、CPO 技术迭代下竞争加剧。',perf:{'y2025':'营收382.40亿元（+60.25%），归母净利107.97亿元（+108.78%）','q1_2026':'营收194.96亿元（+192.12%），归母净利57.35亿元（+262.28%）','h1_2026':'暂无披露'}},
+'sz300502':{one_liner:'高速数通光模块高弹性供应商，押注 800G/1.6T 及 LPO 低功耗路线，绑定北美云厂商与英伟达。',biz:'高速光模块（数通/电信）研发生产销售，受AI算力驱动，800G/1.6T等高端产品放量。',edge:'LPO 技术路线领先（功耗较传统方案降约 30%）；具备 800G/1.6T 规模化量产交付能力、1.6T 已海外小批量出货；前五大客户占比由 75% 降至 68%。',role_in_ai:'为 AI 算力集群提供 GPU 互连光模块，LPO 精准契合 Meta、亚马逊降功耗需求；归类一致，但技术路线相对单一（硅光偏弱、无 InP 布局）。',risk:'EML 芯片高度依赖外购、自给率不足（卡脖子风险）；硅光与 InP 布局薄弱；客户集中且云厂商压价刚性。',perf:{'y2025':'营收248.42亿元（+187.29%），归母净利95.32亿元（+235.89%）','q1_2026':'营收83.38亿元（+105.76%），归母净利27.80亿元（+76.80%）','h1_2026':'暂无披露'}},
+'sz002281':{one_liner:'具备稀缺光芯片自研能力的光电子器件龙头，垂直整合 InP/硅光/VCSEL 三大芯片平台。',biz:'光芯片—光器件—光模块—子系统全产业链，覆盖电信与数通（AI算力）市场，数通光模块为增长主力',edge:'国内唯一具备 25G/50G/100G/800G 全系列光芯片量产能力，25G/50G EML 自给率超 80%；据 Omdia 2024Q4–2025Q3 全球光器件市占率第五。',role_in_ai:'数通 400G/800G 光模块放量驱动，是 AI 算力国产替代主力；同时既是光模块厂又是上游芯片厂，跨「芯片+模块」两环节。',risk:'电信传输业务下滑、运营商资本开支放缓；海外云厂商份额低、主要受益国内 AI 需求；100G 以上高速芯片仍处追赶。',perf:{'y2025':'营收119.29亿元（+44.20%），归母净利9.46亿元（+43.10%）','q1_2026':'营收27.73亿元（+24.79%），归母净利2.40亿元（+59.76%）','h1_2026':'暂无披露'}},
+'sz000988':{one_liner:'背靠华科大的\'激光装备+光联接+传感器\'多元化科技集团，AI算力侧主要由高端光模块(联接业务)贡献。',biz:'光联接（数据中心光模块，AI光模块为核心增长引擎）、激光智能装备、传感器、智能制造装备。',edge:'依托华中科技大学光电科研底蕴，是国内少数同步布局磷化铟、砷化镓、硅光三条自研光芯片路线、实现\'光芯片—光器件—高速光模块\'全链条自主的厂商；800G/1.6T产品推进海外客户认证。',role_in_ai:'AI侧扮演\'高速光模块供应商+铜连接模块\'角色，处于算力中心光互联设备环节，与中际旭创/新易盛同类；并延伸智能车载光、卫星通讯光模块。需注意AI仅是其三大业务之一，整体仍受激光/传感器周期影响。',risk:'业务多元，AI光模块竞争激烈、价格下行；800G/1.6T海外客户(英伟达、谷歌等，据公开资料处认证周期)导入与放量存不确定性；激光与传感器业务受下游资本开支周期波动。',perf:{'y2025':'营收143.55亿元（+22.59%），归母净利14.71亿元（+20.48%）','q1_2026':'营收42.66亿元（+27.13%），归母净利6.38亿元（+55.76%）','h1_2026':'暂无披露'}},
+'sh603083':{one_liner:'以ODM/JDM模式切入全球通信设备与高速光模块的制造型厂商，AI算力侧靠800G/1.6T光模块代工放量。',biz:'高速光模块（800G/1.6T等）、电信宽带接入终端、无线接入设备；高速光模块规模放量为增长主驱动。',edge:'具备800G大批量出货能力，1.6T小批量供货并规划2026年一季度大量发货(据公司披露)；以JDM/ODM方式绑定思科等北美大客户，制造与交付能力是核心壁垒。',role_in_ai:'本质是\'光模块制造/代工\'环节，关键芯片(DSP、硅光)多为客户供应(如思科/Acacia客供)或外采(Marvell等)，壁垒在制造交付而非芯片设计。常被归为\'光模块龙头\'，但更准确是高端光模块代工厂，上游芯片话语权弱于中际旭创/新易盛。',risk:'高度依赖海外大客户与境外收入(占比超90%)，地缘政治/关税风险大；关键芯片外采导致毛利与供应链受制于人；客户集中、订单波动风险。',perf:{'y2025':'营收48.23亿元（+32.07%），归母净利2.63亿元（+58.08%）','q1_2026':'营收12.87亿元（+43.98%），归母净利1.18亿元（+276.44%）','h1_2026':'暂无披露'}},
+'usMRVL':{one_liner:'面向超大规模数据中心的\'连接与定制硅\'供应商——以 PAM4 DSP 光互联芯片和 hyperscaler 定制 ASIC（XPU）切入 AI 集群内部互连与加速，而非做 GPU。',biz:'数据中心半导体：定制AI芯片(AISC)、光模块DSP、交换芯片、存储控制器、汽车网络。',edge:'在 AI 集群光电互连（PAM4 DSP、相干光、有源铜缆）领域技术领先且客户黏性强；与 hyperscaler 的定制 ASIC 合作（如亚马逊 Trainium 等参考设计）形成深护城河；无晶圆模式专注设计。',role_in_ai:'处 AI 产业链的\'互连 + 定制加速\'环节：为云厂商 AI 服务器/集群提供光模块 DSP 与定制 AI 加速芯片（XPU），是 NVIDIA GPU 之外的\'配套/替代加速\'与互连关键件。常被归为\'AI 芯片\'但更准确是\'AI 集群连接芯片 + 定制 ASIC 设计服务\'。',risk:'高度依赖少数 hyperscaler 大客户（定制 ASIC 订单波动）；与博通在定制 ASIC 直接竞争；光通信需求周期波动；无自有晶圆厂（依赖台积电等代工产能）。',perf:{'y2025':'营收81.95亿美元（+42.0%），归母净利26.70亿美元（同比扭亏为盈）','q1_2026':'营收24.18亿美元（+28.0%），归母净利0.35亿美元（-81.0%）','h1_2026':'暂无披露'}},
+'usAVGO':{one_liner:'AI 时代的\'定制 ASIC + 网络硅\'双引擎供应商，同时是 VMware 驱动的基础设施软件巨头——为谷歌/Meta 等云厂设计并造其自研 AI 加速芯片（XPU），而非自己卖 GPU。',biz:'半导体（AI定制ASIC芯片、网络芯片Tomahawk、射频）+基础设施软件（VMware等），软硬双轮驱动。',edge:'与 hyperscaler 长期绑定的定制芯片（ASIC）能力，是谷歌 TPU 等自研加速器的设计方；Tomahawk/Jericho 以太网交换芯片是 AI 集群网络主流方案；VMware 带来高毛利、强黏性的软件订阅收入。',role_in_ai:'典型的\'卖铲人\'：为云厂商定制其专属 AI 加速器（XPU/ASIC），并提供 AI 集群的以太网交换芯片（Tomahawk），与 NVIDIA Spectrum-X/InfiniBand 在后端网络竞争。自身不对外销售 GPU；软件（VMware）是另一增长极，与\'纯芯片\'归类不同，它是\'半导体+软件\'混合体。',risk:'定制 ASIC 收入高度集中于谷歌等少数大客户，客户自研或转移设计方风险大；VMware 整合与提价引发客户反弹；AI 网络市场竞争加剧（NVIDIA、Arista、Cisco）。',perf:{'y2025':'营收638.87亿美元（+24.0%），归母净利231.26亿美元（+292.0%）','q1_2026':'营收193.11亿美元（+29.0%），归母净利73.49亿美元（+33.5%）','h1_2026':'暂无披露'}},
+'usMTSI':{one_liner:'AI 数据中心光互连的\'模拟/射频器件\'供应商——提供 400G/800G 高速模拟、射频与光芯片，是光模块与集群连接的底层元件，而非整机或 GPU。',biz:'半导体射频/微波/毫米波芯片与器件（GaAs/GaN/SiGe），用于数据中心、通信与AI基础设施。',edge:'在 GaAs/GaN 射频与高速光模拟（激光器驱动器、TIA、相干器件）有宽产品线与客户群；覆盖电信、数据中心、军工多市场，抗单一周期；无晶圆+部分自有工艺的灵活供应。',role_in_ai:'处于 AI 光互连最底层：其模拟/光芯片被装入 800G 光模块，连接 AI 服务器与交换机。与 Marvell/Broadcom 的 DSP 不同，MACOM 更偏\'元件级\'射频与光模拟，体量小、分散，是 AI 建设的间接受益者而非直接算力提供者。',risk:'营收体量小、波动大；数据中心订单受云厂资本开支周期影响；客户虽经 6,000 家分散但大客户议价强；与 Broadcom/Marvell 在光模拟领域竞争。',perf:{'y2025':'营收9.67亿美元（+32.6%），归母净亏0.54亿美元','q1_2026':'营收2.72亿美元（+24.5%），归母净利0.49亿美元（同比扭亏）','h1_2026':'暂无披露'}},
+'sz000063':{one_liner:'以运营商网络为基本盘的老牌通信设备商，正把通信侧的算力、服务器、训推一体机打包成国产AI智算基础设施对外输出。',biz:'综合通信设备及解决方案商，主营运营商网络（5G基站/承载/核心网）、政企业务（服务器、智算中心/AI算力，2026占比约27%）、消费者业务（手机/终端）。',edge:'全球前四大电信设备商之一，国内运营商份额稳固；2024年上半年研发费用127.3亿元（占营收20.4%），累计全球授权专利约4.6万件；具备从GPU服务器、多元存储到无损网络交换机的全栈智算硬件能力（中兴通讯年报、CNII）。',role_in_ai:'非纯AI公司，而是把通信主业延伸为\'连接+算力\'：推出AiCube训推一体机、全栈训练/推理资源池，并通过中国泰尔实验室测试，主打国产算力替代，面向运营商与政企（金融、电力、互联网）提供一站式智算方案；在AI产业链中偏\'算力硬件+行业解决方案\'环节，与常见\'通信商\'归类相比，其实已切入服务器/一体机赛道。',risk:'国内运营商资本开支受宏观影响承压、营收承压；政企/消费者业务毛利率偏低且竞争加剧；作为通信设备商持续面临美国出口管制与制裁清单风险。',perf:{'y2025':'营收1338.95亿元（+10.38%），归母净利56.18亿元（-33.32%）','q1_2026':'营收349.88亿元（+6.13%），归母净利13.10亿元（-46.58%）','h1_2026':'暂无披露'}},
+'sz000938':{one_liner:'以控股子公司新华三为核心的「全栈 ICT 基础设施」供应商，靠路由器/交换机/服务器/存储切入 AI 算力网络与硬件。',biz:'ICT基础设施，核心子公司新华三提供路由器/交换机/服务器/存储及云计算（占绝大部分）；另有紫光云、UNISINSIGHT等。',edge:'新华三在国内企业网（交换机/路由器）市占率长期居前，具备从网络到计算/存储的一体化交付能力；持股新华三约 81%，是其利润与收入核心；为政企/运营商提供 AI 服务器与智算网络。',role_in_ai:'与中科曙光类似但更强在「算力网络（交换机/路由器）+服务器」环节，是 AI 数据中心的网络与硬件底座供应商。与「算力基础设施」归类一致，但自身不造芯片、毛利受价格竞争压制。',risk:'整体毛利率偏低、营收增速放缓；对新华三高度依赖；HPE 等外资股权/海外供应链受限带来不确定性；政企与运营商市场激烈价格战。',perf:{'y2025':'营收967.48亿元（+22.43%），归母净利16.86亿元（+7.19%）','q1_2026':'营收279.85亿元（+34.61%），归母净利7.88亿元（+126.06%）','h1_2026':'暂无披露'}},
+'sz301165':{one_liner:'深耕数据中心交换机（尤其200G/400G高速率）的国内网络设备商，是AI训练集群\'网络互联\'环节的直接受益者。',biz:'网络设备（交换机、路由器、无线）、网络安全产品及云桌面解决方案；以互联网数据中心交换机为主的直销模式收入占比约54%。',edge:'据Dell\'Oro口径，2024年中国200G/400G数据中心交换机市场占有率第一；推出51.2Tbps、128个400G端口的TH5冷板交换机及自研LPO 400G/800G光模块，AIDC智算网络方案已在模型公司智算集群、运营商国产算力集群落地（锐捷官网、同花顺调研纪要）。',role_in_ai:'处在AI产业链\'算力网络\'环节而非算力本身：为字节、阿里、腾讯等互联网大客户的数据中心提供AI后端/前端网络交换机，是GPU集群规模扩张的\'卖铲人\'；常被归入\'网络设备商\'，但实质上是AI数据中心建设的关键互联供应商，与常见归类一致。',risk:'互联网大客户议价能力强，低毛利业务占比提升拖累综合毛利率；订单与AI资本开支周期高度相关，业绩波动大；国产交换机竞争激烈（华为、新华三等）。',perf:{'y2025':'营收143.16亿元（+22.37%），归母净利6.96亿元（+21.30%）','q1_2026':'营收29.99亿元（+18.26%），归母净利1.23亿元（+14.59%）','h1_2026':'暂无披露'}},
+'usCSCO':{one_liner:'传统企业/运营商网络霸主，正以 Silicon One 芯片、AI 优化以太网与收购 Splunk 向\'AI 数据中心网络 + 安全软件\'延伸——AI 目前是增量而非主业。',biz:'网络设备（路由/交换）、安全、协作及互联网软件服务；AI订单激增拉动需求。',edge:'企业网与运营商市场的渠道、品牌与全栈产品壁垒深厚；Silicon One 统一网络硅支持 AI 高带宽低时延；收购 Splunk 补足可观测性与安全软件，提升订阅占比。',role_in_ai:'AI 角色偏\'网络供给侧\'的后来者：以 Silicon One 与 AI-ready 以太网切入 AI 集群后端网络，但主体收入仍来自传统企业/运营商网络与安全，与 Arista/Broadcom 在 AI 以太网直接竞争。与\'云/芯片\'归类不同，它是老牌网络设备商向 AI 网络延伸。',risk:'传统企业网需求疲软、库存调整；AI 网络份额落后于 Arista/NVIDIA；Splunk 整合与提价风险；中国等市场规模与地缘限制。',perf:{'y2025':'营收567.00亿美元（+5.0%），归母净利105.00亿美元（+1.0%）','q1_2026':'营收158.00亿美元（+12.0%），归母净利34.00亿美元（+35.0%）','h1_2026':'暂无披露'}},
+'usANET':{one_liner:'高性能以太网交换的纯玩家，直接受益于 AI 集群网络扩张——云与 AI 巨头（微软、Meta）贡献近半营收，是 AI 后端网络的\'核心供应商\'。',biz:'数据中心与云网络交换机、路由器及EOS软件，面向超大规模云厂商与AI集群，以太网交换机为主力',edge:'EOS 自研网络操作系统 + 800G 高速交换硬件在云数据中心低时延场景领先；与微软/Meta 等大客户的深度绑定；软件订阅与高毛利率带来盈利质量。',role_in_ai:'处 AI 产业链的\'后端网络/交换\'环节：为 AI 训练集群提供 Ethernet 交换（与 NVIDIA InfiniBand/Spectrum-X、Broadcom Tomahawk 方案竞争）。其 AI 角色高度真实且集中——营收直接由 GPU 集群网络建设驱动，但客户高度集中（微软+Meta=35%）。',risk:'客户高度集中（微软、Meta 占比大），单一客户资本开支波动冲击大；与 NVIDIA（Spectrum-X/InfiniBand）、Cisco、Broadcom 在 AI 网络激烈竞争；向企业市场扩张的执行风险。',perf:{'y2025':'营收90.06亿美元（+28.6%），归母净利35.11亿美元（+23.1%）','q1_2026':'营收27.09亿美元（+35.1%），归母净利10.23亿美元（+25.7%）','h1_2026':'暂无披露'}},
+'usJNPR':{one_liner:'面向运营商/企业/云的网络设备商，以 Mist AI 主打\'AI 原生网络运维\'，2025 年被 HPE 收购——其 AI 叙事偏\'用 AI 管网络\'，而非训练算力基础设施。',biz:'AI-Native网络、路由器、交换机、企业级安全与云平台产品（原独立上市公司，2025年7月并入HPE）。',edge:'在运营商与园区网络有稳固客户与路由技术；Mist AI（基于云的 AI 运维）提供差异化体验；被 HPE 收购后接入 HPE 的 AI 与混合云组合，扩大渠道。',role_in_ai:'AI 角色主要是\'AI for Networking\'——用机器学习做网络自愈、运维与体验优化，区别于训练/推理算力。虽推 cloud-ready data center 与 800G，但 AI 训练集群网络份额远小于 Arista/Broadcom，更偏企业/运营商网络而非 AI 基建核心。',risk:'被 HPE 收购后的整合与债务风险；AI 训练网络存在感弱于 Arista/NVIDIA；运营商 capex 周期波动；传统路由交换市场竞争（Cisco、Nokia）。',perf:{'y2025':'营收50.74亿美元（-8.82%），归母净利2.88亿美元（-7.19%）','q1_2026':'营收12.80亿美元（+11.0%），归母净利0.64亿美元（同比扭亏）','h1_2026':'暂无披露'}},
+'sh600460':{one_liner:'国内产品线最全的功率半导体IDM之一，正从白电/工控/汽车功率器件切入AI服务器电源功率链。',biz:'功率半导体（IGBT/MOSFET）、IPM智能功率模块、MEMS传感器、LED芯片等，特色IDM模式。',edge:'二十余年IDM积累，功率器件全品类(MOSFET/IGBT/IPM/FRD/超结/SiC/MEMS)国内最齐；自有晶圆产能(杭州/厦门/成都)支撑车规与AI电源定制。',role_in_ai:'真实角色是AI服务器\'供电侧\'功率器件供应商，非算力芯片；2025-2026推出50V/800V母线AI电源全链方案(1200V/650V SiC MOSFET、低压MOSFET、eFuse等)，用于数据中心HVDC/SST电源转换。与\'功率半导体\'归类一致，但以往主市场在白电/汽车，AI电源属新拓展。',risk:'IDM重资产、资本开支与折旧压力大；2024归母净利仅2.20亿(扣非2.52亿)盈利薄、周期波动明显；AI电源方案处推广期，放量与客户验证存不确定性。',perf:{'y2025':'营收130.52亿元（+16.32%），归母净利3.99亿元（+81.27%）','q1_2026':'营收35.19亿元（+17.31%），归母净利2.09亿元（+40.57%）','h1_2026':'暂无披露'}},
+'sh688396':{one_liner:'国内MOSFET市占第一、MEMS第二的功率半导体IDM+代工一体化龙头，业务以工控/汽车/消费功率器件为主。',biz:'功率半导体IDM：功率器件、功率IC、晶圆制造代工、智能传感器与智能控制。',edge:'国内少数具备设计-掩模-晶圆-封测全链条IDM能力的企业；MOSFET国内份额第一，6/8英寸产线+代工服务构筑规模与工艺壁垒。',role_in_ai:'AI中扮演间接的\'供电/功率\'角色，MOSFET/功率IC可用于服务器电源、通信电源；同时晶圆代工服务可承接AI相关芯片代工。直接AI营收占比小，主体是工控/汽车/消费功率。',risk:'2024归母净利降48.5%，功率器件价格战致毛利承压；下游工控/消费复苏慢；代工产能利用率波动。',perf:{'y2025':'营收110.54亿元（+9.24%），归母净利6.61亿元（-13.37%）','q1_2026':'营收28.57亿元（+21.34%），归母净利3.30亿元（+296.56%）','h1_2026':'暂无披露'}},
+'sz300373':{one_liner:'二极管/整流桥/MOSFET/IGBT/SiC全覆盖的功率半导体IDM，光伏二极管全球份额领先、汽车电子快速增长。',biz:'功率半导体（二极管、整流桥、MOSFET、IGBT、SiC器件），IDM一体化模式，覆盖汽车电子、新能源、工控。',edge:'设计+制造+封测IDM一体化，成本与交付可控；光伏二极管全球约40%份额、车规SiC模块进入头部车企，扬州8英寸SiC产线月产1万片。',role_in_ai:'主要通过功率器件(二极管/MOSFET/IGBT/SiC)服务于服务器电源、光伏与汽车电子，对AI属\'电力基础设施\'间接支撑；其光伏二极管支撑AI数据中心绿电，但非算力核心环节。',risk:'毛利率约33%处行业中游，SiC/8英寸产线扩产带来折旧压力；收入依赖光伏与汽车，行业降价与需求波动风险。',perf:{'y2025':'营收71.30亿元（+18.18%），归母净利12.59亿元（+25.55%）','q1_2026':'营收21.30亿元（+34.87%），归母净利3.85亿元（+41.01%）','h1_2026':'暂无披露'}},
+'sh688261':{one_liner:'以高压超级结MOSFET见长(占营收约78%)的功率器件fabless，主攻充电桩、光伏及通信/数据中心电源。',biz:'功率半导体（高压超级结MOSFET、IGBT、SiC），用于工业电源、新能源、充电桩等。',edge:'自主高压超级结MOSFET技术(高耐压/低导通电阻)，在充电桩与通信电源有先发；但壁垒偏中端，正受价格战挤压。',role_in_ai:'角色是数据中心/AI服务器电源中的高压功率开关(超级结MOSFET)，2025年机构调研披露其超级结MOSFET塑封模块用于液冷式数据中心电源。与\'功率器件\'归类一致，但更偏中高压电源侧，非算力芯片。',risk:'2024扣非净利仅231.93万(同比-98%)、毛利率约14.29%近7年低，以价换量陷盈利困局；产品与客户集中，高压MOSFET壁垒中端易遭价格战。',perf:{'y2025':'营收12.53亿元（+24.87%），归母净利0.46亿元（+14.85%）','q1_2026':'营收2.80亿元（-1.10%），归母净利0.06亿元（-28.80%）','h1_2026':'暂无披露'}},
+'sh603290':{one_liner:'国内车规级IGBT模块龙头(IGBT模块占营收约84%)，主供新能源车主驱，算力侧仅间接涉及。',biz:'功率半导体(IGBT)龙头，主营IGBT模块/单管、SiC器件、MOSFET、车规级功率器件，应用于新能源汽车、光伏风电、工业控制等。',edge:'国内IGBT模块市占约19%居本土第一、全球第六；车规模块获比亚迪/蔚来等主流车企批量供货，750V/1200V及800V平台产品成熟，自建晶圆/模块产线。',role_in_ai:'AI直接关联弱；主营车规/工业IGBT模块，算力侧电源可用IGBT但公司重心在新能源车电控。常见归类或将其纳入\'AI电源/功率\'，实际客户与收入主要来自汽车与光伏，AI仅间接。',risk:'2024营收/净利双降(-7.44%/-44.24%)，高度依赖车规IGBT，新能源车价格战下模块降价；SiC海外车企定点兑现与产能爬坡存不确定性；估值波动大。',perf:{'y2025':'营收40.12亿元（+18.34%），归母净利4.05亿元（-20.18%）','q1_2026':'营收8.64亿元（-6.00%），归母净利0.27亿元（-74.32%）','h1_2026':'暂无披露'}},
+'sz000977':{one_liner:'国内服务器整机龙头，AI 服务器（适配多品牌芯片）与液冷服务器主力供应商，靠卖服务器硬件及算力方案赚钱。',biz:'AI服务器及通用服务器、存储、云计算装备；国内AI服务器龙头，客户覆盖互联网、运营商、政企。',edge:'国内 AI 服务器市占率第一（超 50%），液冷技术国内/全球领先；对国产芯片适配最完整，并推出企业大模型开发平台「元脑 EPAI」。',role_in_ai:'处于 AI 算力「整机集成」环节，而非芯片设计；是连接上游芯片（含国产）与下游云厂/政企的 AI 服务器整机厂，归类上属基础设施而非 AI 芯片。',risk:'本质为装配集成、毛利偏低（市场有「组装厂」质疑）；依赖上游芯片供应（英伟达受限、国产替代进度）；客户集中与价格竞争激烈。',perf:{'y2025':'营收1647.82亿元（+43.58%），归母净利24.13亿元（+5.28%）','q1_2026':'营收354.70亿元（-24.30%），归母净利6.05亿元（+30.74%）','h1_2026':'暂无披露'}},
+'sh601138':{one_liner:'全球最大电子代工与算力硬件制造商，AI 服务器代工龙头，靠为云厂商代工 AI 服务器和通信设备赚钱。',biz:'云计算（AI服务器、算力设备）、通信及移动网络设备（交换机/路由器等）、工业互联网；AI服务器为核心增长极。',edge:'全球 AI 服务器制造规模领先，深度绑定北美云巨头（云服务商服务器增速超 80%）；精密制造、供应链与液冷工程能力。',role_in_ai:'处于 AI 产业链「硬件制造/代工」环节，而非芯片设计；提供 AI 服务器整机，与芯片设计公司归类完全不同，是算力基础设施的制造端。',risk:'代工毛利率低、议价权弱；依赖少数北美大客户；地缘政治与关税风险；AI 服务器需求波动影响营收节奏。',perf:{'y2025':'营收9028.87亿元（+48.22%），归母净利352.86亿元（+51.99%）','q1_2026':'营收2510.78亿元（+56.52%），归母净利105.95亿元（+102.55%）','h1_2026':'暂无披露'}},
+'sh603019':{one_liner:'国产高端服务器与智算中心龙头，靠自研液冷与「5A 级智算中心」承接 AI 算力建设，并长期参股国产 CPU 厂商海光信息。',biz:'高端计算（服务器/高性能计算）、存储、网络安全、数据中心；国产算力龙头，参股海光信息。',edge:'国产高性能计算/服务器第一梯队；子公司曙光数创为液冷解决方案龙头（2015 年率先量产冷板式液冷）；参股海光信息（国产 x86 CPU），2025 年海光宣布换股吸收合并曙光（A 股首例千亿级「子吞母」），整合后「CPU+服务器」垂直打通。',role_in_ai:'定位「AI 算力基础设施供应商」——提供 AI 训练/推理所需的服务器与智算中心，与其归类一致。但实际竞争力更多来自国产服务器整机+液冷，而非 AI 芯片本身。',risk:'营收承压下滑；华为昇腾、寒武纪等在智算中心份额提升带来竞争；海光吸收合并后的股权/整合与治理不确定性；信创与政府采购节奏波动。',perf:{'y2025':'营收149.64亿元（+13.81%），归母净利21.76亿元（+13.87%）','q1_2026':'营收31.99亿元（+23.71%），归母净利2.28亿元（+22.19%）','h1_2026':'暂无披露'}},
+'sh603296':{one_liner:'全球头部智能硬件ODM代工厂，以手机/PC代工起家，近年把服务器（含AI服务器）代工做成第二增长曲线，本质是\'硬件制造\'而非技术原创。',biz:'全球智能硬件ODM，覆盖智能手机、笔记本电脑、平板、可穿戴及数据业务（服务器/AI硬件），多元终端制造为主力',edge:'全球智能硬件ODM龙头（约8.6%份额居前三），平台化覆盖手机、PC、服务器、汽车电子、AIoT多品类；与客户绑定深、规模与供应链成本优势明显（华勤年报、百度百家号）。',role_in_ai:'在AI产业链中位于\'算力硬件制造/ODM\'环节：为品牌方代工AI服务器，但（据公开资料）不掌握GPU/CPU等核心芯片，价值量偏中下游；与\'AI概念股\'归类相比，其AI属性来自代工份额而非自有技术，议价与毛利受制于上游芯片与客户。',risk:'整体毛利率仅约9.3%，高性能计算业务毛利率低至约7.77%；代工模式技术壁垒有限、客户集中且议价弱；AI芯片采购成本高、现金流波动大（2024年经营现金流骤降）。',perf:{'y2025':'营收1714.37亿元（+56.02%），归母净利40.54亿元（+38.55%）','q1_2026':'营收407.46亿元（+16.42%），归母净利10.61亿元（+25.96%）','h1_2026':'暂无披露'}},
+'usDELL':{one_liner:'全球PC与服务器/存储巨头，借AI服务器（面向云厂商与企业）和AI PC双线切入AI，是品牌级算力硬件龙头。',biz:'客户端解决方案(PC及外设)、基础设施解决方案(服务器、存储、AI服务器)、以及软件与服务(VMware等)。',edge:'全栈自有品牌硬件+直营与服务网络，覆盖从边缘AI PC到数据中心AI服务器的完整谱系；已与xAI等签下大单，AI服务器订单储备强劲（Dell FY2025业绩、SEC年报）。',role_in_ai:'在AI产业链中处于\'品牌服务器/存储+AI PC\'环节：既直接向大型云厂商交付AI服务器，也把AI下沉到企业级和PC终端；与超微等ODM/白牌厂相比，Dell靠品牌、渠道与服务溢价，是\'品牌算力\'代表，与常见归类一致。',risk:'AI服务器与超微、HPE及ODM白牌厂价格竞争激烈、毛利承压；PC需求具强周期性；收购VMware后债务负担较重。',perf:{'y2025':'营收1135.38亿美元（+19%），归母净利59.36亿美元（+30%）','q1_2026':'营收438.42亿美元（+88%），归母净利34.38亿美元（+256%）','h1_2026':'暂无披露'}},
+'usHPE':{one_liner:'企业级服务器、存储与网络基础设施厂商，以GreenLake即服务模式+GB200等AI系统切入AI，并借收购Juniper补齐网络短板。',biz:'企业服务器（含AI服务器）、网络（Juniper，含Mist AI/路由交换）、混合云（GreenLake）、金融服务；AI与网络为增长重点。',edge:'企业级客户基础深厚，Pointnext服务+GreenLake订阅模式形成粘性；GB200等液冷AI系统交付能力，叠加Juniper（含Mist AI网络）补齐\'计算+网络\'一体化方案（HPE公告、Futurum）。',role_in_ai:'在AI产业链中位于\'企业级AI服务器+网络\'环节：主要服务传统企业而非纯云厂商，AI系统（如GB200）与Juniper网络协同提供数据中心AI底座；与Dell/超微同属品牌算力阵营，但更偏企业私有云与混合云，与常见归类一致。',risk:'服务器业务经营利润率偏低（FY2025 Q2约5.9%），价格战与AI基建成本挤压毛利；AI订单转化为收入节奏不均；与Dell、超微及ODM竞争激烈，转型期执行风险高。',perf:{'y2025':'营收343亿美元（+14%），归母净亏0.59亿美元','q1_2026':'营收106.72亿美元（+40%），归母净利6.24亿美元（同比扭亏）','h1_2026':'暂无披露'}},
+'usSMCI':{one_liner:'应用优化（building block）服务器与液冷机架级方案的头部供应商，以最快速度把NVIDIA最新GPU平台做成可交付机架而深度绑定AI算力建设。',biz:'AI服务器及云/存储/5G边缘整机解决方案(Total IT Solution Provider)。',edge:'\'首上市\'快速工程化能力，能在NVIDIA新GPU（如HGX/GB200）量产初期即推出机架级液冷方案，Building Block模块化架构缩短交付周期；在AI/HPC机架集成与液冷散热上积累深（Supermicro IR、10-K）。',role_in_ai:'在AI产业链中处于\'GPU服务器/整机柜集成\'核心环节：自身不造芯片，而是把NVIDIA/AMD GPU、CPU与自研液冷/互联集成为交付给云厂商与企业的AI算力单元，是AI算力扩张最直接的\'卖铲人\'；与\'AI服务器厂\'归类完全一致，且深度受益于训练集群规模化。',risk:'治理与财务诚信争议大：做空机构Hindenburg指控会计操纵、关联方交易及制裁规避，曾于2018年因审计问题退市；FY2024曾延迟提交财报、面临纳斯达克摘牌风险（后补交合规），估值与股价对负面消息高度敏感。',perf:{'y2025':'营收220亿美元（+47%），归母净利10亿美元','q1_2026':'营收102亿美元（+122%），归母净利4.83亿美元（+343%）','h1_2026':'暂无披露'}},
+'usLNVGY':{one_liner:'全球PC销量第一的终端龙头，正把基础设施方案集团（ISG）做成第二曲线，以液冷AI服务器+AI PC双线卡位AI。',biz:'智能设备（PC/平板）、手机（摩托罗拉）、基础设施方案（服务器/存储/AI算力）、方案服务(SSG)；AI PC与AI服务器为增量。',edge:'PC全球出货第一、规模与采购成本优势；Neptune液冷技术行业领先，支撑高密度AI服务器散热与能效，是AI服务器差异化卖点（联想年报、BusinessWire）。',role_in_ai:'在AI产业链中横跨\'AI PC终端\'与\'AI服务器基础设施\'两环：既在前端以AI PC定义个人AI入口，又在后端以液冷服务器切入数据中心算力；与\'PC厂\'传统归类不同，其AI角色已延伸到算力供给侧，但ISG体量仍远小于PC主业。',risk:'ISG服务器业务历史上利润薄、仍处投入扭亏期；PC需求强周期波动；作为中国企业面临美国关税与地缘/供应链脱钩风险。',perf:{'y2025':'营收831亿美元（+20%），归母净利19.12亿美元（+38%）','q1_2026':'营收216亿美元（+27%），归母净利5.21亿美元（+479%）','h1_2026':'暂无披露'}},
+'sz300442':{one_liner:'廊坊起家的批发/定制化智算中心(AIDC)运营商，深度绑定字节跳动等头部互联网客户，以高功率液冷机柜见长',biz:'IDC（数据中心）与AIDC（智算中心）算力基础设施运营，液冷方案为特色，国内外布局。',edge:'高功率机柜(单机柜20kW以上)、液冷技术使PUE低至1.25；截至2024年底全国已建成7个园区、部署机柜8.2万架，储备机柜总数达32万架；被公开报道称为\'唯一单独AIDC成规模\'的公司之一，核心客户包括字节跳动。',role_in_ai:'作为算力承载基础设施，属于批发/定制化智算中心，为字节跳动等提供大模型训练与推理的高密机柜及液冷算力底座；与常见的\'零售IDC\'归类不同，更接近定制化批发+AIDC，直接被AI算力需求驱动。',risk:'大客户集中(对字节跳动依赖度高)；重资产扩张带来负债与现金流压力；AIDC建设进度及电价、能耗审批存在不确定性。',perf:{'y2025':'营收56.74亿元（+29.99%），归母净利50.50亿元（+182.07%）','q1_2026':'营收18.40亿元（+53.55%），归母净利5.82亿元（+35.35%）','h1_2026':'暂无披露'}},
+'usVNET':{one_liner:'中国首家美股IDC上市公司，批发(基地型大定制)+零售双引擎的第三方中立数据中心及AIDC运营商',biz:'中国第三方中立IDC（数据中心）服务商，主营基地型IDC（批发定制）、零售IDC、智算中心（AI算力租赁）、云运营与混合IT服务。',edge:'创立于1996年、运营近30年的中立第三方基础设施商；\'双引擎\'战略同时服务超大规模客户(批发)与中小企业(零售托管)；推进AIDC智算布局。',role_in_ai:'算力承载基础设施，既以基地型批发服务大模型/云厂商，也通过零售托管承接企业AI推理部署；与纯批发IDC归类有交叉，兼具批发+零售双重角色，且自建AIDC切入智算。',risk:'持续重资产投入与盈利波动(曾出现亏损)；零售端价格竞争；客户集中与电价、能耗指标约束。',perf:{'y2025':'营收99.5亿元（+20.5%），归母净亏2.52亿元（同比由盈转亏）','q1_2026':'营收26.9亿元（+19.8%），归母净亏5.32亿元','h1_2026':'暂无披露'}},
+'sh603881':{one_liner:'上海静安区国资委实控的定制批发型IDC龙头，几乎全部收入来自\'先订单、后建设\'的批发托管，深度绑定阿里',biz:'数据中心（IDC）批发型/超大型定制化算力基础设施服务，IDC服务收入占比约98.5%；另有IDC解决方案及智算业务。',edge:'\'先订单、后建设\'定制化批发模式确定性强、空置风险低；国资背景在融资成本与资源获取上占优；据公开研报为国内批发型IDC第二大(市占率约12%)。',role_in_ai:'典型批发型算力承载底座，为阿里云等超大规模客户提供定制化机柜，间接承载AI训练/推理算力；与\'零售IDC\'归类不一致，是纯批发模式。',risk:'客户高度集中(阿里等)；据公告前期定制项目已全部建成且未签新订单，未来增长依赖新增订单；重资产折旧与负债压力。',perf:{'y2025':'营收17.21亿元（+0.02%），归母净利1.39亿元（+4.95%）','q1_2026':'营收3.80亿元（-3.76%），归母净利0.45亿元（+1.64%）','h1_2026':'暂无披露'}},
+'sz300383':{one_liner:'华北领先的以零售为主的IDC+云计算双轮服务商，同时运营亚马逊云科技中国(北京)区域',biz:'IDC数据中心（机柜租赁与运维）与云计算（运营AWS中国区、无双科技等）；2025年计提商誉减值约8.64亿。',edge:'在华北核心地段(北京房山、亦庄中金云网等)拥有稀缺自有土地/机房资源；运营亚马逊云科技中国(北京)区域，形成云+IDC协同；零售模式客户相对分散。',role_in_ai:'以零售IDC承载企业级算力与AI推理部署，并通过AWS中国区域提供云上AI算力；与纯批发智算中心归类不同，偏零售托管+云运营。',risk:'2025年因商誉减值等由盈转亏(约-7.59亿元)；云计算受AWS资产回收影响收益减少；零售机柜上架率与价格压力；重资产扩张。',perf:{'y2025':'营收71.78亿元（-1.42%），归母净亏7.59亿元（同比由盈转亏）','q1_2026':'营收16.33亿元（-10.83%），归母净利0.22亿元（-67.52%）','h1_2026':'暂无披露'}},
+'sz300738':{one_liner:'华南起家的第三方IDC服务商，批发+零售并行，近年受益于AIGC带来的机柜上架率提升而收入高增',biz:'IDC数据中心/智算中心服务（占比约78%）、其他互联网综合服务、分布式光伏节能服务。',edge:'在廊坊固安、天津武清、张家口怀来、广州南沙、成都双流等地布局大型数据中心，受益AI带来上架率提升；批发+零售灵活组合满足不同客户。',role_in_ai:'算力承载基础设施，以批发/零售机柜承接AI训练与推理算力需求，智算项目建设提速；归类介于批发与零售之间，更接近第三方中立IDC。',risk:'\'增收不增利\'(2024归母净利同比-12.2%、扣非-17.9%)；新增固定资产20.69亿元致折旧与负债上升；IDC价格战与负债扩张风险。',perf:{'y2025':'营收25.21亿元（+16.47%），归母净利1.32亿元（+6.65%）','q1_2026':'营收7.03亿元（+31.15%），归母净利0.93亿元（+79.19%）','h1_2026':'暂无披露'}},
+'usGDS':{one_liner:'中国高性能数据中心批发龙头，服务超大规模云/互联网客户，2024年收入破百亿且AI推理订单创纪录',biz:'数据中心（IDC）批发型托管服务，布局国内一线城市及东南亚，数据中心机柜运营与云服务基础设施为主业',edge:'20年运营经验、在一线城市(北上深及周边)拥有近千兆瓦可开发容量且适配AI推理；2025Q1获史上最大单笔订单(约4万㎡/152MW，6个月交付)；据信通院连续四年入选\'中国算力中心服务商十强\'并居首位。',role_in_ai:'批发型算力承载底座，直接承接云厂商/互联网公司的大模型推理与训练(单笔常≥50MW IT容量)需求；与零售IDC归类不同，是典型超大规模批发，并分拆DayOne独立运营海外(东南亚)业务。',risk:'重资产、客户集中(超大规模云厂商)；使用率约74%仍有空置；海外DayOne分拆后并表口径变化；能耗/电力获取与负债压力。',perf:{'y2025':'营收114.32亿元（+10.8%），归母净利9.59亿元（扭亏）','q1_2026':'营收33.67亿元（+23.6%），归母净利26.52亿元（+247.1%）','h1_2026':'暂无披露'}},
+'usEQIX':{one_liner:'全球最大零售托管+互联(interconnection)数字基础设施商，以IBX与Equinix Fabric连接生态和私有AI部署见长',biz:'全球数据中心(IDC)/数字基础设施，提供主机托管(colo)、互联互通、裸金属与网络服务。',edge:'全球互连生态(48.2万+个互连)、Equinix Fabric软件定义连接；xScale超大规模合资组合(全球租赁超400MW)；与Dell/NVIDIA合作在IBX内交付私有AI方案。',role_in_ai:'既是算力承载基础设施(零售colocation + xScale批发给超大规模)，更是AI的\'连接层\'——通过互连支撑混合多云的AI推理/训练流量；与\'纯IDC\'归类不同，核心是互联+中立生态，并定位为私有AI基础设施分发者。',risk:'零售模式对中小企业需求敏感；高资本开支与负债(REIT结构)；xScale合资执行与电力获取；多国运营带来的地缘/监管风险。',perf:{'y2025':'营收92.17亿美元（+5.4%），归母净利13.50亿美元（+65.6%）','q1_2026':'营收24.44亿美元（+9.8%），归母净利4.15亿美元（+21.0%）','h1_2026':'暂无披露'}},
+'usDLR':{one_liner:'全球最大云中立/运营商中立数据中心提供商，批发+零售混合，PlatformDIGITAL全球平台承载超大规模与AI算力',biz:'全球数据中心REITs（PlatformDIGITAL平台），310座数据中心，提供主机托管/互联/云接入服务，客户超5000家。',edge:'全球最大中立数据中心平台PlatformDIGITAL与PDx架构(解决\'数据引力\')；与Blackstone 70亿美元超大规模开发合资(II期)；full spectrum批发+零售混合策略。',role_in_ai:'算力承载基础设施，以批发为主服务超大规模客户(含GPU云/AI训练)并通过PlatformDIGITAL互联；与Equinix偏零售互联不同，DLR更偏批发/超大规模承载。',risk:'重资产+高杠杆(REIT)；超大规模客户集中与空置率；AI数据中心高耗电带来电力与可持续性压力；对利率敏感。',perf:{'y2025':'营收61.13亿美元（+10.0%），归母净利13.09亿美元（+123.2%）','q1_2026':'营收16.40亿美元（+16.3%），归母净利1.75亿美元（+64.3%）','h1_2026':'暂无披露'}},
+'sz002837':{one_liner:'数据中心与储能的精密温控/液冷龙头，是 AI 算力扩张的「卖铲人」——为 GPU 服务器与智算中心解决散热。',biz:'机房温控节能(液冷/精密空调)、机柜温控、电子散热、客车空调等。',edge:'国内数据中心液冷份额领先（据公开资料约三成以上），储能温控全球份额约 18%；率先交付 5MWh 大容量储能全链条液冷方案；已进入英伟达 GB200/GB300 等高端算力液冷供应链（据公开报道）。',role_in_ai:'位于 AI 算力基础设施的「配套保障」环节——AI 服务器功率骤增使液冷从可选项变必选项，英维克赚的是散热/温控的钱，是典型「卖铲人」。与「液冷」归类高度一致，且跨数据中心+储能双赛道。',risk:'业绩高度依赖 AI/储能资本开支周期，若大厂下修算力投资则订单波动；与大厂议价能力弱、价格竞争；客户集中度高；技术路线（冷板 vs 浸没）变化风险。',perf:{'y2025':'营收60.68亿元（+32.23%），归母净利5.22亿元（+15.30%）','q1_2026':'营收11.75亿元（+26.03%），归母净利0.09亿元（-81.97%）','h1_2026':'暂无披露'}},
+'sz301018':{one_liner:'专业特种空调与数据中心风冷+液冷一体化温控方案商，深度绑定运营商与算力基建，是算力基础设施的配套保障方而非算力本身',biz:'专用性空调与温控设备（数据服务液冷、工业、特种、公建），AI服务器液冷为当前核心增量。',edge:'覆盖数据中心风冷到液冷全环节、具备‘垂直一体化’温控解决方案能力；强调技术创新、质量保障与快速交付，下游覆盖运营商/互联网/电力等',role_in_ai:'本质是AI算力的‘配套保障’环节——为高功耗芯片与算力中心提供散热基础设施，而非算力或芯片环节；与常见‘液冷’归类一致，但以风液融合/一体化方案切入、并非单一浸没式技术路线',risk:'数据中心业务仍处放量早期、收入占比有限；客户集中于运营商与基建项目，受运营商资本开支节奏影响；整体规模在液冷标的中偏小',perf:{'y2025':'营收42.09亿元（+39.55%），归母净利2.17亿元（+87.59%）','q1_2026':'营收6.17亿元（-1.80%），归母净利0.28亿元（-47.71%）','h1_2026':'暂无披露'}},
+'sz300499':{one_liner:'以信息与通信/储能液冷为核心的高功率密度热管理厂商，浸没式液冷服务器领域近乎独家配套，是AI算力的‘散热配套’',biz:'电力电子装置纯水冷却设备（液冷），拓展数据中心/储能/新能源液冷。',edge:'在浸没式液冷服务器市场据公开资料几乎全部采用其产品，冷板+浸没方案合计占比接近60%，技术路线覆盖冷板与浸没双形态',role_in_ai:'纯正的AI算力‘散热配套’角色，直接服务于液冷服务器（高功耗GPU/加速卡），与‘液冷’归类一致；其价值在于解决高密度算力散热瓶颈，不掌握算力或芯片',risk:'整体规模小（2024年营收约6.9亿元）、毛利率偏低、仍处盈亏平衡附近；此前剥离新能源汽车热管理业务聚焦数字与能源，新业务放量前的盈利波动风险',perf:{'y2025':'营收9.89亿元（+43.09%），归母净利0.28亿元（+156.40%）','q1_2026':'营收2.12亿元（-2.77%），归母净利0.15亿元（+16.55%）','h1_2026':'暂无披露'}},
+'sz300990':{one_liner:'以储能温控为基本盘、正切入数据中心液冷的工业温控综合服务商，是AI算力的‘间接配套保障’',biz:'工业温控设备商，主营电力电子装置温控（储能/光伏/数控装备温控）、液体恒温设备、电气箱恒温装置，应用于储能、半导体设备、数控机床等。',edge:'储能温控领域据公开资料占据超30%份额、绑定头部储能客户（宁德时代、阳光电源）形成客户壁垒；工业温控技术可复用至数据中心液冷',role_in_ai:'属于AI算力‘配套保障’的延伸——目前主营是储能（新能源）温控，数据中心液冷尚属早期；与‘液冷’归类部分一致，但其AI相关收入当前占比较小，更多是储能温控龙头向算力温控的外溢',risk:'储能领域2024年价格竞争激烈、毛利率下行；数据中心液冷客户突破与放量仍需时间，短期业绩仍由储能周期主导',perf:{'y2025':'营收28.67亿元（+32.75%），归母净利2.53亿元（+64.84%）','q1_2026':'营收6.99亿元（+21.80%），归母净利0.60亿元（-3.44%）','h1_2026':'暂无披露'}},
+'bj872808':{one_liner:'中科曙光旗下、以浸没相变液冷数据中心基础设施为主业的专精特新厂商，是AI高密度算力的‘散热核心配套’',biz:'数据中心液冷基础设施，主力为浸没相变液冷、冷板液冷产品及解决方案，面向智算中心；推进海外液冷布局。',edge:'浸没相变液冷技术领先，依托中科曙光（母公司）算力生态，在浸没式液冷数据中心部署中据公开资料占据较高份额；冷板液冷快速放量补齐产品矩阵',role_in_ai:'直接服务于高密度AI算力中心的散热环节，是‘液冷’归类中偏浸没式路线的代表；与常见归类一致，且因绑定曙光系AI服务器与先进计算项目而具稀缺性，但需区分其属基础设施配套而非算力提供方',risk:'2024年营收净利大幅下滑，主因浸没液冷项目节奏（‘东数西算’与先进计算需求波动）；客户与订单高度依赖曙光系及政府/国资算力项目，集中度风险突出',perf:{'y2025':'营收8.82亿元（+74.29%），归母净利0.37亿元（-39.93%）','q1_2026':'营收1.03亿元（+782.53%），归母净亏0.48亿元（同比扩大）','h1_2026':'暂无披露'}},
+'usVRT':{one_liner:'全球关键数字基础设施龙头，提供数据中心供配电+热管理+管理软件一体化方案，是AI算力基建的核心‘基础设施总包’',biz:'关键数字基础设施，覆盖数据中心电源（UPS）、热管理（精密空调）、IT管理软件，及通信网络与工商业基础设施。',edge:'全球关键数字基础设施（critical digital infrastructure）领导者，具备供配电+热管理+监控全栈能力；为英伟达官方液冷合作伙伴（据公开资料），拥有全球服务与生产网络；订单强劲（2024年TTM有机订单同比约+30%，由数据中心/AI驱动）',role_in_ai:'处于AI产业链‘基础设施层’的核心位置——既提供算力中心的散热（液冷CDU/冷板/浸没配套），也提供供配电与监控，是算力落地的‘总包式保障’，远不止单一液冷，与‘温控/液冷’归类相比定位更高、覆盖更广',risk:'估值与业绩高度绑定全球AI数据中心资本开支周期；业务全球化面临汇率、地缘与供应链风险；并购整合（CoolTera等）的执行与协同不确定性',perf:{'y2025':'营收102.30亿美元（+27.7%），归母净利13.33亿美元（+168.8%）','q1_2026':'营收26.50亿美元（+30%），归母净利3.90亿美元（+137%）','h1_2026':'暂无披露'}},
+'usNVT':{one_liner:'全球电气连接与防护（机柜/外壳/热管理）厂商，借机柜与液冷CDU切入AI数据中心散热配套，属‘电气+散热’跨界配套',biz:'电气连接与防护解决方案（机柜/电气设备保护、电气连接）；基础设施（数据中心、电力公用事业）占比提升，2025年基础设施约占组合45%。',edge:'百年电气连接与防护品牌，机柜/外壳（HOFFMAN、SCHROFF）在数据中心与电子装备领域具渠道优势；通过液冷CDU（Coolant Distribution Unit）与Siemens等合作布局AI数据中心模块化蓝图（2025年12月公开）',role_in_ai:'在AI产业链中属‘机柜外壳+散热配套’的跨界角色——既提供算力设备的物理机柜/防护，又通过液冷CDU参与高密度散热；与‘纯液冷’归类不完全一致，更偏‘电气防护+液冷基础设施’双线切入，AI相关收入占整体尚小',risk:'AI/数据中心液冷仍处早期、占整体营收比例有限，增长依赖传统电气与基建需求；并购与跨领域（热管理）扩张的整合风险；业务全球化受汇率与地缘影响',perf:{'y2025':'营收1305亿美元（+114%），归母净利729亿美元（+144%）','q1_2026':'营收816亿美元（+85%），归母净利583亿美元（+211%）','h1_2026':'暂无披露'}},
+'usBABA':{one_liner:'中国最大公有云与AI云服务商，自研平头哥/含光推理芯片+通义大模型，走“云+模型+芯片”全栈路线。',biz:'阿里巴巴集团：中国商业、国际数字商业、阿里云（云与AI）、菜鸟物流、本地生活等多元板块；平头哥为其旗下半导体子公司，主营玄铁CPU、含光AI芯片等',edge:'中国AI云市场第一（据Omdia 2025报告，2025中国AI云567亿元市场中阿里云居首、份额约40%+）；自研平头哥含光800及2025年媒体报道的新一代AI推理芯片（据公开报道兼容英伟达生态以降迁移成本）；通义千问Qwen开源生态广泛。',role_in_ai:'同时跨“云算力供给+基础模型+自研芯片”三环节：对外卖AI算力（云）与模型（通义），对内用平头哥芯片降算力成本；其芯片主要服务自家数据中心与阿里云，并非对外大量销售。真实角色是中国AI基础设施“全栈供应商”，与“电商公司”旧归类已明显分化。',risk:'云基数大、AI变现仍早期；自研芯片受美国出口管制与先进制程代工限制（依赖外部代工）；电商主业承压；芯片供应链与地缘风险。',perf:{'y2025':'营收1403亿美元（+6%），归母净利177亿美元（+77%）','q1_2026':'营收349亿美元（+2%），归母净利61亿美元（+76%）','h1_2026':'暂无披露'}},
+'hk00700':{one_liner:'以社交/游戏/广告现金牛为支撑、务实推进“好用的AI”的中国互联网巨头，自研混元大模型+紫霄芯片+腾讯云。',biz:'社交（微信/QQ）、游戏、网络广告、金融科技及企业服务、云与AI（含自研AI芯片“紫霄”等）等业务板块。',edge:'微信/QQ超大流量入口为AI应用（元宝、微信AI）提供天然分发；混元Hy3（2026年7月发布，MoE总参295B、激活21B、256K上下文）强调性价比与Agent能力；紫霄等自研AI芯片（据公开报道）用于内部降本；AI资本开支持续加码。',role_in_ai:'跨“模型+云+应用+芯片”：混元对外开源/对内赋能微信、元宝、腾讯云，腾讯云卖AI算力，自研芯片主要服务内部降本而非对外销售。真实角色更像“用AI提升现有业务（广告/游戏/社交）效率的赋能者”，与“纯AI基础设施商”定位不同，AI投入产出比曾受资本市场质疑。',risk:'AI资本开支高企而变现节奏不确定、投入产出比受质疑；云份额落后于阿里云；自研芯片规模与效能待验证；游戏/广告监管与宏观风险。',perf:{'y2025':'营收8194亿港元（+14%），归母净利2451亿港元（+16%）','q1_2026':'营收2141亿港元（+9%），归母净利633亿港元（+21%）','h1_2026':'暂无披露'}},
+'usBIDU':{one_liner:'以搜索为基座、押注全栈AI的中国公司，自研昆仑芯+文心大模型，但AI收入占比仍小于传统搜索广告。',biz:'百度核心（搜索/信息流广告、智能云、Apollo自动驾驶/萝卜快跑）及昆仑芯（自研AI训练/推理芯片，分拆上市推进中）；AI业务占比持续提升。',edge:'全栈布局：昆仑芯自研AI芯片（第三代P800，据称FP16算力对标/超对华特供H20）+文心大模型+百度智能云；昆仑芯已适配DeepSeek、文心、Qwen等主流大模型；搜索海量数据与场景为模型迭代提供反馈。',role_in_ai:'跨“芯片+模型+云+应用”：昆仑芯提供国产训练/推理算力（部分自用、部分外售），文心是主流基础模型之一，智能云承接企业AI需求。真实角色是中国“全栈AI自主可控”路线代表，但市场仍多按“搜索公司”定价，AI尚未在收入上完全主导。',risk:'总营收下滑、传统搜索广告受AI搜索冲击；昆仑芯高度依赖百度体系、独立商业化存疑；与字节/阿里/腾讯在模型与云上激烈竞争；文心调用量增长但货币化困难。',perf:{'y2025':'营收182亿美元（-3%），归母净利7.9亿美元（-76%）','q1_2026':'营收45亿美元（-1%），归母净利4.9亿美元（-55%）','h1_2026':'暂无披露'}},
+'usAMZN':{one_liner:'全球最大云厂商，靠自研Trainium/Inferentia芯片+自研Nova模型降本控费，并以投资Anthropic绑定模型能力。',biz:'电商零售、AWS云计算(含自研AI芯片Trainium/Inferentia、Bedrock)、广告、订阅。',edge:'AWS全球云份额第一；自研Trainium/Inferentia芯片用于EC2推理/训练实例以降成本（Anthropic承诺采用）；投资Anthropic逾80亿美元并绑定Trainium；自研Nova多模态模型；规模效应与客户基数庞大。',role_in_ai:'跨“云算力+自研芯片+模型”：Trainium/Inferentia主要服务自家AWS客户（含训练Anthropic模型），并非对外卖芯片；Nova补充模型层。真实角色是“用自研芯片压低云AI成本的超级云厂商”，与英伟达是竞合关系（既买GPU也自研替代），与“电商公司”旧归类已分化。',risk:'AI/云资本开支极高（数十亿级数据中心投入）致自由现金流波动；与微软Azure、谷歌云激烈竞争；自研芯片性能与采用率待验证；对Anthropic投资集中度高。',perf:{'y2025':'营收7169亿美元（+12%），归母净利777亿美元（+31%）','q1_2026':'营收1815亿美元（+17%），归母净利303亿美元（+77%）','h1_2026':'暂无披露'}},
+'usMSFT':{one_liner:'既是最⼤的 AI 云算力出租方之一（Azure），又是 OpenAI 核心股东与算力承接方，并自研 Maia AI 加速芯片与 Copilot 应用层——横跨云、模型、芯片、应用四层。',biz:'生产力和业务流程（Office/365、LinkedIn、Dynamics）、智能云（Azure、服务器）、更多个人计算（Windows、Xbox、Surface）；AI(Copilot/Maia芯片)贯穿。',edge:'全球最大企业软件与云底座之一；Azure 规模效应叠加与 OpenAI 独家合作（累计投资约 130 亿美元）形成模型与应用层壁垒；自研 Maia 100 AI 加速芯片与 Cobalt 100 CPU 降低对外部 GPU/CPU 依赖；企业客户与数据壁垒深厚。',role_in_ai:'多重角色：① 卖算力（Azure 出租 GPU/NPU 训练与推理）；② 模型利益方（OpenAI 大股东，Copilot 内嵌 GPT）；③ 自研芯片方（Maia 100 用于 Azure AI，自用而非外售）；④ 应用层（M365 Copilot、GitHub Copilot）。与\'纯云\'或\'纯芯片\'公司不同，它是垂直整合型 AI 参与者。',risk:'AI 数据中心资本开支高企挤压自由现金流；Azure 增速边际放缓；对 OpenAI 的巨额投入与治理/变现不确定；估值偏高。',perf:{'y2025':'营收2817亿美元（+15%），归母净利1018亿美元（+16%）','q1_2026':'营收777亿美元（+18%），归母净利277亿美元（+12%）','h1_2026':'暂无披露'}},
+'usGOOGL':{one_liner:'自研TPU+Gemini+Google Cloud三位一体的全栈AI巨头，AI既是云增长引擎也是搜索护城河。',biz:'母公司Alphabet：广告（搜索/YouTube）、Google Cloud云计算、Android/硬件，自研TPU算力支撑AI。',edge:'自研TPU（v5p/v6“Trillium”等）支撑Gemini训练与云租用以降本提效，形成“芯片-云-模型”闭环；Gemini深度嵌入搜索（AI Overviews）、Workspace与Cloud；全球数据中心与数据/分发优势。',role_in_ai:'跨“自研芯片+基础模型+云+应用”全环节：TPU既供自家训练也通过Google Cloud对外租用以挑战英伟达；Gemini既是产品也是云卖点。真实角色是与英伟达平行的“另类算力供给方”（自产自销为主），同时又以云厂商身份采购大量英伟达GPU，角色混合。',risk:'资本开支巨大拖累自由现金流；反垄断与监管压力（美/欧多起诉讼）；AI Overviews等可能侵蚀传统搜索广告模式；自研TPU不对外销售、生态封闭。',perf:{'y2025':'营收4028亿美元（+15%），归母净利1322亿美元（+32%）','q1_2026':'营收1099亿美元（+22%），归母净利626亿美元（+81%）','h1_2026':'暂无披露'}},
+'usMETA':{one_liner:'全球最大的 AI 广告变现公司之一，靠开源 LLaMA 建立生态话语权，并用自研 MTIA 芯片与海量 GPU 支撑推荐/广告推理——本质是 AI 的超级\'消费者\'与模型输出方，而非 AI 基础设施卖家。',biz:'全球社交/广告与AI巨头，主营社交应用（Facebook/Instagram/WhatsApp/Threads，广告营收为主）、Reality Labs（VR/AR/元宇宙硬件）、AI（LLaMA大模型、AI广告与推荐）。',edge:'顶级用户规模与行为数据支撑广告/推荐 AI；开源 LLaMA 模型建立开发者生态与行业影响力；自研 MTIA 推理芯片（已部署数十万颗）降低推理成本；资本实力强（2024 资本开支 384 亿美元，2025 指引 640–720 亿美元）。',role_in_ai:'主要是 AI 的\'需求侧\'：用 AI 优化广告与内容推荐（核心利润来源），大量采购 NVIDIA GPU 并自研 MTIA 支撑训练/推理；同时以开源 LLaMA 成为大模型\'供给方\'之一（生态而非直接收费）。与常见\'AI 算力股\'归类不同，其 AI 投入是成本中心，回报来自广告效率。',risk:'AI/元宇宙资本开支巨大且回报周期长；Reality Labs 持续亏损；广告业务受隐私监管（iOS ATT、GDPR）与竞争影响；对 NVIDIA GPU 供应依赖及自研芯片良率风险。',perf:{'y2025':'营收2010亿美元（+22%），归母净利605亿美元（-3%）','q1_2026':'营收563亿美元（+33%），归母净利268亿美元（+61%）','h1_2026':'暂无披露'}},
+'usPONY':{one_liner:'L4级自动驾驶全栈公司，以Robotaxi（无人出行服务）为旗帜、Robotruck（自动驾驶卡车）为当前营收主力、并向车厂授权技术，三业务并行但均未盈利。',biz:'自动驾驶，Robotaxi（自动驾驶出行）为核心业务；另有自动驾驶卡车（Robotruck）、智能解决方案/域控制器（ADC）技术授权与应用。',edge:'全栈自研L4软硬件：2025年4月发布第七代车规级自动驾驶系统（基于车规级芯片、车规级零部件的L4全场景方案），并与丰田、北汽、广汽联合开发量产Robotaxi车型，2025年11月已在广州、深圳投入运营；具备从感知、决策、规控到车队运营及技术授权的完整能力。',role_in_ai:'真实角色是\'自动驾驶算法+无人运营服务+技术授权\'三位一体的AI应用层公司，并非算力或芯片供应商；其价值在于L4算法与规模化无人运营闭环。当前营收主力是B端Robotruck货运而非常被强调的C端Robotaxi，与其\'Robotaxi第一股\'的市场标签存在落差，属自动驾驶垂直落地环节。',risk:'持续巨额亏损：2024年研发费用高达2.40亿美元（同比+95.7%），运营费用2.97亿美元（同比+85.4%），车队运营成本占收入成本71.1%，毛利率仅约15%；Robotaxi商业化仍远未盈利，且高度依赖融资与监管放行。',perf:{'y2025':'营收0.90亿美元（+20%），归母净亏1.34亿美元（同比减亏）','q1_2026':'营收0.34亿美元（+145%），归母净亏0.50亿美元（同比扩大）','h1_2026':'暂无披露'}},
+'usNIO':{one_liner:'高端智能电动车制造商，自研智驾算法（NAD）与超算平台（ADAM），AI角色集中在\'车端智驾应用\'，而非算力输出方。',biz:'智能电动汽车（NIO/ONVO乐道/Firefly萤火虫三品牌）研发、制造、销售，以及能源服务（换电、电池租用BaaS）。',edge:'中央计算平台ADAM集成4颗英伟达Orin X，量产算力达1016 TOPS，配Aquila超感系统（33个高性能感知硬件）；2024年发布NADArch2.0，算法升级为引入世界模型的端到端架构，并坚持硬件预装+OTA持续迭代。',role_in_ai:'在AI链中处于\'神经算力芯片（英伟达Orin）的下游应用侧\'——采购外部算力芯片，自研端到端智驾算法与数据闭环，是自动驾驶软件与整车智能化的落地场景；本身不供应算力，反而是英伟达等算力链的\'需求方/客户\'，与常见\'AI算力概念\'归类并不一致。',risk:'盈利能力弱：2024年净亏224亿元，且流动负债（约623亿元）已高于流动资产（约619亿元），流动性压力显现；在价格战与多品牌（乐道、萤火虫）扩张下，现金流与盈利兑现是核心风险。',perf:{'y2025':'营收123亿美元（+33%），归母净亏22亿美元（同比收窄31%）','q1_2026':'营收36亿美元（+112%），归母净亏0.70亿美元（同比收窄93%）','h1_2026':'暂无披露'}},
+'usTSLA':{one_liner:'以电动车为基本盘、同时横跨FSD智驾、Robotaxi、人形机器人Optimus与自研算力（Dojo/FSD芯片）的多栖AI实体，叙事权重正从卖车转向AI与机器人。',biz:'电动汽车（汽车业务为主，2025汽车收入降约10%）、能源发电及储能、自动驾驶FSD/软件服务、人形机器人。',edge:'自研FSD芯片与Dojo超算，形成\'算法—芯片—数据闭环\'自有体系；2025年6月在奥斯汀启动Robotaxi试点，Optimus已迭代至Gen2/Gen3（计划2026年初量产、目标2030年年产100万台），软硬一体与规模制造能力构成壁垒。',role_in_ai:'跨多个AI环节：既是智驾算法与应用方（FSD/Robotaxi），也是具身智能/人形机器人玩家（Optimus），还是自研AI算力芯片与超算（Dojo）的\'自研自用\'方——在算力链上既是需求方也是自有供给方，与一般\'只买算力\'的车企不同，属少有的纵向一体玩家。',risk:'估值高度依赖AI/机器人远期叙事，但汽车主业增长放缓、价格战压缩毛利；FSD渗透率仅约12%且付费收入波动，Optimus与Robotaxi量产时点与监管不确定性大，\'增收不增利\'与自动驾驶安全责任争议并存。',perf:{'y2025':'营收948亿美元（-3%），归母净利38亿美元（-46%）','q1_2026':'营收224亿美元（+16%），归母净利4.8亿美元（+17%）','h1_2026':'暂无披露'}},
+'sz002230':{one_liner:'以语音和认知智能为核心、全国产算力训练的「星火」大模型为底座，向教育/医疗/汽车/办公等行业落地、同时运营开放平台与 AI 硬件的全栈型 AI 公司。',biz:'智能语音及人工智能，覆盖智慧教育、开放平台、消费者硬件（翻译笔/录音笔）、智慧医疗与汽车，教育及开放平台为主力',edge:'国内语音及智能语音技术长期领先（讯飞开放平台聚集大量开发者）；星火大模型基于「全国产算力底座」训练，软硬一体（大模型+行业应用+终端）；在智慧教育、医疗、汽车等垂直场景有深厚客户与数据积累。',role_in_ai:'横跨「模型层（星火）—平台层（开放平台）—应用层（教育/医疗/办公/汽车）—终端（AI 硬件）」，并非单一环节。需注意其收入大头来自教育/运营商/信息工程等传统软硬件集成，纯大模型商业化占比仍有限，与「AI 模型公司」的归类并不完全一致。',risk:'净利下滑、应收账款与政府/教育类客户占比较高导致回款与预算周期风险；毛利率承压；大模型投入大、C 端 AI 硬件与开放平台变现效率待验证。',perf:{'y2025':'营收271.05亿元（+16.12%），归母净利8.39亿元（+49.85%）','q1_2026':'营收52.74亿元（+13.23%），归母净亏1.70亿元（同比收窄12.17%）','h1_2026':'暂无披露'}},
+'hk09880':{one_liner:'人形机器人\'第一股\'，全栈式具身智能技术公司，但当前收入主要来自教育/消费/物流机器人，人形机器人尚处产业化早期、收入占比小。',biz:'人形机器人、智能服务机器人（教育/物流/消费等），全尺寸具身智能人形机器人（身高160cm以上）已成第一大收入来源。',edge:'具备人形机器人全栈技术（伺服关节、运动控制、感知与具身智能算法），Walker系列为人形代表；2024年实现全球首次人形机器人批量进入汽车工厂（如比亚迪等产线），打通工业场景试点。',role_in_ai:'属\'具身智能/机器人\'环节，是AI从软件走向物理执行体的落地载体；自研关节与运动控制+具身算法，而非算力供应商。需注意：市场常将其等同于\'人形机器人\'，但其营收主体仍是教育、消费、物流机器人，人形机器人商业化收入占比仍低，定位与收入结构存在时差。',risk:'人形机器人量产与盈利路径尚不清晰，2024年仅交付约10台人形机器人量级，收入大头来自低毛利教育/消费硬件；持续高研发投入（占收36.6%）且仍未扭亏，客户与订单集中于试点阶段，规模化与现金流是关键风险。',perf:{'y2025':'营收728亿港元（+16%），归母净利53亿港元（+39%）','q1_2026':'营收195亿港元（+8%），归母净利15亿港元（+0.4%）','h1_2026':'暂无披露'}},
+'sh688498':{one_liner:'国内高速率激光器芯片 IDM 厂商，从光纤接入向 AI 数据中心硅光用大功率 CW 光源突破。',biz:'光芯片（InP激光器芯片），数据中心CW光源（用于800G/1.6T光模块）为第一大收入来源，传统电信级激光器芯片。',edge:'IDM 全流程工艺，25G CWDM6 波段 DFB 行业领先；获 A 客户 6187 万元大功率激光器芯片订单（占 2024 营收 24.54%）。',role_in_ai:'处于光模块最上游——为硅光方案提供大功率 CW 激光器芯片，是「卖铲子」的芯片层；与光模块归类不一致，属更上游。',risk:'营收规模小且仍亏损；前五大客户依赖度高；光纤接入存量竞争、向数通转型兑现不确定。',perf:{'y2025':'营收6.01亿元（+138.50%），归母净利1.91亿元（同比扭亏）','q1_2026':'营收3.55亿元（+320.94%），归母净利1.79亿元（+1153.07%）','h1_2026':'暂无披露'}},
+'sh688048':{one_liner:'国内高功率半导体激光芯片龙头，横向拓展光通信 EML/VCSEL/CW 芯片切入 AI 光互连。',biz:'高功率半导体激光芯片、光通信芯片(EML/VCSEL)、硅光(8英寸平台)。',edge:'全球极少数拥有 6 寸高功率激光芯片 IDM 产线的厂商；2025H1 100G EML 量产、200G EML 送样，拥有 EML/VCSEL/CW 全系列光通信芯片；硅光产线计划 2027 年投产。',role_in_ai:'通过 EML/VCSEL/CW 光通信芯片进入 AI 数据中心光互连，属最上游芯片层；光通信目前占比仍小、属新增长极，与「光芯片」归类一致。',risk:'多年扣非亏损、主业盈利未稳；高功率激光业务价格战压毛利；光通信业务刚起步、兑现需时。',perf:{'y2025':'营收4.77亿元（+75.09%），归母净利0.22亿元（同比扭亏）','q1_2026':'营收1.30亿元（+37.81%），归母净利0.04亿元（+159.73%）','h1_2026':'暂无披露'}},
+'sh688313':{one_liner:'中科院背景的光芯片及器件 IDM 供应商，无源（AWG/PLC）领先、正向有源（CW/DFB/EML）延伸。',biz:'光芯片与器件（PLC分路器芯片、AWG、DFB激光器、隔离器、光纤连接器），光通信+AI数据中心需求驱动。',edge:'AWG 芯片+PLC 分路器芯片+DFB+光纤连接器 IDM 双平台；1.6T AWG 芯片小批量出货、70–100mW CW DFB 光源获客户验证并小批量出货；200G EML 研发中。',role_in_ai:'提供 1.6T 光模块用 AWG/MT-FA 及硅光 CW 光源，是光互连上游无源+有源芯片供应商；归类一致（光芯片），但位于更上游器件层。',risk:'营收规模小、盈利刚转正；室内光缆等低毛利业务占比仍高；高速有源芯片（EML）仍处研发送样阶段。',perf:{'y2025':'营收21.29亿元（+98.15%），归母净利3.72亿元（+473.25%）','q1_2026':'营收5.77亿元（+32.18%），归母净利1.16亿元（+24.66%）','h1_2026':'暂无披露'}},
+'sz002475':{one_liner:'消费电子精密制造龙头，正以高速铜/光互连（224G/448G、CPC）切入 AI 数据中心与服务器。',biz:'消费电子精密制造（苹果链）、汽车电子、通信及数据中心（高速互联/散热），AI硬件配套。',edge:'精密制造与垂直整合能力突出；立讯技术发布 224G/448G 互连方案，CPC 共封装铜架构 224G 小批量出货、448G 样品处行业前沿。',role_in_ai:'既是 AI 终端（苹果 AI 硬件）组装受益者，又是 AI 算力集群高速互连（铜/光连接器、CPC）供应商——跨「终端」与「基础设施」两环节，与纯光链公司定位明显不同。',risk:'第一大客户（苹果）依赖仍高（56.68%）；通信/数据中心业务占比仍小（约 7%）；贸易摩擦与关税风险。',perf:{'y2025':'营收3323.44亿元（+23.64%），归母净利166.00亿元（+24.20%）','q1_2026':'营收838.88亿元（+35.77%），归母净利36.60亿元（+20.24%）','h1_2026':'归母净利78.40亿元至81.06亿元（+18%—22%）'}},
+'sh688795':{one_liner:'全功能 GPU（图形渲染+AI 计算兼具）芯片设计公司，靠 GPU 显卡/加速卡及智算集群放量，营收爆发但仍巨亏。',biz:'国产全功能GPU芯片设计公司，主营GPU芯片及显卡（训练/推理/图形渲染）、AI计算加速卡、数据中心/元宇宙GPU方案，应用于AI、信创、游戏等。',edge:'稀缺的「全功能 GPU」能力（同时支持图形与 AI 计算），自研架构每年迭代；受益国产替代，智算集群与加速卡需求拉动营收高增。',role_in_ai:'AI 计算卡用于智算中心训练/推理，但同时也是图形 GPU——跨「AI 加速+图形渲染」双环节，与单纯 AI 芯片归类不完全一致。',risk:'持续巨额亏损（2025 年亏超 10 亿）；被列入美方实体清单，先进制程与 EDA 受限；营收体量仍小、上市后估值偏高。',perf:{'y2025':'营收15.05亿元（+243.4%），归母净亏10.01亿元','q1_2026':'营收7.38亿元（+155.4%），归母净利0.29亿元','h1_2026':'暂无披露'}},
+'sh688802':{one_liner:'专注高性能通用 GPU（以 AI 训推为主）的芯片设计公司，靠曦云系列 AI GPU 板卡出货，客户高度集中。',biz:'国产GPU芯片设计，通用计算GPU（曦云系列）及AI训练/推理加速卡，GPU产品销量持续放量，受益AI算力需求。',edge:'全栈自研 GPU 架构；曦云 C600 采用中芯 N+1 国产工艺并搭载 HBM3e，千卡集群已商用落地；产品获下游客户持续采购。',role_in_ai:'核心即 AI 训练/推理 GPU，与「AI 芯片」归类一致；C600 的国产工艺+HBM3e 组合是其差异化看点。',risk:'客户高度集中（前五大占 71%–88%，第一大客户如超讯通信约占四成）；三年累亏超 30 亿元；先进工艺/HBM 供应链依赖，收入确认滞后（验收制）。',perf:{'y2025':'营收16.44亿元（+121.3%），归母净亏7.89亿元','q1_2026':'营收5.62亿元（+75.4%），归母净亏0.99亿元','h1_2026':'暂无披露'}},
+'hk06082':{one_liner:'港股「GPU 第一股」，通用 GPU（BR100/BR104）设计公司，靠数据中心训练/推理芯片及千卡集群交付，营收破 10 亿仍巨亏。',biz:'通用GPU（GPGPU）芯片及智能计算解决方案，提供训练/推理加速卡、软件栈及整体算力方案；2025年上市。',edge:'旗舰 BR100 通用 GPU 算力领先，毛利率 53.8% 高于同业；具备千卡智算集群交付能力，截至 2025 年 12 月在手订单约 12.41 亿元。',role_in_ai:'数据中心 AI 训练/推理 GPU，与「AI 芯片」归类一致，跨训练+推理；通用 GPU 亦含图形潜力，属云端 AI 算力芯片供应商。',risk:'持续巨额亏损（2022–2024 累亏超 47 亿元）；受美制裁致先进制程/供应链受限；营收依赖少数客户，估值偏高。',perf:{'y2025':'营收11.45亿港元（+207.2%），归母净亏182.60亿港元','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh688012':{one_liner:'以等离子体刻蚀设备为绝对核心的晶圆制造前道设备商，正向薄膜沉积（LPCVD 等）平台化扩展，并保留 LED 用 MOCVD 业务。',biz:'半导体设备：刻蚀设备（占主体）、薄膜沉积设备（MOCVD及CVD）；研发支出占营收约31%。',edge:'CCP/ICP 刻蚀产品线可覆盖约 90% 的刻蚀应用；刻蚀设备国内市场领跑（国产刻蚀市占率约 30%，仅次于北方华创）；创始人尹志尧领衔、研发投入高，开发周期缩短。',role_in_ai:'AI 训练/推理芯片的先进逻辑与存储制造都必经前道刻蚀环节，公司是台积电及国内晶圆厂刻蚀设备的国产主力供应商；不只服务 AI，同时覆盖逻辑与存储，归类「前道刻蚀」准确但跨多环节。',risk:'收入高度集中于刻蚀单一大产品线，MOCVD 持续下滑；2024 年归母净利润同比下滑约 9.5%；面临应用材料、泛林及北方华创的竞争。',perf:{'y2025':'营收123.85亿元（+36.62%），归母净利21.11亿元（+30.69%）','q1_2026':'营收29.15亿元（+34.13%），归母净利9.30亿元（+197.20%）','h1_2026':'暂无披露'}},
+'sz002371':{one_liner:'国内覆盖最广的半导体前道设备平台型龙头，产品横跨刻蚀、薄膜沉积、热处理、湿法、离子注入五大类。',biz:'半导体装备（刻蚀、薄膜沉积、清洗、氧化扩散等）平台型龙头，并涵盖真空装备与新能源锂电设备，集成电路设备为主力',edge:'平台化覆盖晶圆制造几乎所有前道核心设备；国产刻蚀市占率约 35% 居首、PVD 国内市占率超 60%；多款产品突破且毛利率升至 44% 以上。',role_in_ai:'为 AI 芯片晶圆制造提供前道全套设备底座，是国产替代的「平台型卖水人」；并非专为 AI 设计，而是通用前道全覆盖，归类「前道设备平台」准确。',risk:'单品类国际竞争力仍落后于应用材料/泛林/东京电子；下游晶圆厂资本开支具周期性，业绩随扩产节奏波动。',perf:{'y2025':'营收393.53亿元（+30.85%），归母净利55.22亿元（-1.77%）','q1_2026':'营收103.23亿元（+25.80%），归母净利16.35亿元（+3.42%）','h1_2026':'暂无披露'}},
+'sh688072':{one_liner:'专注薄膜沉积、以 PECVD 为绝对主力的前道设备公司，产品线扩展至 ALD/SACVD/HDPCVD/Flowable CVD。',biz:'半导体薄膜沉积设备（PECVD、ALD、SACVD、HDPCVD等）及先进封装设备。',edge:'国内唯一实现 PECVD、SACVD 产业化的企业；介质薄膜设备可覆盖逻辑与存储芯片约 100 多种关键工艺，介质层沉积环节难替代。',role_in_ai:'AI 逻辑与存储芯片制造中的介质薄膜沉积必需设备，跨逻辑与存储两链；归类「薄膜沉积」恰当，且是该细分国产绝对主力，但非专为 AI。',risk:'产品高度集中于薄膜沉积单一品类；2024 年经营现金流为 -2.83 亿元，盈利增速远低于营收增速；客户与下游扩产周期绑定深。',perf:{'y2025':'营收65.19亿元（+58.87%），归母净利9.27亿元（+34.67%）','q1_2026':'营收11.12亿元（+56.97%），归母净利5.71亿元（+488.29%）','h1_2026':'暂无披露'}},
+'sh688200':{one_liner:'以模拟及数模混合集成电路测试机见长的国产半导体测试设备商，近三十年深耕该细分。',biz:'半导体测试设备（模拟/混合信号测试机、SoC测试机），面向集成电路设计及封测企业。',edge:'国内最早进入半导体测试设备行业，在模拟及数模混合测试领域多次打破泰瑞达、爱德万的垄断，具品牌与服务优势。',role_in_ai:'主要服务模拟/功率/分立器件测试，与 AI 算力核心数字 SoC 测试关联较弱；仅在 AI 服务器配套电源管理、功率芯片测试上有间接角色，归类「测试设备」准确但处于非 AI 主链。',risk:'数字与存储高端测试仍被泰瑞达、爱德万垄断、份额有限；2024 年海外收入逆势大跌；模拟周期波动致业绩弹性大。',perf:{'y2025':'营收13.46亿元（+48.72%），归母净利5.36亿元（+60.55%）','q1_2026':'营收2.72亿元（+37.52%），归母净利0.94亿元（+52.12%）','h1_2026':'暂无披露'}},
+'sz300604':{one_liner:'国产半导体测试机+分选机双线布局的后道设备商，近年随封测扩产高速放量。',biz:'半导体后道测试设备：测试机、分选机、AOI光学检测、自动化设备。',edge:'测试机毛利率高（约 66%），通过并购（如新加坡 STI）布局光学检测，覆盖后道测试+分选多环节，形成完整后道设备方案。',role_in_ai:'属后道测试/分选设备，用于封测环节对芯片良率筛选，AI 芯片封测同样需要；但核心数字 SoC 高端测试机仍薄弱，归类「后道测试」准确。',risk:'高端数字测试机仍落后国际巨头；客户与封测行业周期强相关；业绩高基数后持续性待验证。',perf:{'y2025':'营收52.92亿元（+45.31%），归母净利13.31亿元（+190.42%）','q1_2026':'营收13.78亿元（+69.09%），归母净利3.53亿元（+217.60%）','h1_2026':'暂无披露'}},
+'sh688981':{one_liner:'中国大陆最大、全球纯晶圆代工第二的晶圆制造代工厂，提供 8/12 英寸成熟至先进制程代工。',biz:'晶圆代工（IC晶圆制造），覆盖逻辑、射频、功率、CIS、NVM等，国产晶圆代工龙头。',edge:'全球第二纯晶圆代工厂，国内具备最先进制程能力（FinFET/28nm 及以下），2024 年产能利用率 85.6%，规模与工艺覆盖领先。',role_in_ai:'为国产 GPU/ASIC、手机 SoC 及边缘 AI 芯片提供制造，但用于云端训练的高端先进制程仍受设备封锁限制，更多承接成熟制程 AIoT/边缘 AI，归类「晶圆制造」准确但成熟为主。',risk:'先进制程受美国设备封锁制约；净利润连续两年下滑，折旧与产能扩张压力大；地缘政治与制裁风险。',perf:{'y2025':'营收673.23亿元（+16.49%），归母净利50.41亿元（+36.29%）','q1_2026':'营收176.17亿元（+8.1%），归母净利13.61亿元（+0.4%）','h1_2026':'暂无披露'}},
+'sh600584':{one_liner:'全球第三、国内第一的集成电路封装测试（OSAT）厂商，业务覆盖传统封装与先进封装。',biz:'集成电路封装测试（先进封装SiP、WLCSP、2.5D/3D、HBM相关），汽车/运算电子占比提升。',edge:'全球前三 OSAT 规模优势，系统级封装/2.5D 等先进封装持续投入，汽车电子（上海）车规级封测基地投产。',role_in_ai:'先进封装（含 2.5D/HBM 相关）是 AI 算力芯片不可或缺环节，公司在此卡位；但先进封装占比与良率仍待观察，归类「封测」准确，先进封装才是其 AI 真正价值点。',risk:'整体毛利率偏低，星科金朋 2025 年净利下滑约 51.7%、晟碟承压；先进封装高额资本开支拖累短期盈利；行业价格战。',perf:{'y2025':'营收388.71亿元（+8.09%），归母净利15.65亿元（-2.75%）','q1_2026':'营收91.71亿元（-1.76%），归母净利2.90亿元（+42.74%）','h1_2026':'暂无披露'}},
+'sh688347':{one_liner:'以功率器件与特色工艺为核心的「8+12 英寸」成熟制程晶圆代工厂，而非先进逻辑代工。',biz:'特色工艺晶圆代工龙头，主营功率器件（IGBT、MOSFET、超级结）、嵌入式非易失性存储、模拟与电源管理、逻辑与射频、CIS等特色工艺晶圆代工（8寸/12寸）。',edge:'拥有全球前列的 12 英寸功率器件代工产线，「特色工艺+本地化服务」建立客户粘性，产能近满产。',role_in_ai:'主要服务功率/汽车/工业/消费，非 AI 逻辑主链；但功率器件（如 AI 服务器电源、IGBT）对其有间接支撑，归类「成熟特色制程代工」准确，与 AI 直接关联弱。',risk:'2024 年营收与净利下滑、毛利率仅约 11%（季度），新 12 英寸产线爬坡带来折旧压力；特色工艺面临价格竞争。',perf:{'y2025':'营收172.91亿元（+20.18%），归母净利3.77亿元（-1.04%）','q1_2026':'营收46.25亿元（+18.22%），归母净利1.40亿元（+513.10%）','h1_2026':'暂无披露'}},
+'sz002156':{one_liner:'与 AMD 深度绑定的国产封测龙头，先进封装收入占比超 70%，是 A 股与海外 AI 算力链绑定最深的封测厂。',biz:'集成电路封装测试，先进封装（FC、SiP、晶圆级、2.5D/3D等）为主；客户含AMD等，聚焦AI高性能计算、汽车电子、存储芯片封测。',edge:'AMD 核心封测合作伙伴（承接其 CPU/GPU/AI 芯片封装），具备 2.5D/3D 等先进封装能力，全球第四大封测厂。',role_in_ai:'直接为 AMD 的 AI GPU（如 MI 系列）等提供先进封装，是 A 股上市公司中切入海外 AI 算力链条最实质的一环，归类「封测」准确且 AI 属性最强。',risk:'对 AMD 单一大客户依赖度高（营收占比大）；资产负债率约 64.9%，大基金持续减持；估值 PE 偏高、估值消化压力大。',perf:{'y2025':'营收279.21亿元（+16.92%），归母净利12.19亿元（+79.86%）','q1_2026':'营收74.82亿元（+22.80%），归母净利3.29亿元（+224.55%）','h1_2026':'暂无披露'}},
+'sz002463':{one_liner:'以企业通讯/数通高速 PCB 为核心、深度绑定头部云厂商的 AI 算力 PCB 供应商，非苹果链定位。',biz:'印制电路板（PCB），以数据通讯领域高速高层板（AI服务器/交换机用）为主（占营收约77%），另有智能汽车电子、工业控制等。',edge:'在高速高层数、高多层 PCB 及 800G 交换机板领域具量产与良率优势，与头部客户长期协同（AI 驱动的服务器/数据存储/高速网络基础设施）。',role_in_ai:'AI 服务器与交换机 PCB 的直接供应商，处于算力硬件最上游材料端；与胜宏（英伟达链）、鹏鼎（苹果链）属同一 PCB 赛道但客户群不同。',risk:'前五大客户集中度攀升、存货与应收账款处于高位，汽车 PCB 毛利率承压。',perf:{'y2025':'营收189.45亿元（+42.00%），归母净利38.22亿元（+47.74%）','q1_2026':'营收62.14亿元（+53.91%），归母净利12.42亿元（+62.90%）','h1_2026':'暂无披露'}},
+'sz002938':{one_liner:'全球最大 PCB 厂商、苹果核心供应商，正加速认证切入 AI 服务器高阶板。',biz:'PCB印制电路板（连续九年全球第一），覆盖AI服务器/消费电子/通信类PCB，含软板、硬板、HDI等。',edge:'软板（FPC）/SLP/高阶 HDI 规模与良率全球领先，深度嵌入苹果供应链。',role_in_ai:'当前 AI 相关收入占比小，主力仍在消费电子/苹果链；AI 服务器板处于市场开拓与客户认证期，是潜在增量而非当前主力，与沪电/胜宏的 AI 卡位节奏不同。',risk:'客户高度集中（苹果约 80%），AI 算力链卡位明显晚于沪电、胜宏。',perf:{'y2025':'营收391.47亿元（+11.40%），归母净利37.38亿元（+3.25%）','q1_2026':'营收79.86亿元（-1.25%），归母净利4.63亿元（-5.21%）','h1_2026':'暂无披露'}},
+'sz002916':{one_liner:'「PCB+封装基板+电子装联」三线协同的电子电路综合厂商，PCB 受益 AI 算力、封装基板蓄势。',biz:'印制电路板（PCB）、封装基板及电子装联三大业务，覆盖通信、数据中心（AI高速交换机/光模块）、汽车电子，PCB与封装基板为主力',edge:'「3-In-One」业务协同（技术同根、客户同源），数据中心/通信客户基础扎实，封装基板国产替代布局。',role_in_ai:'跨两个环节：PCB 供应 AI 服务器/数据中心，同时封装基板为 AI 芯片（如 GPU）提供关键载板，兼具「算力板」与「芯片封装」角色。',risk:'封装基板业务盈利尚未释放，产能爬坡与客户（尤其 FC-BGA）认证存在不确定性。',perf:{'y2025':'营收236.47亿元（+32.05%），归母净利32.76亿元（+74.47%）','q1_2026':'营收65.96亿元（+37.90%），归母净利8.50亿元（+73.01%）','h1_2026':'暂无披露'}},
+'sz300476':{one_liner:'深度绑定英伟达链的 AI 服务器 PCB 龙头，以 HDI 与高多层板为主力。',biz:'高密度印制电路板(PCB)，多层板、HDI、AI服务器/数据中心及汽车电子用PCB。',edge:'英伟达 Tier1 核心供应商，据公开资料 GB200/GB300 整机 PCB 份额约 50%+、UBB 板约 70%，订单排产至 2027 年。',role_in_ai:'AI GPU 服务器 PCB 直接供应商，处于算力硬件上游，是「英伟达链」核心受益方，与鹏鼎的「苹果链」形成鲜明对照。',risk:'客户集中（英伟达链）、估值处于高位、海内外高端产能扩建资本开支大。',perf:{'y2025':'营收192.92亿元（+79.77%），归母净利43.12亿元（+273.52%）','q1_2026':'营收55.19亿元（+27.99%），归母净利12.88亿元（+39.95%）','h1_2026':'暂无披露'}},
+'sz002436':{one_liner:'以 PCB 样板/小批量为基、重金押注 FCBGA 封装基板的半导体材料公司，2024 上市首亏。',biz:'PCB样板/小批量板、IC封装基板（含FCBGA高端基板）、半导体测试板；行业复苏带动业绩反转。',edge:'PCB 样板快件交付能力突出；FCBGA 封装基板累计投入超 30 亿元（2024 年费用投入 7.34 亿），瞄准 AI/GPU 载板国产替代。',role_in_ai:'通过 FCBGA 封装基板切入 AI 芯片载板环节，但项目仍处前期投入、未达规模量产，持续拖累业绩，属「投入期」而非「兑现期」。',risk:'FCBGA 巨额投入未量产、子公司宜兴硅谷/广州兴科亏损、资金链承压且动用募资永久补流。',perf:{'y2025':'营收71.95亿元（+23.68%），归母净利1.35亿元（+168.06%）','q1_2026':'营收18.18亿元（+15.10%），归母净利0.19亿元（+100.00%）','h1_2026':'暂无披露'}},
+'sh688111':{one_liner:'以 WPS 办公软件为根基、靠订阅制变现，并把大模型能力（WPS AI）嵌入文档协作的国产办公软件龙头。',biz:'WPS Office办公软件及订阅、WPS 365企业服务、金山文档、AI能力。',edge:'WPS 国内办公软件市占率约 34%（PC 端日活破亿），政企渗透率领先并受益于信创国产替代；全球月活设备约 6.78 亿；WPS AI 月活 2025H1 达 2951 万（2024 年底 1968 万），AI 会员是新增量。',role_in_ai:'定位清晰在「AI 应用/工具层」——将大模型作为功能嵌入办公软件（对标微软 Copilot），自身不做底层大模型训练，而是 AI 能力的消费侧集成方。与「AI 应用软件」归类一致。',risk:'营收增速放缓；国际市场份额低（<5%）；B 端协同办公面临飞书/钉钉/企业微信竞争；个人订阅增长依赖用户付费转化，AI 会员规模化变现仍处早期。',perf:{'y2025':'营收59.29亿元（+15.78%），归母净利18.36亿元（+11.63%）','q1_2026':'营收16.13亿元（+23.95%），归母净利21.95亿元（+444.97%）','h1_2026':'暂无披露'}},
+'sh601360':{one_liner:'老牌互联网安全与流量公司，近年以「纳米 AI 搜索」等 C 端 AI 原生应用和「安全大脑」大模型重塑业务，本质仍是「安全+广告流量+AI 入口」。',biz:'互联网广告及服务、互联网增值服务（游戏）、安全及其他业务（政企安全/AI安全），AI（360智脑）驱动转型。',edge:'C 端「纳米 AI 搜索」整合 16 家国内大模型的 50 余款模型，App MAU 超 1900 万、跻身全球 AI 搜索前三；长期积累的终端安全与威胁情报大数据构成「安全大脑」底座。',role_in_ai:'主要扮演「AI 应用/入口」与「AI+安全」角色——做面向个人的 AI 搜索与办公、面向政企的安全大模型解决方案，并非算力或芯片供应商。与「AI 应用」归类基本吻合，但 AI 尚未成为收入主体，广告仍是现金牛。',risk:'连续多年亏损、盈利路径不清晰；营收依赖下滑中的广告业务；安全业务承压、竞争加剧（奇安信/启明星辰）；AI 产品商业化与变现尚早。',perf:{'y2025':'营收86.93亿元（+9.37%），归母净利2.63亿元（同比扭亏）','q1_2026':'营收20.11亿元（+7.90%），归母净利1.09亿元（同比扭亏）','h1_2026':'暂无披露'}},
+'hk00020':{one_liner:'由计算机视觉起家、已转型为「AI 基础设施（大装置）—日日新大模型—应用」三位一体的生成式 AI 云与模型服务商。',biz:'生成式AI（大模型/算力服务/行业应用）、智能汽车、智慧城市、医疗等AI软件平台。',edge:'自持建设 AI 算力中心（「大装置」），能提供模型训练/微调/推理的 AI 云服务；「日日新」多模态大模型；视觉 AI 时代积累的技术与行业客户基础。',role_in_ai:'同时横跨「算力基础设施—大模型—行业应用」三层，但当前核心叙事是生成式 AI 的模型训练/推理云服务（卖算力+模型）。与传统的「计算机视觉公司」归类已明显不同，如今更接近「AI 云/模型即服务」。',risk:'持续巨额亏损与高资本开支（自建算力折旧重）；估值与盈利兑现压力大；智能汽车等板块规模小，业务仍依赖少数大客户与项目制收入。',perf:{'y2025':'营收55.52亿港元（+36.30%），归母净亏19.55亿港元（同比收窄57.68%）','q1_2026':'营收16.1亿港元（+35.4%），归母净亏未披露','h1_2026':'暂无披露'}},
+'sh600845':{one_liner:'脱胎于宝钢、扎根钢铁行业的工业软件与自动化龙头，并依托「宝之云」运营 IDC 数据中心——AI 并非其主营，而是工业软件+算力租赁。',biz:'工业软件与IDC服务商，主营钢铁/制造业工业互联网与软件（MES/PLC/工业互联网平台）、自动化信息化解决方案、IDC数据中心（宝之云）、AI工业智能体；受钢铁周期影响。',edge:'背靠宝武集团，是国内钢铁行业信息化与工业软件绝对龙头；「宝之云」IDC 依托宝武土地/电力资源，具备一线城市周边算力租赁能力；工业互联网与智能制造经验深厚。',role_in_ai:'在 AI 产业链中角色较弱且间接——主要提供 IDC 算力租赁（卖机房/机柜给算力需求方）及工业场景的 AI/工业互联网应用，并非模型或芯片公司。与其被归为「AI 股」更多是因 IDC 属性，主体收入仍是钢铁信息化。',risk:'客户高度集中（宝武约 83%），集团资本开支与钢铁周期直接影响业绩；IDC 上架率与电价/能耗指标约束；钢铁行业景气下行拖累信息化投入。',perf:{'y2025':'营收109.72亿元（-19.59%），归母净利13.05亿元（-42.40%）','q1_2026':'营收26.44亿元（+4.17%），归母净利3.81亿元（-14.25%）','h1_2026':'暂无披露'}},
+'usGM':{one_liner:'通用汽车旗下自动驾驶子公司Cruise，曾是最早的L4 Robotaxi玩家之一，但已于2024年底退出Robotaxi市场、2025年并入GM转向个人车辆智驾，已非独立商业化标的。',biz:'通用汽车（GM）旗下自动驾驶业务原Cruise；2024年12月GM停止Cruise Robotaxi出资并退出Robotaxi市场，技术整合转向个人车ADAS（Super Cruise等），2025-2026年筹划重启自动驾驶研发（非独立Robotaxi运营）。',edge:'历史上积累L4全栈技术与路测数据（旧金山等城市的无人运营经验），但技术资产已并入通用汽车体系，转为内部研发能力而非对外产品。',role_in_ai:'原本属于\'L4 Robotaxi运营\'环节，与Waymo、小马智行同类；但当前已实质退出该赛道，转为通用汽车内部的智驾研发部门，扮演\'车企自研智驾的技术储备\'角色，不再以独立自动驾驶服务提供商身份参与AI产业链。',risk:'商业模式已证伪/收缩：Robotaxi路线因安全事故与持续亏损被通用叫停，投入超百亿美元却未形成收入，对外部投资者而言已无独立投资标的属性，仅作为GM战略成本项存在。',perf:{'y2025':'营收1850亿美元（-1.3%），归母净利27亿美元（-55%）','q1_2026':'营收436.24亿美元（-0.9%），归母净利26.27亿美元（-5.7%）','h1_2026':'暂无披露'}},
+'sh002636':{one_liner:'以中低端覆铜板为主（收入占比85%+）的强周期厂商，2024扭亏、2025满产满销。',biz:'覆铜板（中高Tg、无卤、高频高速M9等）及电子级玻纤布、环氧树脂等电子基础材料；覆铜板为核心。',edge:'规模与成本控制、垂直一体化（覆铜板+玻纤布）；满产满销下景气回升弹性大。',role_in_ai:'主力为中低端FR-4覆铜板，与AI高端材料关联有限；自产电子布间接受益PCB景气，但AI高速材料布局薄弱，更多是周期复苏标的而非纯AI核心。',risk:'强周期、毛利率长期偏低；扣非连续亏损；产品结构偏低端；原材料价格波动。',perf:{'y2025':'营收44.80亿元（+10.67%），归母净利3.01亿元（+711.54%）','q1_2026':'营收12.60亿元（+31.36%），归母净利2.02亿元（+763.91%）','h1_2026':'暂无披露'}},
+'sh600118':{one_liner:'小卫星研制与卫星应用龙头（航天科技五院旗下）',biz:'小卫星制造、卫星应用（导航/通信/遥感）及卫星运营服务',edge:'航天科技五院控股，国内小卫星研制绝对龙头，宇航级产品技术壁垒高',role_in_ai:'卫星制造环节核心，承担低轨星座卫星平台研制；遥感/通信数据可支撑地面AI空间智能',risk:'军工订单节奏波动、民品竞争加剧、应收账款及存货占比高',perf:{'y2025':'营收61.03亿元（+18.4%），归母净利润0.36亿元（+27.4%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh603131':{one_liner:'焊接设备厂商，布局商业火箭箭体结构件制造',biz:'智能制造（焊接切割设备）与航天军工（火箭结构件、卫星部件）双主业',edge:'旗下沪航卫星切入商业火箭箭体结构件，但航天收入占比仍小',role_in_ai:'商业航天上游配套（火箭箭体/卫星结构件），非核心环节，业务处培育期',risk:'商业航天业务尚处培育期、焊接主业承压、并购整合及商誉风险',perf:{'y2025':'营收9.23亿元（-14.5%），归母净亏0.18亿元（由盈转亏）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh600879':{one_liner:'航天测控通信与电子元器件核心配套商',biz:'航天电子专用产品（测控通信、惯性导航、集成电路）及电线电缆',edge:'航天科技九院旗下，航天军工电子核心配套，参与载人/探月/北斗等国家重点型号',role_in_ai:'卫星/火箭电子系统与元器件核心配套环节，支撑卫星互联网星载设备',risk:'军品定价机制、毛利率波动、应收账款及关联交易占比高',perf:{'y2025':'营收139.10亿元（-2.6%），归母净利润2.27亿元（-58.6%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz300101':{one_liner:'北斗终端与射频基带芯片厂商',biz:'北斗卫星导航终端、集成电路（射频/基带）及安防监控',edge:'自主可控北斗射频/基带芯片技术，军民用北斗终端核心供应商',role_in_ai:'卫星导航天线/芯片环节，为卫星互联网终端提供核心器件',risk:'军工订单波动、民品竞争激烈、历史治理问题',perf:{'y2025':'营收9.55亿元（+19.8%），归母净利润0.28亿元（-29.2%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh600343':{one_liner:'航天液体动力技术转化企业（泵阀液压），多年亏损',biz:'泵及液压传动系统、流体计量设备，具航天六院技术背景',edge:'航天科技六院（液体火箭发动机）技术基因，但证券化核心资产有限',role_in_ai:'商业航天上游流体部件配套，非核心；暂无明确卫星互联网直接业务',risk:'连续亏损、主业盈利能力弱、航天资产注入预期不确定',perf:{'y2025':'营收8.24亿元（-11.0%），归母净亏1.93亿元（亏损同比扩大2.9%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz300034':{one_liner:'高温合金材料龙头，航发/航天发动机关键材料',biz:'高温合金、高端金属靶材等，应用于航空发动机与燃气轮机',edge:'国内高温合金领军企业，航天航空发动机关键材料核心供应商',role_in_ai:'火箭发动机/卫星推进系统高温合金材料环节，产业链上游核心材料',risk:'军品周期波动、产能扩张消化、原材料镍价波动',perf:{'y2025':'营收36.97亿元（+4.9%），归母净利润0.87亿元（-64.8%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh688102':{one_liner:'高强高导铜合金材料商，布局火箭推力室材料',biz:'中高压电接触材料、高强高导铜合金（航天、轨交、电力）',edge:'铬锆铜等特种铜合金细分龙头，切入商业航天推力室铜合金材料',role_in_ai:'商业航天火箭发动机推力室铜合金材料环节，上游核心材料配套',risk:'新业务放量不及预期、军品认证周期、毛利率波动',perf:{'y2025':'营收15.72亿元（+18.2%），归母净利润1.48亿元（+29.1%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz301005':{one_liner:'汽车精密紧固件厂商，拓展商业航天紧固件',biz:'金属/塑料精密紧固件及异形连接件（汽车为主）',edge:'汽车紧固件精密制造能力，向商业火箭/卫星结构紧固件延伸',role_in_ai:'商业航天上游紧固件/结构件配套，非核心、营收占比小',risk:'汽车主业波动、航天业务体量小、客户集中度高',perf:{'y2025':'营收8.79亿元（+39.5%），归母净利润0.16亿元（+53.2%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh601698':{one_liner:'国内卫星通信运营龙头（广电系）',biz:'卫星空间段运营、通信广播服务，运营中星系列通信卫星',edge:'国内唯一商用通信卫星运营商，拥有丰富轨位与频率资源',role_in_ai:'卫星通信运营核心环节，低轨星座/卫星互联网地面运营与频率资源关键',risk:'卫星折旧高、传统广播电视业务下滑、低轨星座竞争加剧',perf:{'y2025':'营收26.45亿元（+4.1%），归母净利润4.41亿元（-2.9%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz300045':{one_liner:'北斗/天通基带芯片与仿真测试厂商',biz:'卫星导航（北斗）、卫星通信（天通）芯片模组及仿真测试',edge:'同时布局北斗+天通卫星通信基带芯片，民参军仿真测试领先',role_in_ai:'卫星通信/导航终端芯片环节，支撑卫星互联网用户终端',risk:'近年出现亏损、订单波动、民品竞争激烈',perf:{'y2025':'营收7.82亿元（+42.9%），归母净亏0.69亿元（亏损同比收窄51.6%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh688418':{one_liner:'通信核心网设备商，切入卫星核心网',biz:'公网/专网通信核心网设备及解决方案',edge:'具备卫星核心网（星地融合）系统能力，参与低轨星座地面段建设',role_in_ai:'卫星互联网地面核心网/信关站环节，通信系统软件核心',risk:'由盈转亏、项目制收入波动、研发投入高企',perf:{'y2025':'营收8.77亿元（-7.9%），归母净亏0.66亿元（由盈转亏）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz002115':{one_liner:'通信设备商及海上卫星通信服务商',biz:'无线覆盖设备、卫星通信（海卫通）及互联网广告',edge:'子公司海卫通提供船舶卫星通信运营，布局海外卫星宽带服务',role_in_ai:'卫星通信应用（船载/海外）运营环节，非低轨星座核心',risk:'出现小幅亏损、广告业务拖累、商誉减值风险',perf:{'y2025':'营收119.51亿元（+9.2%），归母净亏0.13亿元（亏损同比收窄95.1%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz002151':{one_liner:'北斗芯片与高精度定位龙头，近年大额亏损',biz:'北斗芯片（和芯星通）、高精度定位板卡、天线及汽车电子',edge:'国内北斗导航芯片龙头，高精度定位技术领先，自主知识产权',role_in_ai:'卫星导航天线与芯片核心环节，赋能卫星互联网高精度定位终端',risk:'大额商誉减值致亏损、并购整合不确定、民品价格战',perf:{'y2025':'营收22.13亿元（+47.6%），归母净亏2.57亿元（亏损同比收窄26.5%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz300627':{one_liner:'高精度GNSS定位龙头，业绩稳健增长',biz:'高精度卫星导航定位终端及解决方案（测绘、农机、无人机）',edge:'高精度GNSS龙头，海外市场高增，技术自主可控',role_in_ai:'卫星导航空中环节，高精度定位为卫星互联网/无人系统提供位置底座',risk:'海外贸易摩擦、汇率波动、行业需求周期性',perf:{'y2025':'营收36.99亿元（+13.8%），归母净利润6.85亿元（+17.5%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz300177':{one_liner:'北斗高精度定位与海洋测绘设备商，持续亏损',biz:'高精度定位装备、海洋测绘、时空数据及自动驾驶方案',edge:'海洋测绘与北斗高精度技术积累，但经营持续承压',role_in_ai:'卫星导航天线与测绘装备环节，非核心、业绩疲软',risk:'持续大额亏损、资产减值、主业复苏不确定',perf:{'y2025':'营收10.12亿元（-17.0%），归母净亏2.33亿元（亏损同比扩大约17.7倍）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz300855':{one_liner:'高温合金及特种不锈钢精密铸件龙头',biz:'高温合金、精密合金、特种不锈钢及铸件（航发、燃机）',edge:'航发/航天用高温合金精密铸件核心供应商，技术壁垒高',role_in_ai:'火箭发动机/航天器高温合金铸件材料环节，上游核心配套',risk:'军品周期波动、产能消化、客户集中（航发系）',perf:{'y2025':'营收11.26亿元（-10.5%），归母净利润1.55亿元（-41.8%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz300395':{one_liner:'石英材料龙头，航天及半导体关键材料供应商',biz:'石英玻璃纤维及制品，应用于半导体、航空航天',edge:'国内航空航天石英纤维核心供应商，半导体石英通过全球认证',role_in_ai:'商业航天火箭/卫星用石英纤维材料环节，上游核心材料配套',risk:'半导体周期波动、军品订单节奏、石英砂原料供给',perf:{'y2025':'营收20.16亿元（+15.7%），归母净利润4.43亿元（+41.1%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz002025':{one_liner:'军工高端连接器与微特电机龙头',biz:'高端连接器、继电器、微特电机及光通信器件',edge:'航天科工十院旗下，宇航级连接器核心配套，国产化率高',role_in_ai:'卫星/火箭电连接与通信器件核心配套环节，上游关键部件',risk:'军品交付节奏、民品（通信）需求疲软、毛利率下滑',perf:{'y2025':'营收58.20亿元（+15.8%），归母净利润1.83亿元（-47.3%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sz002179':{one_liner:'军用连接器绝对龙头，防务与新能源并重',biz:'中高端连接器及互连方案（防务、通信、新能源汽车）',edge:'国内连接器龙头，宇航/防务连接器市占率领先，具全球竞争力',role_in_ai:'卫星/火箭电连接系统核心配套环节，产业链上游关键基础件',risk:'新能源汽车价格战传导、防务订单波动、毛利率压力',perf:{'y2025':'营收213.86亿元（+3.4%），归母净利润21.62亿元（-35.6%）','q1_2026':'暂无披露','h1_2026':'暂无披露'}},
+'sh601689':{one_liner:'特斯拉核心Tier0.5供应商，布局人形机器人旋转/线性执行器总成',biz:'汽车NVH减震、底盘、内饰及热管理零部件，拓展机器人执行器',edge:'特斯拉全球核心供应商，Tier0.5级深度协同研发，单车配套金额高、客户黏性强，海外基地覆盖全球',role_in_ai:'处于本体总成/关节执行器环节，是特斯拉Optimus潜在核心执行器供应商，已获客户定点并小批量送样；2025年机器人执行器营收仅约1359万元、占比极小，尚处早期导入阶段',risk:'海外新基地产能爬坡折旧高、行业价格战与原材料波动致利润承压，机器人业务放量节奏不确定',perf:{'y2025':'营收295.81亿元（+11.21%），归母净利润27.79亿元（-7.38%）','q1_2026':'营收66.28亿元（+14.92%），归母净利润5.52亿元（-2.42%）','h1_2026':'暂无披露'}},
+'sz002050':{one_liner:'热管理龙头，拓展仿生机器人机电执行器（旋转/直线关节）',biz:'制冷空调电器零部件与汽车热管理零部件，布局仿生机器人机电执行器',edge:'全球制冷控制元器件与车用热管理龙头，客户覆盖特斯拉等头部车企，仿生机器人执行器已切入客户供应链',role_in_ai:'处于关节执行器（旋转执行器、直线执行器）环节，为特斯拉Optimus等仿生机器人提供机电执行器组件，已进入客户供应链并视为新增长点',risk:'传统主业增长放缓、一季度证券投资损失扰动利润，机器人业务放量及盈利兑现仍需时间',perf:{'y2025':'营收310.12亿元（+10.97%），归母净利润40.63亿元（+31.10%）','q1_2026':'营收77.74亿元（+1.36%），归母净利润9.28亿元（+2.68%）','h1_2026':'暂无披露'}},
+'sz002747':{one_liner:'国产工业机器人出货量第一，布局人形机器人本体及运动控制',biz:'工业机器人及智能制造系统、自动化核心部件与运动控制系统',edge:'2025年工业机器人出货量3.34万台、市占率10%首超外资居中国第一，连续八年国产工业机器人市占率榜首',role_in_ai:'处于本体总成+运动控制环节，自研人形机器人本体及控制器/伺服系统，属本体与运动控制核心；AI关联体现在运动控制算法与具身智能本体',risk:'2024年大额亏损后刚扭亏、盈利基数低，人形机器人本体商业化与订单落地存不确定性',perf:{'y2025':'营收48.88亿元（+21.93%），归母净利润0.45亿元（同比扭亏）','q1_2026':'营收12.17亿元（-2.22%），归母净利润0.98亿元（+674.64%）','h1_2026':'暂无披露'}},
+'sz300124':{one_liner:'工业自动化与伺服龙头，拓展人形机器人伺服/控制器/执行器',biz:'工业自动化（伺服/PLC/变频器）、新能源汽车电驱、轨道交通牵引',edge:'国内伺服系统、低压变频器、PLC市占率领先，工业自动化龙头，研发费率约9%持续高投入',role_in_ai:'处于电机控制（伺服系统、变频器、控制器）环节，为人形机器人提供伺服驱动、控制器等核心运动控制部件，属运动控制核心；AI关联为工业自动化控制与具身智能布局',risk:'2026Q1受汇率波动投资收益减少及存货跌价致利润下滑，新业务投入拉低短期盈利',perf:{'y2025':'营收451.05亿元（+21.77%），归母净利润50.50亿元（+17.84%）','q1_2026':'营收101.43亿元（+12.98%），归母净利润10.13亿元（-23.39%）','h1_2026':'暂无披露'}},
+'sh688017':{one_liner:'谐波减速器龙头，供货工业机器人及人形机器人本体厂',biz:'精密谐波减速器、机电一体化执行器及金属部件',edge:'国产谐波减速器龙头，2025年具身智能业务规模大幅增长、综合毛利率约36.9%，打破外资垄断',role_in_ai:'处于减速器（谐波减速器）环节，是人形机器人旋转关节核心部件供应商，具身智能业务放量已进入特斯拉Optimus等供应链，属减速器核心',risk:'估值偏高、前五大客户集中（占营收约34%），人形机器人量产节奏与价格下行风险',perf:{'y2025':'营收5.71亿元（+47.31%），归母净利润1.24亿元（+121.42%）','q1_2026':'营收1.40亿元（+42.96%），归母净利润0.33亿元（+61.17%）','h1_2026':'暂无披露'}},
+'sz002472':{one_liner:'精密齿轮与RV减速器龙头，拓展机器人关节减速器',biz:'乘用车/新能源齿轮、工程机械齿轮、智能执行机构及减速器',edge:'新能源齿轮国内第一梯队（2025年收入41亿元占45%），RV/谐波减速器业务增速超20%，毛利率创2013年以来新高',role_in_ai:'处于减速器环节（RV减速器、谐波减速器及行星齿轮），为工业机器人及人形机器人提供关节减速器，已切入机器人供应链，减速器业务占比持续提升',risk:'主业高度依赖汽车齿轮、受行业景气与价格战影响，机器人减速器放量与客户验证仍需时间',perf:{'y2025':'营收91.12亿元（+3.77%），归母净利润12.62亿元（+23.21%）','q1_2026':'营收20.95亿元（+1.49%），归母净利润2.84亿元（+2.93%）','h1_2026':'暂无披露'}},
+'sz002896':{one_liner:'减速器+电机驱动一体化，覆盖行星/RV/谐波全品类',biz:'精密减速器、减速电机、智能执行单元（减速器+电机+驱动一体）',edge:'行星/RV/谐波三大减速器全品类布局，减速器+电机+驱动一体化架构满足集成化配套需求',role_in_ai:'处于减速器+电机驱动一体化环节，行星/RV/谐波减速器全品类应用于工业机器人及人形机器人关节，人形机器人相关营收占比仍小',risk:'2025年及2026Q1净利连续下滑，处全球化与产能扩张投入期、费用集中增加压制盈利',perf:{'y2025':'营收10.41亿元（+6.61%），归母净利润0.63亿元（-13.57%）','q1_2026':'营收2.42亿元（+5.12%），归母净利润0.11亿元（-36.42%）','h1_2026':'暂无披露'}},
+'sz301368':{one_liner:'小模数齿轮与谐波减速器供应商，机器人业务处投入期',biz:'小模数齿轮、精密减速器（谐波）、气动工具及新能源传动部件',edge:'专精特新小巨人，谐波减速器及零部件2025年收入1.43亿元占28.6%，新能源传动收入增80%',role_in_ai:'处于减速器（谐波减速器）及齿轮零部件环节，布局人形机器人谐波减速器与传动齿轮，2025年转亏、机器人业务尚处投入/送样阶段，营收占比小',risk:'上市首份亏损年报、新业务流血扩张，传统电动工具受贸易环境影响下滑、财务费用激增',perf:{'y2025':'营收5.02亿元（-0.54%），归母净亏0.26亿元（同比由盈转亏）','q1_2026':'营收1.27亿元（+9.17%），归母净利润0.00亿元（同比降91.07%）','h1_2026':'暂无披露'}},
+'sh603667':{one_liner:'轴承与精密传动件厂商，切入机器人行星滚柱丝杠',biz:'轴承、汽车精密零部件，拓展具身智能机器人丝杠等零部件',edge:'轴承与汽车零部件基本盘稳健，拟投约10亿元布局丝杠新赛道，2025年机器人零部件收入实现0到1突破',role_in_ai:'处于丝杠关节（行星滚柱丝杠/线性执行器）环节，投资约10亿元布局丝杠，2025年机器人零部件收入约1599万元、尚处市场开拓关键期',risk:'2026Q1营收净利双降（均约-18%），丝杠新业务资本开支大、客户认证与放量节奏不确定',perf:{'y2025':'营收33.43亿元（+2.41%），归母净利润0.91亿元（+0.02%）','q1_2026':'营收7.22亿元（-18.83%），归母净利润0.31亿元（-18.62%）','h1_2026':'暂无披露'}},
+'sh603009':{one_liner:'汽车底盘件厂商，开拓人形机器人行星滚柱丝杠',biz:'汽车底盘零部件、空调压缩机、铝合金轻量化部件',edge:'底盘零部件国内领先，依托精密车铣磨工艺切入高壁垒丝杠，2025年净利高增67%',role_in_ai:'处于丝杠关节（行星滚柱丝杠）环节，依托精密制造工艺切入机器人丝杠，已获客户定点/送样，2025年机器人丝杠业务处早期放量阶段',risk:'主业九成以上为汽车底盘/压缩机、人形机器人丝杠营收占比极低，新业务兑现慢',perf:{'y2025':'营收23.23亿元（+14.79%），归母净利润1.20亿元（+67.35%）','q1_2026':'营收5.86亿元（+8.04%），归母净利润0.27亿元（+17.86%）','h1_2026':'暂无披露'}},
+'sz300580':{one_liner:'精密零部件厂商，拓展线性执行器（丝杠/导轨）',biz:'涡轮增压精密零部件、航空装备及工业自动化零部件',edge:'精密制造能力强、汽车零部件毛利率约32.6%，已批量供货工业母机丝杠并切入机器人领域',role_in_ai:'处于丝杠关节（行星滚柱丝杠、直线导轨）环节，依托精密制造能力拓展人形机器人线性执行器部件，已批量供货工业母机丝杠并切入机器人供应链',risk:'2025年净利下滑、传统汽车业务为主，机器人丝杠放量与客户拓展存不确定性',perf:{'y2025':'营收15.04亿元（+10.82%），归母净利润2.78亿元（-3.72%）','q1_2026':'营收3.86亿元（+10.38%），归母净利润0.73亿元（+5.23%）','h1_2026':'暂无披露'}},
+'sh601100':{one_liner:'液压件龙头，布局机器人线性驱动（丝杠/导轨）',biz:'液压油缸、泵阀、液压系统及线性驱动器（丝杠/导轨）',edge:'国内液压件绝对龙头，2025年营收破百亿创历史新高，线性驱动器项目已投产（直线导轨36万米/年、滚珠丝杠7万套/年）',role_in_ai:'处于丝杠关节（行星滚柱丝杠、直线导轨）环节，机器人行星滚柱丝杠已完成送样与初步量产，合作客户超300家，属线性执行器核心供应商',risk:'传统工程机械液压主业周期性强，丝杠/机器人新业务处导入期、短期贡献有限',perf:{'y2025':'营收109.41亿元（+16.52%），归母净利润27.34亿元（+8.99%）','q1_2026':'营收32.10亿元（+32.52%），归母净利润6.52亿元（+5.59%）','h1_2026':'暂无披露'}},
+'sh603662':{one_liner:'称重传感器龙头，拓展机器人力学/六维力传感器',biz:'应变式称重传感器、仪表及物联网称重系统，布局机器人传感器',edge:'国内应变式传感器龙头，毛利率约45%，机器人力学传感器2025年销售量超1500只、月出货上千台',role_in_ai:'处于传感器（力觉/六维力传感器）环节，机器人力学传感器已小批量供货，属人形机器人本体感知核心；推进“传感器森林”战略卡位多品类',risk:'2026Q1因持有驰诚股份公允价值下降致归母净利大降，主业稳健但机器人传感器占比仍低',perf:{'y2025':'营收15.58亿元（+20.33%），归母净利润3.41亿元（+30.73%）','q1_2026':'营收3.58亿元（+13.34%），归母净利润0.41亿元（-45.65%）','h1_2026':'暂无披露'}},
+'sh688322':{one_liner:'3D视觉感知龙头，提供机器人“眼睛”（3D摄像头）',biz:'3D视觉感知传感器、消费级与工业级3D应用设备',edge:'国内3D视觉感知龙头，结构光/iToF/双目全技术布局，2025年营收增66.7%并扭亏',role_in_ai:'处于传感器（3D视觉感知/机器视觉）环节，为机器人提供3D视觉传感器，系人形机器人视觉感知核心供应商，已扭亏并前瞻卡位机器人赛道',risk:'仍处盈利早期、估值高，3D视觉需求与客户拓展受机器人量产节奏影响',perf:{'y2025':'营收9.41亿元（+66.66%），归母净利润1.28亿元（同比扭亏）','q1_2026':'营收2.03亿元（+6.19%），归母净利润0.31亿元（+27.48%）','h1_2026':'暂无披露'}},
+'sz300007':{one_liner:'传感器龙头，布局机器人柔性触觉/电子皮肤',biz:'气体、压力、流量、柔性等传感器及物联网综合解决方案',edge:'国内气体传感器龙头，柔性传感器技术积累深厚，2025年归母净利增107%',role_in_ai:'处于传感器（柔性触觉/电子皮肤、气体/压力传感器）环节，依托柔性传感器技术布局人形机器人电子皮肤与触觉感知，尚处研发送样早期、营收占比小',risk:'2025年利润高增部分源于政府补助等非经常性损益，机器人触觉业务兑现慢',perf:{'y2025':'营收24.14亿元（+8.35%），归母净利润1.59亿元（+107.11%）','q1_2026':'营收5.09亿元（-15.61%），归母净利润0.25亿元（+46.08%）','h1_2026':'暂无披露'}},
+'sh603728':{one_liner:'控制电机龙头，空心杯电机对标Maxon供灵巧手',biz:'控制电机（步进/伺服/空心杯）及其驱动系统',edge:'空心杯电机居国内领先、全球第一阵营，性能对标Maxon且更具性价比，直流无刷电机有注塑一体成型专利',role_in_ai:'处于电机控制（空心杯电机、无刷电机、步进电机及驱动）环节，空心杯电机为人形机器人灵巧手核心电机，属电机控制核心；控制电机业务占营收80%以上',risk:'2025年净利下滑21.5%、盈利处低位，灵巧手技术路线未收敛、机器人订单放量不确定',perf:{'y2025':'营收27.62亿元（+14.32%），归母净利润0.61亿元（-21.54%）','q1_2026':'营收7.00亿元（+17.65%），归母净利润0.14亿元（+92.19%）','h1_2026':'暂无披露'}},
+'sz300660':{one_liner:'微特电机厂商，拓展灵巧手电机与丝杠组件',biz:'微特电机（步进/无刷/空心杯）、汽车电机及丝杠组件',edge:'家电/汽零/工控/医疗多板块布局，汽零收入增53.5%，具身智能零部件迈入量产元年',role_in_ai:'处于电机控制+丝杠关节环节，提供无刷/空心杯电机及丝杠组件，布局人形机器人灵巧手电机与线性执行器，2025年机器人零部件处量产爬坡期',risk:'2026Q1归母净利降约30%（汇兑与原材料影响），汽零/机器人新业务爬坡致短期盈利承压',perf:{'y2025':'营收41.80亿元（+18.77%），归母净利润2.99亿元（+1.51%）','q1_2026':'营收10.44亿元（+15.01%），归母净利润0.66亿元（-29.79%）','h1_2026':'暂无披露'}},
+'sh688160':{one_liner:'工业自动化与机器人核心部件商，机器人业务高速增长',biz:'工业自动化（伺服/PLC/HMI）及机器人核心部件',edge:'以机器人为战略核心，2025年机器人行业收入3.71亿元(+74.57%)，覆盖AGV/协作/人形机器人',role_in_ai:'处于本体总成+电机控制环节，机器人行业（含工业移动机器人、协作机器人、人形机器人）为公司战略核心，2025年机器人收入3.71亿(+74.57%)，为人形机器人提供伺服/驱动/运动控制部件',risk:'人形机器人收入占比仍小、客户验证与量产节奏不确定，通用自动化竞争加剧',perf:{'y2025':'营收7.24亿元（+32.18%），归母净利润0.72亿元（+48.25%）','q1_2026':'营收1.89亿元（+43.22%），归母净利润0.13亿元（+19.70%）','h1_2026':'暂无披露'}},
+'sh600276':{one_liner:'国内创新药龙头，覆盖肿瘤与慢病多管线',biz:'抗肿瘤、麻醉、造影等创新药及仿制药研发、生产与销售',edge:'2025年创新药收入163亿元(+26%)占药品收入58%，BD出海首付款超10亿元，在研管线丰富',role_in_ai:'创新药核心企业，国内化学药创新龙头；AI药物发现处于早期探索，主要借助外部合作与AI辅助研发提效，非核心驱动',risk:'仿制药集采降价、创新药出海及医保谈判价格压力',perf:{'y2025':'营收316.29亿元（+13.02%），归母净利润77.11亿元（+21.69%）','q1_2026':'营收81.41亿元（+12.98%），归母净利润22.82亿元（+21.78%）','h1_2026':'暂无披露'}},
+'sh688235':{one_liner:'全球布局的肿瘤创新药龙头，已实现扭亏为盈',biz:'抗肿瘤创新药（泽布替尼、替雷利珠单抗等）研发与全球商业化',edge:'泽布替尼2025年全球销售额39亿美元(+49%)，三地上市，2025年首次实现全年盈利',role_in_ai:'创新药核心企业，血液瘤/实体瘤全球化标杆；AI制药以内部数据与平台辅助研发，非核心定位',risk:'海外地缘政治与合规风险（2026年补缴税款约4.46亿元）、核心产品竞争加剧',perf:{'y2025':'营收382.25亿元（+40.46%），归母净利润14.61亿元（同比扭亏）','q1_2026':'营收105.44亿元（+31.0%），归母净利润16.08亿元（同比扭亏）','h1_2026':'暂无披露'}},
+'hk01801':{one_liner:'港股创新药龙头，肿瘤+慢病双轮驱动已盈利',biz:'单克隆抗体等生物药研发、生产与商业化（信迪利单抗、玛仕度肽等）',edge:'2025年总收入130.42亿港元(+38.4%)，首次全年盈利IFRS净利8.14亿；18款产品上市、12款入医保',role_in_ai:'创新药核心企业，生物药（单抗/双抗/ADC）龙头；AI制药主要借助外部合作，自身以研发转化为主',risk:'核心产品医保谈判降价、生物类似药及PD-1竞争、国际化进展不及预期',perf:{'y2025':'营收130.42亿港元（+38.4%），归母净利润8.14亿港元（同比扭亏）','q1_2026':'产品收入超38亿港元（+50%），归母净利润暂无披露','h1_2026':'暂无披露'}},
+'sh688180':{one_liner:'国产PD-1先行者，仍处亏损收窄期',biz:'肿瘤及自免创新药（特瑞普利单抗等）研发与商业化',edge:'特瑞普利单抗国内收入20.68亿元(+37.72%)，12项适应症入医保，海外40+国家上市',role_in_ai:'创新药企业，PD-1龙头之一；AI制药布局有限，以自有研发管线推进为主',risk:'持续亏损、销售费用率高、PD-1及IO/ADC赛道竞争激烈',perf:{'y2025':'营收24.98亿元（+28.23%），归母净亏8.75亿元（亏损同比收窄31.68%）','q1_2026':'营收7.26亿元（+45.09%），归母净亏0.21亿元（亏损同比收窄91.24%）','h1_2026':'暂无披露'}},
+'sh600196':{one_liner:'综合药企龙头，创新药+器械+全球化布局',biz:'药品制造（创新药/仿制药）、医疗器械、医疗健康服务',edge:'2025年创新药收入98.93亿元占制药收入33.16%，研发总投入59.13亿元',role_in_ai:'医药制造与器械综合平台型企业，处产业链中游制造+商业化环节；AI以子公司辅助研发，非核心',risk:'资产减值与商誉、非核心资产处置收益依赖、国际化合规',perf:{'y2025':'营收416.62亿元（+1.45%），归母净利润33.71亿元（+21.69%）','q1_2026':'营收100.73亿元（+6.93%），归母净利润8.71亿元（+13.87%）','h1_2026':'暂无披露'}},
+'sh603259':{one_liner:'全球CXO龙头，一体化CRDMO平台',biz:'小分子药物发现、开发及生产（CRDMO）全流程服务',edge:'在手订单597.7亿元(+23.6%)，TIDES业务2025年收入113.7亿元(+96%)，美国客户收入占比约七成',role_in_ai:'CXO核心企业，处产业链研发生产外包环节；AI制药以AI赋能药物发现与设计平台提升效率',risk:'地缘政治与生物安全法案风险（2026年被列入美1260H清单）、海外订单波动',perf:{'y2025':'营收454.56亿元（+15.84%），归母净利润191.51亿元（+102.65%）','q1_2026':'营收124.36亿元（+28.81%），归母净利润46.52亿元（+26.68%）','h1_2026':'暂无披露'}},
+'sz300759':{one_liner:'临床前CRO+小分子CDMO一体化平台',biz:'实验室服务（药物发现）、CMC（小分子CDMO）、临床研究服务',edge:'实验室服务收入81.59亿元占比57.88%，海外收入占比84.84%，全流程一体化',role_in_ai:'CXO企业，处产业链临床前研发外包环节；AI药物发现以内部计算化学与算法平台辅助发现',risk:'商誉约35亿元高悬、利润增速低于收入、海外需求波动',perf:{'y2025':'营收140.95亿元（+14.82%），归母净利润16.64亿元（-7.22%）','q1_2026':'营收35.78亿元（+15.48%），归母净利润3.35亿元（+9.75%）','h1_2026':'暂无披露'}},
+'sz300347':{one_liner:'国内临床CRO龙头',biz:'临床试验技术服务及临床试验相关与实验室服务',edge:'国内临床CRO市占率领先，国际化临床网络覆盖广',role_in_ai:'CXO企业，处产业链临床阶段外包核心环节；AI以数字化临床运营平台提效，实控人涉信披违规立案',risk:'实控人持股变动信披违规被立案、非经常性损益与少数股东损益波动大',perf:{'y2025':'营收68.33亿元（+3.48%），归母净利润8.88亿元（+119.15%）','q1_2026':'营收18.01亿元（+15.17%），归母净利润0.49亿元（-70.36%）','h1_2026':'暂无披露'}},
+'sz002821':{one_liner:'小分子CDMO龙头，新兴业务高增',biz:'小分子CDMO及多肽/寡核苷酸/ADC等新兴业务一站式服务',edge:'小分子CDMO+新兴业务，新兴业务收入5.98亿元(+74%)，经调整归母净利润高增',role_in_ai:'CXO企业，处产业链生产外包环节；AI以算法优化合成路线与生产排程辅助',risk:'大客户订单波动、地缘政治与海外产能、汇率',perf:{'y2025':'营收66.70亿元（+14.91%），归母净利润11.33亿元（+19.35%）','q1_2026':'营收18.02亿元（+16.91%），归母净利润3.04亿元（-6.82%）','h1_2026':'暂无披露'}},
+'sz300760':{one_liner:'国内医疗器械绝对龙头，多产品线全球前三',biz:'生命信息与支持、体外诊断（IVD）、医学影像设备研发制造',edge:'监护仪/除颤仪/麻醉机/呼吸机全球市占率前三，2025年海外收入176.50亿元(+7.4%)',role_in_ai:'医疗器械核心企业，处产业链设备制造环节；医疗AI以超声/影像AI辅助诊断、智能监护布局',risk:'国内设备招采与渠道库存调整、集采与控费、海外拓展不及预期',perf:{'y2025':'营收332.82亿元（-9.38%），归母净利润81.36亿元（-30.28%）','q1_2026':'营收83.52亿元（+1.39%），归母净利润23.30亿元（-11.37%）','h1_2026':'暂无披露'}},
+'sh688271':{one_liner:'国产高端医学影像设备龙头',biz:'CT、MR、PET-CT、DR等高端医学影像设备及放疗设备研发制造',edge:'多产品线市占率国内第一，2025年影像设备销量同比+35%，高端化突破',role_in_ai:'医疗器械核心企业，高端影像设备龙头；医疗AI以uAI智能诊断平台（影像AI）为核心布局',risk:'医疗设备招采节奏与更新政策波动、进口替代竞争、海外拓展',perf:{'y2025':'营收138.00亿元（+33.98%），归母净利润18.69亿元（+48.14%）','q1_2026':'营收29.08亿元（+17.34%），归母净利润3.99亿元（+7.78%）','h1_2026':'暂无披露'}},
+'sz002223':{one_liner:'家用医疗器械与血糖管理龙头',biz:'家用医疗器械、呼吸制氧、血糖仪（CGM）及临床设备',edge:'CGM业务营收翻倍增长，Anytime系列陆续上市，家用器械渠道优势',role_in_ai:'医疗器械企业，家用及可穿戴设备环节；AI以健康管理与CGM数据算法辅助，非核心',risk:'销售费用高企、渠道调整、消费医疗需求波动',perf:{'y2025':'营收79.55亿元（+5.14%），归母净利润14.82亿元（-17.94%）','q1_2026':'营收23.70亿元（-2.69%），归母净利润4.28亿元（-31.44%）','h1_2026':'暂无披露'}},
+'sz300832':{one_liner:'化学发光免疫诊断国产龙头',biz:'全自动化学发光免疫分析仪器及试剂研发制造',edge:'海外试剂收入+34.96%，中大型化学发光仪器海外销量占比75.34%，装机结构优化',role_in_ai:'医疗器械（IVD）核心企业，化学发光龙头；医疗AI以检验数据智能与流水线自动化辅助',risk:'国内集采/DRG与套餐解绑、汇率波动、海外地缘政治',perf:{'y2025':'营收45.77亿元（+0.91%），归母净利润16.20亿元（-11.39%）','q1_2026':'营收11.29亿元（+0.34%），归母净利润4.42亿元（+1.02%）','h1_2026':'暂无披露'}},
+'sz300122':{one_liner:'疫苗代理+自研龙头，2025年巨亏',biz:'代理及自主疫苗研发、生产、销售（HPV、结核等）',edge:'曾为九价HPV疫苗代理龙头，自主产品微增，2025年代理业务大幅萎缩',role_in_ai:'疫苗核心企业，处产业链疫苗研发生产环节；AI以疫苗研发/生产数据建模辅助，非核心',risk:'代理业务萎缩、九价HPV竞争、资产减值与会计差错、自主产品放量不及预期',perf:{'y2025':'营收89.58亿元（-65.61%），归母净亏147.23亿元（由盈转亏）','q1_2026':'营收21.50亿元（-8.64%），归母净亏3.88亿元（亏损同比扩大18.79%）','h1_2026':'暂无披露'}},
+'sz000661':{one_liner:'生长激素龙头，业绩大幅承压',biz:'生物制药（生长激素等）、中成药、辅以地产业务',edge:'长效生长激素龙头（金赛药业），38款重点产品进入临床阶段',role_in_ai:'生物制药核心企业，处创新药/生物药环节；AI以研发数字化辅助，非核心',risk:'生长激素医保降价与发货节奏调整、地产业务拖累、业绩持续下滑',perf:{'y2025':'营收120.83亿元（-10.27%），归母净利润1.55亿元（-94.00%）','q1_2026':'营收25.87亿元（-13.69%），归母净利润2.76亿元（-41.67%）','h1_2026':'暂无披露'}},
+'sz300142':{one_liner:'疫苗自研企业，13价肺炎与HPV疫苗',biz:'自主疫苗（13价肺炎结合、二价HPV、流脑等）研发生产销售',edge:'13价肺炎结合疫苗国内领先，mRNA技术平台布局；2026Q1利润因会计变更大增',role_in_ai:'疫苗企业，处产业链疫苗研发生产环节；AI以mRNA序列设计与抗原预测辅助，非核心',risk:'疫苗价格内卷与集采、应收账款高、营收连续下滑',perf:{'y2025':'营收24.18亿元（-14.29%），归母净利润1.78亿元（+25.03%）','q1_2026':'营收4.44亿元（-3.98%），归母净利润1.11亿元（+4082.41%，系会计估计变更及研发资本化一次性影响）','h1_2026':'暂无披露'}},
+'sh600161':{one_liner:'血制品龙头，采浆规模行业领先',biz:'血液制品（白蛋白、静丙、其他血制品）研发生产销售',edge:'2025年采浆量2801吨，血制品收入61.5亿元，规模与浆站资源壁垒高',role_in_ai:'生物制药（血制品）核心企业，处生物药制造环节；AI以生产质控与供应调度辅助，非核心',risk:'血制品需求疲软与降价、采浆增速放缓、增值税政策调整',perf:{'y2025':'营收61.68亿元（+2.26%），归母净利润10.91亿元（-29.59%）','q1_2026':'营收11.42亿元（-13.36%），归母净利润1.26亿元（-48.45%）','h1_2026':'暂无披露'}}
+};
+/*__PROFILES_END__*/
+
+/* ============== 图标 ============== */
+const ICONS={
+ chip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 3v3M12 3v3M15 3v3M9 18v3M12 18v3M15 18v3M3 9h3M3 12h3M3 15h3M18 9h3M18 12h3M18 15h3"/></svg>',
+ silicon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l6 5v10l-6 5-6-5V7z"/><path d="M12 2v20M6 7l12 10M18 7L6 17"/></svg>',
+ flask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7.5 15h9"/></svg>',
+ copper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 12h8M8 15h5"/></svg>',
+ pcb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v4M16 20v-4M4 12h4M20 12h-4"/><circle cx="8" cy="8" r="1.1"/><circle cx="16" cy="16" r="1.1"/></svg>',
+ fiber:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-6 6 6 9 0s6-6 9 0"/><circle cx="3" cy="12" r="1.2"/><circle cx="21" cy="12" r="1.2"/></svg>',
+ mem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="5" rx="1"/><rect x="5" y="10" width="14" height="5" rx="1"/><rect x="5" y="16" width="14" height="4" rx="1"/></svg>',
+ optic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg>',
+ server:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/><path d="M8 7.5h.01M8 16.5h.01"/></svg>',
+ data:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>',
+ cool:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
+ cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A3.5 3.5 0 0 1 18 18z"/></svg>',
+ llm:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 4V5z"/><path d="M8 9h8M8 12h5"/></svg>',
+ app:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>',
+ etf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="10" width="3" height="7"/></svg>'
+};
+/* ============== 状态 ============== */
+const data={};
+const rowEls={};
+const codeMeta={};
+let activeIndustry='ai', searchTerm='', timer=null;
+
+/* ============== 工具 ============== */
+function boardTag(code){
+  if(!code)return '';
+  if(code.startsWith('sh')){const n=code.slice(2);return (n.startsWith('688')||n.startsWith('689'))?'科创板':'沪主板';}
+  if(code.startsWith('sz')){const n=code.slice(2);return n.startsWith('30')?'创业板':'深主板';}
+  if(code.startsWith('bj'))return '北交所';
+  if(code.startsWith('hk'))return '港股';
+  if(code.startsWith('us'))return '美股';
+  return '';
+}
+function fmt(n,d=2){return (isFinite(n)?(+n):0).toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function sign(n){return n>0?'+':'';}
+function cls(n){return n>0?'up':(n<0?'down':'flat');}
+
+/* ============== 渲染 ============== */
+function buildCard(sector,ind,layer){
+  const rows=sector.stocks.map(s=>{const ca=s.c||('na-'+s.n);return `
+    <div class="stock" data-code="${ca}" data-name="${s.n}">
+      <div class="name"><div class="top">${s.n}<span class="board">${boardTag(s.c)}</span></div><div class="code">${s.c||'未覆盖'}</div></div>
+      <div class="m price flat">—</div>
+      <div class="m day flat">—</div>
+      <div class="m p5 dim">—</div>
+      <div class="m p20 dim">—</div>
+      <div class="m p60 dim">—</div>
+    </div>`;}).join('');
+  const accent=layer.color||ind.color;
+  return `<div class="card" style="--accent:${accent}">
+    <div class="card-head is-index" data-idx="${ind.key}|${layer.key}|${sector.title}"><div class="ic" style="color:${accent}">${ICONS[sector.icon]||ICONS.chip}</div><h3>${sector.title}</h3><span class="idx-chip">—</span><span class="cnt">${sector.stocks.length}</span></div>
+    <div class="col-head"><span class="c0">个股</span><span>现价</span><span>日</span><span>5日</span><span>20日</span><span>60日</span></div>
+    <div class="rows">${rows}</div></div>`;
+}
+function ca(s){return s.c||('na-'+s.n);}
+function render(){
+  const app=document.getElementById('app');
+  const etfRows=ETFS.map(s=>{const c=ca(s);return `<div class="stock" data-code="${c}" data-name="${s.n}"><div class="name"><div class="top">${s.n}<span class="board">${boardTag(s.c)}</span></div><div class="code">${s.c||'未覆盖'}</div><div class="etf-idx">${ETF_INFO[c]?escHtml(ETF_INFO[c].index):''}${ETF_INFO[c]&&ETF_INFO[c].cons&&ETF_INFO[c].cons.length?' · '+ETF_INFO[c].cons.length+'只成分':''}</div></div><div class="m price flat">—</div><div class="m day flat">—</div><div class="m p5 dim">—</div><div class="m p20 dim">—</div><div class="m p60 dim">—</div></div>`;}).join('');
+  let html=`<section class="toprow">
+    <section class="panel overview" id="overview"></section>
+    <section class="panel etf-panel" data-industry="ai">
+      <div class="card" style="--accent:var(--downstream)">
+        <div class="card-head"><div class="ic" style="color:var(--downstream)">${ICONS.etf}</div><h3>核心 ETF 速览</h3><span class="cnt">${ETFS.length}</span></div>
+        <div class="col-head"><span class="c0">ETF</span><span>现价</span><span>日</span><span>5日</span><span>20日</span><span>60日</span></div>
+        <div class="rows">${etfRows}</div>
+      </div>
+    </section>
+  </section>`;
+  for(const ind of INDUSTRIES){
+    for(const layer of ind.layers){
+      const cards=layer.sectors.map(s=>buildCard(s,ind,layer)).join('');
+      html+=`<section class="layer" data-industry="${ind.key}" data-layer="${layer.key}"><div class="layer-head is-index" data-idx="${ind.key}|${layer.key}|"><span class="layer-badge" style="background:${layer.color||ind.color}">${layerShort(layer)}</span><div><div class="layer-title">${layer.name}</div><div class="layer-sub">${layer.sub||''}</div></div><span class="idx-chip">—</span></div><div class="grid">${cards}</div></section>`;
+    }
+  }
+  app.innerHTML=html;
+  document.querySelectorAll('.stock').forEach(el=>{
+    const code=el.dataset.code;
+    const g={row:el,price:el.querySelector('.price'),day:el.querySelector('.day'),p5:el.querySelector('.p5'),p20:el.querySelector('.p20'),p60:el.querySelector('.p60')};
+    (rowEls[code]=rowEls[code]||[]).push(g);
+  });
+  applyFilter();
+}
+function applyFilter(){
+  const term=searchTerm.trim().toLowerCase();
+  document.querySelectorAll('.stock').forEach(el=>{
+    const ok=!term||el.dataset.name.toLowerCase().includes(term)||(el.dataset.code||'').toLowerCase().includes(term);
+    el.classList.toggle('hidden',!ok);
+  });
+  document.querySelectorAll('.layer').forEach(layer=>{
+    const okInd=layer.dataset.industry===activeIndustry;
+    const vis=[...layer.querySelectorAll('.stock')].some(s=>!s.classList.contains('hidden'));
+    layer.classList.toggle('hidden',!okInd||!vis);
+  });
+  document.querySelectorAll('.card').forEach(card=>{
+    const vis=[...card.querySelectorAll('.stock')].some(s=>!s.classList.contains('hidden'));
+    card.classList.toggle('hidden',!vis);
+  });
+  const etfPanel=document.querySelector('.etf-panel');
+  if(etfPanel){
+    const vis=[...etfPanel.querySelectorAll('.stock')].some(s=>!s.classList.contains('hidden'));
+    etfPanel.classList.toggle('hidden',activeIndustry!=='ai'||!vis);
+  }
+}
+
+/* ============== 数据获取 ============== */
+function allCodes(){const s=new Set();allLayers().forEach(l=>l.sectors.forEach(x=>x.stocks.forEach(st=>{if(st.c)s.add(st.c);})));ETFS.forEach(e=>{if(e.c)s.add(e.c);});return[...s];}
+function registerMeta(){
+  INDUSTRIES.forEach(ind=>ind.layers.forEach(l=>l.sectors.forEach(x=>x.stocks.forEach(st=>{codeMeta[ca(st)]={name:st.n,board:boardTag(st.c),industry:ind.key,layer:l.key,sector:x.title};}))));
+  ETFS.forEach(s=>{codeMeta[ca(s)]={name:s.n,board:boardTag(s.c),industry:'ai',layer:'etf',sector:'ETF'};});
+  buildStockMembership();
+}
+/* 反向映射：某股票被哪些 ETF / 指数纳入，以及权重（用于个股详情的「成分权重」） */
+const STOCK_MEMB={};
+function buildStockMembership(){
+  for(const ec in ETF_INFO){
+    const info=ETF_INFO[ec];
+    (info.cons||[]).forEach(r=>{
+      (STOCK_MEMB[r.c]=STOCK_MEMB[r.c]||[]).push({kind:'ETF',code:ec,name:(codeMeta[ec]&&codeMeta[ec].name)||ec,weight:r.w});
+    });
+  }
+  for(const ind of INDUSTRIES){
+    for(const layer of ind.layers){
+      (layer.sectors||[]).forEach(sec=>{
+        const stocks=(sec.stocks||[]);
+        const w=stocks.length?+(100/stocks.length).toFixed(2):null;
+        stocks.forEach(st=>{
+          const c=ca(st);
+          (STOCK_MEMB[c]=STOCK_MEMB[c]||[]).push({kind:'指数',key:ind.key+'|'+layer.key+'|'+sec.title,name:layerShort(layer)+'·'+sec.title,weight:w,eq:true});
+        });
+      });
+    }
+  }
+}
+function parseStr(code,raw){
+  if(!raw)return null;
+  const p=raw.split('~');
+  const price=parseFloat(p[3]);
+  let dtIdx=-1;
+  for(let i=0;i<p.length;i++){if(/^\d{14}$/.test(p[i])||/^\d{4}\/\d{2}\/\d{2}/.test(p[i])){dtIdx=i;break;}}
+  let amt=0,pct=0;
+  if(dtIdx>=0){amt=parseFloat(p[dtIdx+1])||0;pct=parseFloat(p[dtIdx+2])||0;}
+  else{pct=parseFloat(p[32])||0;amt=parseFloat(p[31])||0;}
+  const pe=parseFloat(p[39]);   // p[39] = 市盈率(TTM)，已用茅台(18.14)/工行(7.02)核对
+  if(isNaN(price))return null;
+  return {code,price,dayAmt:amt,day:pct,pe:isFinite(pe)?pe:null};
+}
+function jsonpFetch(codes){
+  return new Promise(resolve=>{
+    const url='https://qt.gtimg.cn/q='+codes.join(',');
+    const s=document.createElement('script');let done=false;
+    const finish=v=>{if(done)return;done=true;try{document.body.removeChild(s);}catch(e){}resolve(v);};
+    s.onload=()=>{const out=[];codes.forEach(c=>{try{const raw=window['v_'+c];if(raw)out.push(parseStr(c,raw));}catch(e){}});finish(out);};
+    s.onerror=()=>finish([]);
+    setTimeout(()=>finish([]),9000);
+    s.src=url;document.body.appendChild(s);
+  });
+}
+
+// 腾讯 K 线响应中自带 qt 行情块（与实时行情同源）：p[39]=市盈率(TTM)，p[46]=市净率(LF)。
+// 直接从已拉取的 K 线响应里取 PB，无需东方财富等第三方源，规避跨域/区域拦截问题。
+function jsonQtBlock(j,code){
+  const d=j&&j.data&&j.data[code];if(!d||!d.qt)return null;
+  const keys=Object.keys(d.qt);
+  const key=keys.find(k=>k===code||k==='v_'+code||k.endsWith('_'+code))||keys[0];
+  const arr=d.qt[key];
+  return Array.isArray(arr)?arr:null;
+}
+
+async function fetchRealtime(){
+  const codes=allCodes();const chunks=[];
+  for(let i=0;i<codes.length;i+=90)chunks.push(codes.slice(i,i+90));
+  const res=(await Promise.all(chunks.map(jsonpFetch))).flat();
+  res.forEach(r=>{const m=codeMeta[r.code]||{};data[r.code]={...m,...r,okRt:true};});
+  applyRealtime();
+  buildOverview();
+}
+function applyRealtime(){
+  for(const code in rowEls){
+    const d=data[code];if(!d||!d.okRt)continue;
+    const c=cls(d.day);
+    rowEls[code].forEach(g=>{
+      g.row.classList.toggle('bg-up',d.day>0);g.row.classList.toggle('bg-down',d.day<0);
+      g.price.className='m price '+c;g.price.textContent=fmt(d.price);
+      g.day.className='m day '+c;g.day.textContent=sign(d.day)+d.day.toFixed(2)+'%';
+    });
+  }
+}
+function getKline(json,code){
+  const d=json&&json.data&&json.data[code];if(!d)return null;
+  for(const k of ['qfqday','day'])if(Array.isArray(d[k]))return d[k];
+  for(const k in d)if(Array.isArray(d[k])&&Array.isArray(d[k][0]))return d[k];
+  return null;
+}
+function periodPct(closes,n){
+  const i=closes.length-1-n;if(i<0)return null;const base=closes[i];if(!base)return null;
+  return (closes[closes.length-1]-base)/base*100;
+}
+async function fetchKlineOne(code){
+  // 优先走本地代理 /api/kline（沙箱服务端抓取，规避本机跨域/区域拦截）；不可达再直连腾讯
+  const path = code.startsWith('us') ? 'usfqkline/get' : 'fqkline/get';
+  const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/'+path+'?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
+  const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[]).concat([direct]);
+  for(const url of urls){
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        const r=await fetch(url,{cache:'no-store'});
+        if(!r.ok)throw new Error('http '+(r.status||'err'));
+        const j=await r.json();const arr=getKline(j,code);
+        if(arr&&arr.length>=2){
+          const closes=arr.map(e=>parseFloat(e[2]));
+          const d=data[code]||(data[code]={...codeMeta[code]});
+          d.p5=periodPct(closes,5);d.p20=periodPct(closes,20);d.p60=periodPct(closes,60);d.okK=true;
+          d.kline=arr;            // 存原始日K数组，供详情页绘制与技术分析
+          const qb=jsonQtBlock(j,code);   // 腾讯行情块：p[46]=市净率(LF)
+          if(qb){const pb=parseFloat(qb[46]); if(isFinite(pb)&&pb>0) d.pb=pb;}
+          return;
+        }
+      }catch(e){}
+      if(attempt<1) await new Promise(r=>setTimeout(r,300));
+    }
+  }
+}
+async function fetchKlineAll(){
+  const codes=allCodes();
+  await Promise.all(codes.map(c=>fetchKlineOne(c)));
+  applyKline();buildOverview();
+}
+function applyKline(){
+  for(const code in rowEls){
+    const d=data[code];if(!d)continue;
+    rowEls[code].forEach(g=>{
+      [['p5',g.p5],['p20',g.p20],['p60',g.p60]].forEach(([k,node])=>{
+        if(d[k]==null){node.className='m '+k+' dim';node.textContent='—';return;}
+        const c=cls(d[k]);node.className='m '+k+' '+c;node.textContent=sign(d[k])+d[k].toFixed(2)+'%';
+      });
+    });
+  }
+}
+
+/* ============== 总览 + 点评 ============== */
+function heatColor(av){
+  if(av==null)return {bg:'var(--panel-2)',bd:'var(--line)'};
+  const a=Math.min(Math.abs(av)/3,1)*0.16;
+  return av>0
+    ?{bg:`rgba(240,56,74,${a.toFixed(3)})`,bd:`rgba(240,56,74,${(a+0.30).toFixed(3)})`}
+    :{bg:`rgba(22,184,122,${a.toFixed(3)})`,bd:`rgba(22,184,122,${(a+0.30).toFixed(3)})`};
+}
+function buildOverview(){
+  const ov=document.getElementById('overview');if(!ov)return;
+  // 用 data 的「键」作为代码兜底：代理模式下行情对象不含 code 字段（/api/quotes 只返回数值），
+  // 直接读 d.code 会得到 undefined，导致总览点击路由到 openDetail('undefined') 而显示空白/乱码。
+  const all=Object.entries(data).filter(([c,d])=>d&&d.okRt).map(([c,d])=>({...d,code:c}));
+  const ind=INDUSTRIES.find(i=>i.key===activeIndustry)||INDUSTRIES[0];
+  if(!all.length){ov.innerHTML=`<div class="ov-top"><h2>${ind.label} 总览</h2><span class="stamp">行情加载中…</span></div>`;return;}
+  const indAll=all.filter(d=>d.industry===ind.key);
+  const us=indAll.filter(d=>d.board==='美股');
+  const stocks=indAll.filter(d=>d.layer!=='etf' && d.board!=='美股');   // 美股单列，不计入涨跌分布与 TOP 排行
+  const etfN=indAll.filter(d=>d.layer==='etf').length;
+  if(!stocks.length && !us.length){ov.innerHTML=`<div class="ov-top"><h2>${ind.label} 总览</h2><span class="stamp">行情加载中…</span></div>`;return;}
+  const up=stocks.filter(d=>d.day>0).length,down=stocks.filter(d=>d.day<0).length,flat=stocks.length-up-down;
+  const avg=stocks.length?stocks.reduce((s,d)=>s+d.day,0)/stocks.length:null;
+  const secRows=ind.layers.map(l=>{
+    const a=stocks.filter(d=>d.layer===l.key),cnt=a.length;
+    const u=a.filter(d=>d.day>0).length,dn=a.filter(d=>d.day<0).length,fl=cnt-u-dn;
+    return {l,cnt,u,dn,fl,av:cnt?a.reduce((s,d)=>s+d.day,0)/cnt:null};
+  });
+  const missingK=stocks.filter(d=>d.p5==null).length;
+  const sorted=[...stocks].sort((a,b)=>b.day-a.day);
+  const top=sorted.slice(0,5),bottom=sorted.slice(-5).reverse();
+  const mid=[...stocks].filter(d=>d.p60!=null).sort((a,b)=>b.p60-a.p60).slice(0,5);
+  const stamp=new Date().toLocaleString('zh-CN',{hour12:false});
+  const total=stocks.length||1;
+  const pUp=up/total*100,pDn=down/total*100,pFl=flat/total*100;
+  const leadR=secRows.filter(r=>r.av!=null).sort((a,b)=>b.av-a.av)[0];
+  const weakR=secRows.filter(r=>r.av!=null).sort((a,b)=>a.av-b.av)[0];
+  const moverRow=d=>`<div class="row clickable" data-detail="${d.code}"><span class="nm">${d.name}<span class="sec">${d.board} · ${d.sector||'—'}</span></span><span class="pct ${cls(d.day)}">${sign(d.day)}${d.day.toFixed(2)}%</span></div>`;
+  const midRow=d=>`<div class="row clickable" data-detail="${d.code}"><span class="nm">${d.name}<span class="sec">${d.board} · ${d.sector||'—'}</span></span><span class="pct ${cls(d.p60)}">${sign(d.p60)}${d.p60.toFixed(2)}%</span></div>`;
+  const lyrCard=r=>{
+    const hc=heatColor(r.av);
+    const ratio=r.cnt?Math.round(r.u/r.cnt*100):0;
+    return `<div class="lyr is-index" data-idx="${ind.key}|${r.l.key}|" style="background:${hc.bg};border-left-color:${hc.bd};--c:${r.l.color||ind.color}">
+      <div class="lyr-h"><span class="lyr-badge" style="background:${r.l.color||ind.color}">${layerShort(r.l)}</span><span class="lyr-name">${r.l.name}</span><span class="lyr-cnt">共 ${r.cnt} 只</span></div>
+      <div class="lyr-body"><span class="up">▲ ${r.u}</span><span class="down">▼ ${r.dn}</span><span class="flat">→ ${r.fl}</span><span class="lyr-avg ${r.av==null?'':cls(r.av)}">${r.av==null?'—':sign(r.av)+r.av.toFixed(2)+'%'}</span></div>
+      <div class="lyr-ratio" title="上涨占比 ${ratio}%"><i style="width:${ratio}%"></i></div>
+    </div>`;
+  };
+  let usHtml='';
+  if(us.length){
+    const usSorted=[...us].sort((a,b)=>b.day-a.day);
+    usHtml=`<div class="ov-us"><h4>美股 · 领涨概念（单列，不参与 TOP 排行）</h4><div class="us-list">`+
+      usSorted.map(d=>`<div class="us-row clickable" data-detail="${d.code}"><span class="us-nm">${d.name}<span class="us-sec">${d.sector||'—'}</span></span><span class="${cls(d.day)}">${sign(d.day)}${d.day.toFixed(2)}%</span></div>`).join('')+
+      `</div><div class="d-note">美股仅作领涨概念展示（含对应产业链环节），不计入上方涨跌分布与 TOP 排行。</div></div>`;
+  }
+  ov.innerHTML=`
+    <div class="ov-top">
+      <div class="ov-title-wrap"><h2>${ind.label} 总览</h2><span class="ov-sub">产业链投资图谱 · 行情快照</span></div>
+      <div class="ov-meta">
+        <span class="ov-pill ${cls(avg)}">均 ${avg==null?'—':sign(avg)+avg.toFixed(2)+'%'}</span>
+        <span class="ov-pill ghost">${all.length} 只标的${ind.key==='ai'?` · ETF ${etfN}`:''}${us.length?` · 美股 ${us.length}`:''}</span>
+        ${missingK?`<span class="ov-pill warn">${missingK} 只区间暂缺</span>`:''}
+        <span class="stamp">更新于 ${stamp}</span>
+      </div>
+    </div>
+    <div class="ov-pulse">
+      <div class="pulse-card">
+        <div class="pulse-fig ${cls(avg)}">${avg==null?'—':sign(avg)+avg.toFixed(2)}<small>%</small></div>
+        <div class="pulse-label">${ind.label} · 产业链标的平均日涨跌（共 ${stocks.length} 只${us.length?` · 美股 ${us.length} 只单列`:''}）</div>
+        <div class="dist">
+          <div class="dist-bar"><span class="seg up" style="width:${pUp}%"></span><span class="seg down" style="width:${pDn}%"></span><span class="seg flat" style="width:${pFl}%"></span></div>
+          <div class="dist-legend"><span class="up">▲ ${up} 涨</span><span class="down">▼ ${down} 跌</span><span class="flat">→ ${flat} 平</span></div>
+        </div>
+      </div>
+      <div class="pulse-side">
+        <div class="pulse-mini up-edge"><span class="pm-k">强势环节</span><span class="pm-v">${leadR?layerShort(leadR.l):'—'}</span>${leadR?`<span class="pm-d up">${sign(leadR.av)}${leadR.av.toFixed(2)}%</span>`:''}</div>
+        <div class="pulse-mini down-edge"><span class="pm-k">承压环节</span><span class="pm-v">${weakR?layerShort(weakR.l):'—'}</span>${weakR?`<span class="pm-d down">${sign(weakR.av)}${weakR.av.toFixed(2)}%</span>`:''}</div>
+      </div>
+    </div>
+    <div class="ov-section-title">环节热力 · 按平均涨跌着色</div>
+    <div class="ov-layers">${secRows.map(lyrCard).join('')}</div>
+    <div class="ov-section-title">个股风云</div>
+    <div class="ov-movers">
+      <div class="mover up"><h4>领涨 TOP5</h4>${top.map(moverRow).join('')}</div>
+      <div class="mover down"><h4>领跌 TOP5</h4>${bottom.map(moverRow).join('')}</div>
+      <div class="mover mid"><h4>近60日趋势 TOP5</h4>${mid.length?mid.map(midRow).join(''):'<div class="row"><span class="nm" style="color:var(--sub)">暂无区间数据</span></div>'}</div>
+    </div>
+    ${usHtml}
+    <div class="commentary">${commentary({ind,list:stocks,up,down,flat,avg,secRows,top,bottom,us,missingK})}</div>`;
+  try{updateIndexChips();}catch(e){console.warn('[指数芯片] 更新失败（不影响总览）：',e&&e.message);}
+}
+function commentary(o){
+  const pct=v=>v==null?'—':sign(v)+v.toFixed(2)+'%';
+  let s=`截至当前，${o.ind.label} 共 <b>${o.list.length}</b> 只可行情核心标的（美股 ${o.us.length} 只单列展示、不计入）：<b class="up">${o.up} 只上涨</b>、<b class="down">${o.down} 只下跌</b>、${o.flat} 只平盘，板块整体平均日涨跌 <b class="${cls(o.avg)}">${pct(o.avg)}</b>。`;
+  let lead=null,weak=null;
+  o.secRows.forEach(r=>{if(r.av==null)return;if(lead==null||r.av>=lead.av)lead=r;if(weak==null||r.av<=weak.av)weak=r;});
+  if(lead&&weak){
+    s+=`分环节看，`+o.secRows.map(r=>`<b>${layerShort(r.l)}</b> 平均 ${pct(r.av)}`).join('、')+`——当前 <b>${layerShort(lead.l)}</b> 相对强势，<b>${layerShort(weak.l)}</b> 承压明显。`;
+  }
+  const t=o.top[0],b=o.bottom[0];
+  if(t)s+=` 领涨个股为 <b>${t.name}</b>（${t.board}），日涨幅 <b class="up">+${t.day.toFixed(2)}%</b>`;
+  if(t&&b)s+=`；`;
+  if(b)s+=`领跌为 <b>${b.name}</b>（${b.board}），<b class="down">${b.day.toFixed(2)}%</b>。`;
+  if(t&&t.p5!=null&&t.p60!=null)s+=` 其中 ${t.name} 近 5 日累计 <b class="${cls(t.p5)}">${sign(t.p5)}${t.p5.toFixed(2)}%</b>、近 60 日 <b class="${cls(t.p60)}">${sign(t.p60)}${t.p60.toFixed(2)}%</b>，中期趋势${t.p60>=0?'向上':'走弱'}。`;
+  if(o.missingK>0){
+    s+=` 注：区间涨跌为前复权口径；当前有 <b>${o.missingK}</b> 只标的（北交所等）因浏览器端无可直连的日 K 线源，5/20/60 日显示「—」，但其现价与日涨跌正常；数据来源腾讯证券，仅供参考。`;
+  }else{
+    s+=` 注：区间涨跌为前复权口径；全部标的前复权区间数据已补全，数据来源腾讯证券，仅供参考。`;
+  }
+  return s;
+}
+
+/* ============== 子集指数（环节 / 板块等权指数 + 指数详情页） ============== */
+function idxConstituents(iind,ilayer,isec){
+  const ind=INDUSTRIES.find(i=>i.key===iind);if(!ind)return [];
+  const layer=ind.layers.find(l=>l.key===ilayer);if(!layer)return [];
+  const stocks=isec?(layer.sectors.find(s=>s.title===isec)||{}).stocks||[]:layer.sectors.flatMap(s=>s.stocks);
+  return stocks.map(st=>({c:ca(st),n:st.n}));
+}
+function indexChange(iind,ilayer,isec){
+  const cs=idxConstituents(iind,ilayer,isec);let sum=0,n=0;
+  cs.forEach(({c})=>{const d=data[c];if(d&&d.okRt&&d.day!=null){sum+=d.day;n++;}});
+  return n?sum/n:null;
+}
+function updateIndexChips(){
+  document.querySelectorAll('.idx-chip').forEach(el=>{
+    // data-idx 通常在父元素（.card-head/.layer-head/.lyr）上，chip 自身可能没有 → 用 closest 兜底
+    const host=el.dataset.idx!=null?el:el.closest('[data-idx]');
+    const key=host&&host.dataset?host.dataset.idx:null;
+    if(!key){el.textContent='—';el.className='idx-chip';return;}
+    const p=key.split('|');const ch=indexChange(p[0],p[1],p[2]||'');
+    if(ch==null){el.textContent='—';el.className='idx-chip';return;}
+    el.textContent=(ch>=0?'+':'')+ch.toFixed(2)+'%';
+    el.className='idx-chip '+(ch>=0?'up':'down');
+  });
+}
+/* 等权合成指数 K 线（前复权，成分股归一化加权） */
+function buildIndexKline(codes){
+  const series=codes.map(c=>{const d=data[c];if(!d||!d.kline||d.kline.length<2)return null;
+    const arr=d.kline.slice(-260);const m={};arr.forEach(e=>{m[e[0]]={o:parseFloat(e[1]),c:parseFloat(e[2]),h:parseFloat(e[3]),l:parseFloat(e[4]),v:parseFloat(e[5]||0)};});
+    const dates=Object.keys(m).sort();return {dates,m,base:m[dates[0]].c};
+  }).filter(Boolean);
+  if(!series.length)return null;
+  const allDates=[...new Set(series.flatMap(s=>s.dates))].sort();
+  const dates=[],opens=[],closes=[],highs=[],lows=[],vols=[];let prev=null;
+  const ptr=series.map(()=>0);
+  for(const dt of allDates){
+    let sC=0,nC=0,sO=0,nO=0,mH=-1e18,mL=1e18,sV=0,has=false;
+    series.forEach((s,si)=>{
+      while(ptr[si]<s.dates.length&&s.dates[ptr[si]]<=dt)ptr[si]++;
+      const idx=ptr[si]-1;if(idx<0)return;
+      const rec=s.m[s.dates[idx]];const f=rec.c/s.base;
+      sC+=f;nC++;sO+=rec.o/s.base;nO++;mH=Math.max(mH,rec.h/s.base);mL=Math.min(mL,rec.l/s.base);sV+=rec.v;has=true;
+    });
+    if(!has||!nC)continue;
+    const ic=sC/nC,iop=prev!=null?prev:sO/nO;
+    dates.push(dt);opens.push(+iop.toFixed(3));closes.push(+ic.toFixed(3));highs.push(+mH.toFixed(3));lows.push(+mL.toFixed(3));vols.push(sV);prev=ic;
+  }
+  if(closes.length<2)return null;
+  return {dates,opens,closes,highs,lows,vols};
+}
+/* 指数详情页 */
+let detailMode='stock',detailIdxKey=null;
+function refreshIndexHeader(chg){
+  const px=document.querySelector('#dHead .px');if(!px)return;
+  const c=chg==null?'flat':(chg>=0?'up':'down');
+  px.innerHTML=`<div class="p ${c}">等权指数</div><div class="pe ${c}">${chg==null?'—':(chg>=0?'+':'')+chg.toFixed(2)+'%'}</div>`;
+}
+function buildIndexIntroHTML(name,consts,eqw){
+  let h='<div class="intro-enrich">';
+  h+=`<div class="intro-ol">本指数为「${escHtml(name)}」成分股的<b>等权合成指数</b>（前复权），反映该环节/板块整体涨跌。成分权重为等权（每只约 ${eqw!=null?eqw.toFixed(1)+'%':'—'}）。下列成分按当日涨跌幅排序，点击任意个股可查看其详情。</div>`;
+  const rows=[...consts].map(({c,n})=>({c,n,d:data[c]})).sort((a,b)=>(b.d&&b.d.day!=null?b.d.day:-1e9)-(a.d&&a.d.day!=null?a.d.day:-1e9));
+  h+='<div class="idx-constituents"><div class="idx-ch">指数成分涨跌排序（点击查看个股详情）</div>';
+  h+='<div class="idx-row idx-hrow"><span class="idx-nm">名称</span><span class="w-col">权重</span><span>现价</span><span>日</span><span>5日</span><span>20日</span><span>60日</span></div>';
+  rows.forEach(r=>{const d=r.d||{};const cell=v=>v==null?'—':(v>=0?'+':'')+v.toFixed(2)+'%';
+    const dayc=d.day!=null?cls(d.day):'flat';
+    h+=`<div class="idx-row" data-detail="${r.c}"><span class="idx-nm">${escHtml(r.n)}<span class="board">${boardTag(r.c)}</span></span><span class="w-col">${eqw!=null?eqw.toFixed(1)+'%':'—'}</span><span class="m">${d.price!=null?fmt(d.price):'—'}</span><span class="m ${dayc}">${d.day!=null?cell(d.day):'—'}</span><span class="m ${d.p5!=null?cls(d.p5):''}">${d.p5!=null?cell(d.p5):'—'}</span><span class="m ${d.p20!=null?cls(d.p20):''}">${d.p20!=null?cell(d.p20):'—'}</span><span class="m ${d.p60!=null?cls(d.p60):''}">${d.p60!=null?cell(d.p60):'—'}</span></div>`;
+  });
+  h+='</div></div>';return h;
+}
+async function openIndex(key){
+  const [iind,ilayer,isec]=key.split('|');
+  const ind=INDUSTRIES.find(i=>i.key===iind);if(!ind)return;
+  const layer=ind.layers.find(l=>l.key===ilayer);if(!layer)return;
+  let consts=idxConstituents(iind,ilayer,isec);
+  const eqw=consts.length?+(100/consts.length).toFixed(1):null;
+  // 先确保成分股日 K 线已加载（合成指数走势依赖此数据，否则会显示「K 线不足」）
+  await Promise.all(consts.map(x=>ensureKline(x.c).catch(()=>{})));
+  const chg=indexChange(iind,ilayer,isec);
+  const title=isec?(layerShort(layer)+' · '+isec):layer.name;
+  if(klineChart){klineChart.dispose();klineChart=null;}
+  if(peChart){peChart.dispose();peChart=null;}
+  detailMode='index';detailCode=null;detailIdxKey=key;
+  const modal=document.getElementById('detail');if(!modal)return;
+  modal.classList.remove('hidden');
+  modal.classList.remove('etf-mode');
+  setIntroTitle('指数成分与涨跌');
+  const head=document.getElementById('dHead');
+  head.querySelector('.nm').textContent=title;
+  head.querySelector('.meta').textContent=[ind.label,isec?'板块指数':'环节指数',consts.length+' 只成分'].filter(Boolean).join(' · ');
+  refreshIndexHeader(chg);
+  document.getElementById('dNews').innerHTML='<div class="d-note">指数为等权合成（前复权），无单一公司公告；下方为成分股涨跌排序。</div>';
+  document.getElementById('dTech').innerHTML='<div class="d-note">正在计算技术指标…</div>';
+  document.getElementById('dKline').innerHTML='';
+  document.getElementById('dIntro').innerHTML=buildIndexIntroHTML(isec||layer.name,consts,eqw);
+  const sk=buildIndexKline(consts.map(x=>x.c));
+  if(sk&&sk.closes.length>=2){
+    const m=analyzeTechArrays(sk.dates,sk.opens,sk.closes,sk.highs,sk.lows,sk.vols,null,null,null);
+    if(m){m.isIndex=true;lastM=m;document.getElementById('dTech').innerHTML=buildTechHTML(m);ensureEcharts().then(()=>{if(window.echarts)renderKlineChart(m);});}
+    else document.getElementById('dTech').innerHTML='<div class="d-note">成分股技术指标不足，无法生成分析。</div>';
+  }else{
+    document.getElementById('dTech').innerHTML='<div class="d-note">成分股浏览器端日 K 线不足，无法合成指数走势。</div>';
+  }
+}
+
+/* ETF 详情：按跟踪指数展示成分股（不显示公司简介） */
+function setIntroTitle(t){const s=document.getElementById('dIntro');if(!s)return;const sec=s.closest('.d-section');if(!sec)return;const h=sec.querySelector('h3');if(h)h.textContent=t;}
+function buildEtfIntroHTML(code,info){
+  let h='<div class="intro-enrich">';
+  const nm=(codeMeta[code]&&codeMeta[code].name)||code;
+  h+=`<div class="intro-ol">${escHtml(nm)} 跟踪指数「<b>${escHtml(info.index)}</b>」。以下为前十大成分股（按权重降序），点击任意成分可下钻查看个股 K 线与技术面。</div>`;
+  const cons=[...(info.cons||[])].sort((a,b)=>(b.w||0)-(a.w||0));
+  h+='<div class="etf-cons">';
+  h+='<div class="etf-row etf-hrow"><span>成分股</span><span>代码</span><span style="text-align:right">权重</span><span style="text-align:right">日涨跌</span></div>';
+  cons.forEach(r=>{
+    const dd=data[r.c]||{};
+    const dayc=dd.day!=null?cls(dd.day):'flat';
+    const dayTxt=dd.day!=null?sign(dd.day)+dd.day.toFixed(2)+'%':'—';
+    h+=`<div class="etf-row" data-detail="${r.c}"><span class="etf-nm">${escHtml(r.n)}</span><span class="etf-code">${r.c}</span><span class="etf-w">${(r.w||0).toFixed(2)}%</span><span class="${dayc}" style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">${dayTxt}</span></div>`;
+  });
+  h+='</div></div>';
+  return h;
+}
+async function openEtf(code){
+  const info=ETF_INFO[code];if(!info)return;
+  const meta=codeMeta[code]||{},d=data[code]||{};
+  const modal=document.getElementById('detail');if(!modal)return;
+  if(klineChart){klineChart.dispose();klineChart=null;}
+  if(peChart){peChart.dispose();peChart=null;}
+  modal.classList.remove('hidden');
+  modal.classList.remove('etf-mode');
+  detailMode='etf';detailIdxKey=null;detailCode=code;
+  const head=document.getElementById('dHead');
+  head.querySelector('.nm').textContent=(meta.name||code)+' · 成分股';
+  head.querySelector('.meta').textContent=[code,info.index].filter(Boolean).join(' · ');
+  const dayc=d.day!=null?cls(d.day):'flat';
+  const price=d.price!=null?fmt(d.price):'—';
+  const dayTxt=d.day!=null?sign(d.day)+d.day.toFixed(2)+'%':'—';
+  head.querySelector('.px').innerHTML=`<div class="p ${dayc}">${price}</div><div class="pe ${dayc}">${dayTxt} · <span style="color:var(--sub)">ETF</span></div>`;
+  setIntroTitle('跟踪指数 · 成分股');
+  document.getElementById('dIntro').innerHTML=buildEtfIntroHTML(code,info);
+  document.getElementById('dKline').innerHTML='<div class="d-note">正在绘制 ETF 自身日 K 线（前复权）…</div>';
+  document.getElementById('dTech').innerHTML='<div class="d-note">正在计算技术指标…</div>';
+  document.getElementById('dNews').innerHTML='<div class="d-note">ETF 无单一公司公告；成分股公告可在个股详情中查看。</div>';
+  await ensureEcharts();
+  const ok=await ensureKline(code);
+  if(!ok){
+    document.getElementById('dKline').innerHTML='<div class="d-note">该 ETF 浏览器端无可直连的日 K 线源，暂无法绘制 K 线与技术面。</div>';
+    document.getElementById('dTech').innerHTML='<div class="d-note">无日 K 线数据，无法生成技术面分析。</div>';
+    return;
+  }
+  const m=analyzeTech(code);
+  lastM=m;
+  document.getElementById('dTech').innerHTML=buildTechHTML(m);
+  if(window.echarts)renderKlineChart(m);
+}
+
+/* ============== 详情 · 技术指标 · 图表 ============== */
+let detailCode=null, klineChart=null, peChart=null, showBands=true, lastM=null;
+function lastVal(arr){for(let i=arr.length-1;i>=0;i--)if(arr[i]!=null)return arr[i];return null;}
+function emaArr(arr,n){const k=2/(n+1),out=[];let p=0;arr.forEach((v,i)=>{p=i===0?v:v*k+p*(1-k);out.push(p);});return out;}
+function computeMA(closes,n){const o=[];for(let i=0;i<closes.length;i++){if(i<n-1){o.push(null);continue;}let s=0;for(let j=i-n+1;j<=i;j++)s+=closes[j];o.push(+(s/n).toFixed(3));}return o;}
+function computeMACD(closes){const e12=emaArr(closes,12),e26=emaArr(closes,26);const dif=closes.map((_,i)=>+(e12[i]-e26[i]).toFixed(4));const dea=emaArr(dif,9);const macd=dif.map((v,i)=>+((v-dea[i])*2).toFixed(4));return {dif,dea,macd};}
+function computeKDJ(highs,lows,closes,n=9){const K=[],D=[],J=[];let pk=50,pd=50;for(let i=0;i<closes.length;i++){if(i<n-1){K.push(null);D.push(null);J.push(null);continue;}const h=Math.max(...highs.slice(i-n+1,i+1)),l=Math.min(...lows.slice(i-n+1,i+1));const rsv=l===h?50:(closes[i]-l)/(h-l)*100;const k=+(pk*2/3+rsv/3).toFixed(2),d=+(pd*2/3+k/3).toFixed(2),j=+(3*k-2*d).toFixed(2);K.push(k);D.push(d);J.push(j);pk=k;pd=d;}return {k:K,d:D,j:J};}
+function computeRSI(closes,n){const o=[];for(let i=0;i<closes.length;i++){if(i<n){o.push(null);continue;}let g=0,l=0;for(let j=i-n+1;j<=i;j++){const ch=closes[j]-closes[j-1];if(ch>0)g+=ch;else l+=-ch;}const rs=g/(l||1e-9);o.push(+(100-100/(1+rs)).toFixed(2));}return o;}
+function computeBOLL(closes,n=20,k=2){const mid=[],up=[],low=[];for(let i=0;i<closes.length;i++){if(i<n-1){mid.push(null);up.push(null);low.push(null);continue;}let s=0;for(let j=i-n+1;j<=i;j++)s+=closes[j];const m=s/n;let v=0;for(let j=i-n+1;j<=i;j++)v+=(closes[j]-m)**2;const sd=Math.sqrt(v/n);mid.push(+m.toFixed(3));up.push(+(m+sd*k).toFixed(3));low.push(+(m-sd*k).toFixed(3));}return {mid,up,low};}
+function computePE(closes,peCur,priceCur){
+  if(!isFinite(peCur)||peCur<=0||!isFinite(priceCur)||priceCur<=0)return null;
+  const f=peCur/priceCur;
+  return closes.map(c=>{const v=(+c)*f;return isFinite(v)?+(v.toFixed(2)):null;});
+}
+function tagSpan(v){return v>0?'<span class="t up">看多</span>':v<0?'<span class="t down">看空</span>':'<span class="t flat">中性</span>';}
+function subMA(m){const v=m.v,c=m.c;if(!(v.ma5&&v.ma10&&v.ma20&&v.ma60))return 0;if(c>v.ma5&&v.ma5>v.ma10&&v.ma10>v.ma20&&v.ma20>v.ma60)return 2;if(c<v.ma5&&v.ma5<v.ma10&&v.ma10<v.ma20&&v.ma20<v.ma60)return -2;return 0;}
+function subMACD(m){const N=m.closes.length,a=lastVal(m.macd.dif),b=lastVal(m.macd.dea);if(a==null||b==null)return 0;let s=a>b?1:-1;const ap=m.macd.dif[N-2],bp=m.macd.dea[N-2];if(ap!=null&&bp!=null){if(ap<=bp&&a>b)s+=1;if(ap>=bp&&a<b)s-=1;}return s;}
+function subKDJ(m){const k=lastVal(m.kdj.k),d=lastVal(m.kdj.d),j=lastVal(m.kdj.j);if(k==null||d==null)return 0;let s=k>d?1:-1;if(j!=null){if(j>100)s-=0.5;if(j<0)s+=0.5;}if(k>80&&d>80)s-=0.5;if(k<20&&d<20)s+=0.5;return s;}
+function subRSI(m){const r=lastVal(m.rsi12);if(r==null)return 0;if(r>70)return -1;if(r<30)return 1;return r>=50?0.5:-0.5;}
+function subBOLL(m){const c=m.c,bU=lastVal(m.boll.up),bL=lastVal(m.boll.low);if(!bU||!bL||bU===bL)return 0;const pb=(c-bL)/(bU-bL);if(pb>1)return 0.5;if(pb<0)return 0.5;if(pb>0.8)return -0.3;if(pb<0.2)return 0.3;return 0;}
+
+function analyzeTech(code){
+  const d=data[code];if(!d||!d.kline||d.kline.length<2)return null;
+  const arr=d.kline.slice(-260);
+  const dates=arr.map(e=>e[0]);
+  const opens=arr.map(e=>parseFloat(e[1]));
+  const closes=arr.map(e=>parseFloat(e[2]));
+  const highs=arr.map(e=>parseFloat(e[3]));
+  const lows=arr.map(e=>parseFloat(e[4]));
+  const vols=arr.map(e=>parseFloat(e[5]||0));
+  return analyzeTechArrays(dates,opens,closes,highs,lows,vols,d.pe,d.price,d.pb);
+}
+/* 技术指标（接受数组，供个股与合成指数复用） */
+function analyzeTechArrays(dates,opens,closes,highs,lows,vols,pe,price,pb){
+  const N=closes.length;if(N<2)return null;
+  const ma5=computeMA(closes,5),ma10=computeMA(closes,10),ma20=computeMA(closes,20),ma60=computeMA(closes,60);
+  const macd=computeMACD(closes);
+  const kdj=computeKDJ(highs,lows,closes);
+  const rsi6=computeRSI(closes,6),rsi12=computeRSI(closes,12),rsi24=computeRSI(closes,24);
+  const boll=computeBOLL(closes);
+  const volMa5=computeMA(vols,5),volMa10=computeMA(vols,10);
+  const c=closes[N-1];
+  const v={ma5:lastVal(ma5),ma10:lastVal(ma10),ma20:lastVal(ma20),ma60:lastVal(ma60)};
+  const sub={ma:subMA({v,c}),macd:subMACD({closes,macd}),kdj:subKDJ({kdj}),rsi:subRSI({rsi12}),boll:subBOLL({c,boll})};
+  const score=+(sub.ma+sub.macd+sub.kdj+sub.rsi+sub.boll).toFixed(1);
+  const verdict=score>=2?'看多':score<=-2?'看空':'中性';
+  const peArr=computePE(closes,pe,price);
+  let peStats=null;
+  if(peArr){
+    const arr=peArr.filter(x=>x!=null);
+    if(arr.length){
+      const cur=arr[arr.length-1];
+      const mn=Math.min(...arr),mx=Math.max(...arr);
+      const s=[...arr].sort((a,b)=>a-b);
+      const med=s[Math.floor(s.length/2)];
+      const mean=arr.reduce((x,y)=>x+y,0)/arr.length;
+      const q=arr.filter(x=>x<=cur).length/arr.length;
+      const label=q<0.25?'历史低估':q<0.5?'估值偏低':q<0.75?'估值偏高':'历史高估';
+      peStats={cur,mn,mx,med,mean,q,label};
+    }
+  }
+  const pbCur=(pb!=null&&isFinite(+pb)&&+pb>0)?+pb:null;let pbStats=null;
+  if(pbCur){
+    const s2=closes.map(x=>{const y=(+x)*(pbCur/x);return isFinite(y)?+(y.toFixed(2)):null;});
+    const arr2=s2.filter(x=>x!=null);
+    if(arr2.length){
+      const cur2=arr2[arr2.length-1];
+      const mn2=Math.min(...arr2),mx2=Math.max(...arr2);
+      const s3=[...arr2].sort((a,b)=>a-b);
+      const med2=s3[Math.floor(s3.length/2)];
+      const q2=arr2.filter(x=>x<=cur2).length/arr2.length;
+      const label2=q2<0.25?'历史低估':q2<0.5?'估值偏低':q2<0.75?'估值偏高':'历史高估';
+      pbStats={cur:cur2,mn:mn2,mx:mx2,med:med2,q:q2,label:label2};
+    }
+  }
+  return {code:null,dates,opens,closes,highs,lows,vols,ma5,ma10,ma20,ma60,macd,kdj,rsi6,rsi12,rsi24,boll,volMa5,volMa10,c,v,sub,score,verdict,pe:peArr,
+    hi20:Math.max(...closes.slice(-20)),lo20:Math.min(...closes.slice(-20)),
+    hi60:Math.max(...closes.slice(-60)),lo60:Math.min(...closes.slice(-60)),peStats,pbCur,pbStats};
+}
+
+function buildTechHTML(m){
+  if(!m)return '<div class="desc d-note">暂无可用技术数据（该标的无日 K 线）。</div>';
+  const c=m.c,v=m.v,f=(x,d=2)=>x==null?'—':(+x).toFixed(d);
+  const dif=lastVal(m.macd.dif),dea=lastVal(m.macd.dea),mac=lastVal(m.macd.macd);
+  const k=lastVal(m.kdj.k),d=lastVal(m.kdj.d),j=lastVal(m.kdj.j);
+  const r6=lastVal(m.rsi6),r12=lastVal(m.rsi12),r24=lastVal(m.rsi24);
+  const bU=lastVal(m.boll.up),bM=lastVal(m.boll.mid),bL=lastVal(m.boll.low);
+  const vol=lastVal(m.vols),vm5=lastVal(m.volMa5),vm10=lastVal(m.volMa10);
+  // 文字解读
+  let maTxt='现价与均线交织';
+  if(v.ma5&&v.ma10&&v.ma20&&v.ma60){
+    if(c>v.ma5&&c>v.ma10&&c>v.ma20&&c>v.ma60)maTxt='现价站上全部均线，呈多头排列，中期趋势偏强';
+    else if(c<v.ma5&&c<v.ma10&&c<v.ma20&&c<v.ma60)maTxt='现价跌破全部均线，呈空头排列，中期趋势偏弱';
+    else maTxt='均线交织，现价位于 MA20 '+(c>v.ma20?'上方（偏强）':'下方（偏弱）');
+  }
+  let macdTxt='';
+  if(dif!=null&&dea!=null){const ap=m.macd.dif[m.closes.length-2],bp=m.macd.dea[m.closes.length-2];
+    const cross=(ap!=null&&bp!=null)?(ap<=bp&&dif>dea?'（近期金叉）':ap>=bp&&dif<dea?'（近期死叉）':''):'';
+    macdTxt=(dif>dea?'DIF 在 DEA 之上，多头动能':'DIF 在 DEA 之下，空头动能')+(mac>0?'，红柱':'，绿柱')+cross;
+  }
+  let kdjTxt='';
+  if(k!=null&&d!=null){if(j>100)kdjTxt='J>100 进入超买区';else if(j<0)kdjTxt='J<0 进入超卖区';else kdjTxt=k>d?'K 在 D 之上，动能偏多':'K 在 D 之下，动能偏空';
+    if(k>80&&d>80)kdjTxt+='，K/D 超买';if(k<20&&d<20)kdjTxt+='，K/D 超卖';}
+  let rsiTxt=r12==null?'':(r12>70?'RSI12>70 超买':r12<30?'RSI12<30 超卖':r12>=50?'RSI 偏强':'RSI 偏弱');
+  let bollTxt='';
+  if(bU&&bL){const pb=((c-bL)/(bU-bL)*100);bollTxt='价格位于布林带'+(c>bU?'上轨上方（突破）':c<bL?'下轨下方（破位）':pb>80?'上部（逼近上轨）':pb<20?'下部（逼近下轨）':'中部')+'，%B='+pb.toFixed(0)+'%';}
+  let volTxt= vol&&vm5?(vol>vm5*1.2?'放量（量能显著高于 5 日均量）':vol<vm5*0.8?'缩量（量能低于 5 日均量）':'量能平稳（接近 5 日均量）'):'';
+  const cards=[
+    {t:'均线系统 MA',tag:tagSpan(m.sub.ma),vals:`MA5 <b>${f(v.ma5)}</b> · MA10 <b>${f(v.ma10)}</b> · MA20 <b>${f(v.ma20)}</b> · MA60 <b>${f(v.ma60)}</b>`,desc:maTxt},
+    {t:'MACD (12,26,9)',tag:tagSpan(m.sub.macd),vals:`DIF <b>${f(dif)}</b> · DEA <b>${f(dea)}</b> · 柱 <b>${f(mac)}</b>`,desc:macdTxt},
+    {t:'KDJ (9,3,3)',tag:tagSpan(m.sub.kdj),vals:`K <b>${f(k)}</b> · D <b>${f(d)}</b> · J <b>${f(j)}</b>`,desc:kdjTxt},
+    {t:'RSI (6/12/24)',tag:tagSpan(m.sub.rsi),vals:`RSI6 <b>${f(r6)}</b> · RSI12 <b>${f(r12)}</b> · RSI24 <b>${f(r24)}</b>`,desc:rsiTxt},
+    {t:'布林带 BOLL (20,2)',tag:tagSpan(m.sub.boll),vals:`上 <b>${f(bU)}</b> · 中 <b>${f(bM)}</b> · 下 <b>${f(bL)}</b>`,desc:bollTxt},
+    {t:'量能 VOL',tag:(vol&&vm5?(vol>vm5*1.2?tagSpan(1):vol<vm5*0.8?tagSpan(-1):tagSpan(0)):tagSpan(0)),vals:`量 <b>${fmt(vol,0)}</b> · MA5 <b>${fmt(vm5,0)}</b> · MA10 <b>${fmt(vm10,0)}</b>`,desc:volTxt}
+  ];
+  if(m.peStats){
+    const p=m.peStats, q=p.q*100;
+    cards.push({t:'估值 PE (TTM)',tag:`<span class="t ${p.q<0.5?'up':'down'}">${p.label}</span>`,
+      vals:`当前 <b>${p.cur.toFixed(1)}</b> · 历史区间 <b>${p.mn.toFixed(0)}</b>–<b>${p.mx.toFixed(0)}</b> · 中位 <b>${p.med.toFixed(0)}</b>`,
+      desc:`当前 PE 处于近 ${m.pe.filter(v=>v!=null).length} 日 ${q.toFixed(0)}% 分位（分位越低越便宜）；PE 走势为基于最新每股收益的估算，仅反映估值相对位置，非交易所逐日真实 PE。`});
+  }
+  if(m.pbStats){
+    const p=m.pbStats, q=p.q*100;
+    cards.push({t:'估值 PB (LF)',tag:`<span class="t ${p.q<0.5?'up':'down'}">${p.label}</span>`,
+      vals:`当前 <b>${p.cur.toFixed(2)}</b> · 历史区间 <b>${p.mn.toFixed(1)}</b>–<b>${p.mx.toFixed(1)}</b> · 中位 <b>${p.med.toFixed(1)}</b>`,
+      desc:`当前 PB 处于近 ${m.closes.length} 日 ${q.toFixed(0)}% 分位；PB 为基于最新每股净资产的估算（BVPS 视为区间恒定），仅反映估值相对位置。`});
+  }
+  const vlabelCls=m.verdict==='看多'?'up':m.verdict==='看空'?'down':'flat';
+  let html=`<div class="verdict"><div class="vh"><span class="vlabel ${vlabelCls}">${m.verdict}</span><span class="score">综合技术评分 ${m.score>0?'+':''}${m.score.toFixed(1)}（区间约 -7 ~ +7）</span></div><ul class="vreason">`;
+  html+=`<li>现价 <b>${f(c)}</b>；近 20 日区间 <b>${f(m.lo20)}</b>–<b>${f(m.hi20)}</b>，近 60 日区间 <b>${f(m.lo60)}</b>–<b>${f(m.hi60)}</b>。</li>`;
+  html+=`<li>${maTxt}。</li>`;
+  html+=`<li>MACD：${macdTxt}；KDJ：${kdjTxt}；RSI：${rsiTxt}；BOLL：${bollTxt}。</li>`;
+  if(volTxt)html+=`<li>量能：${volTxt}。</li>`;
+  html+=`</ul></div><div class="tech-grid">`;
+  for(const cd of cards)html+=`<div class="tech-card"><h4>${cd.t}${cd.tag}</h4><div class="vals">${cd.vals}</div><div class="desc">${cd.desc}</div></div>`;
+  html+=`</div>`;
+  if(!m.pe){ if(m.isIndex)html+=`<div class="d-note">指数为等权合成（前复权），由成分股归一化加权得到，不存在单一市盈率/市净率估值指标。</div>`; else html+=`<div class="d-note">PE 走势图：当前实时行情未提供该标的市盈率（可能为亏损股或美股字段口径不同），故不展示 PE 估值走势。</div>`; }
+  else html+=`<div class="d-note">PE 为基于最新每股收益的估算（PE×股价推算），仅反映估值相对位置，非交易所公布的逐日真实 PE；美股字段口径可能与 A 股不同，仅供参考。</div>`;
+  return html;
+}
+
+let _ecLoading=null;
+function ensureEcharts(){
+  if(window.echarts)return Promise.resolve();
+  if(_ecLoading)return _ecLoading;
+  _ecLoading=new Promise(resolve=>{
+    const load=src=>new Promise(ok=>{const s=document.createElement('script');s.src=src;s.onload=()=>ok(true);s.onerror=()=>ok(false);document.head.appendChild(s);});
+    load('https://cdn.bootcdn.net/ajax/libs/echarts/5.5.1/echarts.min.js').then(ok=>{
+      if(!ok)return load('https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js').then(()=>resolve());
+      resolve();
+    });
+  });
+  return _ecLoading;
+}
+async function ensureKline(code){
+  const d=data[code];
+  if(d&&d.kline&&d.kline.length>=2)return true;
+  await fetchKlineOne(code);
+  const d2=data[code];
+  return !!(d2&&d2.kline&&d2.kline.length>=2);
+}
+function quantile(arr,q){const s=arr.filter(v=>v!=null&&isFinite(v)).sort((a,b)=>a-b);if(!s.length)return NaN;const i=Math.max(0,Math.min(s.length-1,Math.floor(q*(s.length-1))));return s[i];}
+function renderKlineChart(m){
+  if(!window.echarts)return;
+  const el=document.getElementById('dKline');if(!el)return;
+  if(klineChart)klineChart.dispose();
+  klineChart=echarts.init(el,null,{renderer:'canvas'});
+  const candle=m.closes.map((_,i)=>[m.opens[i],m.closes[i],m.lows[i],m.highs[i]]);
+  const vol=m.vols.map((vv,i)=>({value:vv,itemStyle:{color:m.closes[i]>=m.opens[i]?'#f0384a':'#16b87a'}}));
+  const pricePct=[quantile(m.closes,0.25),quantile(m.closes,0.5),quantile(m.closes,0.75)];
+  const hasPE=m.pe&&m.peStats&&isFinite(m.peStats.cur);
+  const hasPB=m.pbCur!=null&&isFinite(m.pbCur);
+  const ml=[],ma=[];
+  if(showBands&&hasPE){
+    const rPE=m.peStats.cur/m.c;   // 当前PE/现价=1/EPS，把价格换算成对应PE
+    if(isFinite(rPE)&&rPE>0){
+      pricePct.forEach((pp,i)=>{
+        const pev=pp*rPE;
+        const tag=i===0?'25%':i===1?'50%':'75%';
+        ml.push({yAxis:pp,name:'PE'+tag,lineStyle:{color:'#ec4899',type:'dashed',width:1,opacity:.85},
+          label:{show:true,position:'end',color:'#ec4899',fontSize:10,formatter:()=>'PE '+tag+' '+pev.toFixed(0)}});
+      });
+      ma.push([{yAxis:pricePct[0],itemStyle:{color:'rgba(236,72,153,.07)'}},{yAxis:pricePct[2]}]);
+    }
+  }
+  if(showBands&&hasPB){
+    const rPB=m.pbCur/m.c;
+    if(isFinite(rPB)&&rPB>0){
+      pricePct.forEach((pp,i)=>{
+        const pbv=pp*rPB;
+        const tag=i===0?'25%':i===1?'50%':'75%';
+        ml.push({yAxis:pp,name:'PB'+tag,lineStyle:{color:'#facc15',type:'dashed',width:1,opacity:.85},
+          label:{show:true,position:'start',color:'#facc15',fontSize:10,formatter:()=>'PB '+tag+' '+pbv.toFixed(2)}});
+      });
+      ma.push([{yAxis:pricePct[0],itemStyle:{color:'rgba(250,204,21,.07)'}},{yAxis:pricePct[2]}]);
+    }
+  }
+  const candleSeries={name:'日K',type:'candlestick',data:candle,itemStyle:{color:'#f0384a',color0:'#16b87a',borderColor:'#f0384a',borderColor0:'#16b87a'}};
+  if(ml.length)candleSeries.markLine={silent:true,symbol:'none',data:ml};
+  if(ma.length)candleSeries.markArea={silent:true,data:ma};
+  klineChart.setOption({
+    backgroundColor:'transparent',animation:false,
+    legend:{data:['日K','MA5','MA10','MA20','MA60'],textStyle:{color:'#9aa3b2'},top:0},
+    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#1d212b',borderColor:'#2a2f3a',textStyle:{color:'#e6e9ef'}},
+    axisPointer:{link:[{xAxisIndex:'all'}]},
+    grid:[{left:56,right:16,top:34,height:'56%'},{left:56,right:16,top:'74%',height:'16%'}],
+    xAxis:[{type:'category',data:m.dates,axisLine:{lineStyle:{color:'#2a2f3a'}},axisLabel:{color:'#9aa3b2'},boundaryGap:false},
+           {type:'category',gridIndex:1,data:m.dates,axisLabel:{show:false},axisLine:{lineStyle:{color:'#2a2f3a'}},boundaryGap:false}],
+    yAxis:[{scale:true,splitLine:{lineStyle:{color:'#1d212b'}},axisLabel:{color:'#9aa3b2'}},
+           {gridIndex:1,scale:true,splitNumber:2,axisLabel:{color:'#9aa3b2'},splitLine:{show:false}}],
+    dataZoom:[{type:'inside',xAxisIndex:[0,1],start:55,end:100},{type:'slider',xAxisIndex:[0,1],bottom:6,height:14,start:55,end:100,textStyle:{color:'#9aa3b2'},borderColor:'#2a2f3a',fillerColor:'rgba(59,130,246,.2)'}],
+    series:[
+      candleSeries,
+      {name:'MA5',type:'line',data:m.ma5,smooth:true,showSymbol:false,lineStyle:{width:1,color:'#f5a623'}},
+      {name:'MA10',type:'line',data:m.ma10,smooth:true,showSymbol:false,lineStyle:{width:1,color:'#3b82f6'}},
+      {name:'MA20',type:'line',data:m.ma20,smooth:true,showSymbol:false,lineStyle:{width:1,color:'#a855f7'}},
+      {name:'MA60',type:'line',data:m.ma60,smooth:true,showSymbol:false,lineStyle:{width:1,color:'#22d3ee'}},
+      {name:'量',type:'bar',xAxisIndex:1,yAxisIndex:1,data:vol}
+    ]
+  });
+}
+function renderPEChart(m){
+  if(!window.echarts||!m.pe)return;
+  const el=document.getElementById('dPE');if(!el)return;
+  if(peChart)peChart.dispose();
+  peChart=echarts.init(el);
+  const ps=m.peStats;
+  const mark=ps?{silent:true,symbol:'none',lineStyle:{type:'dashed',color:'#5d6675',width:1},
+    label:{show:true,position:'end',color:'#9aa3b2',fontSize:10,formatter:p=>(p.value!=null?p.name+':'+p.value.toFixed(0):p.name)},
+    data:[{yAxis:ps.mn,name:'最低'},{yAxis:ps.med,name:'中位'},{yAxis:ps.mx,name:'最高'}]}:undefined;
+  peChart.setOption({
+    backgroundColor:'transparent',
+    title:{text:ps?`估算 PE（TTM）· 当前 ${ps.cur.toFixed(1)} · ${ps.label}`:'估算 PE（TTM，基于最新每股收益）',left:0,top:0,textStyle:{color:'#9aa3b2',fontSize:12}},
+    tooltip:{trigger:'axis',backgroundColor:'#1d212b',borderColor:'#2a2f3a',textStyle:{color:'#e6e9ef'}},
+    grid:{left:56,right:16,top:40,height:'62%'},
+    xAxis:{type:'category',data:m.dates,axisLabel:{color:'#9aa3b2'},axisLine:{lineStyle:{color:'#2a2f3a'}},boundaryGap:false},
+    yAxis:{scale:true,name:'PE',nameTextStyle:{color:'#9aa3b2'},axisLabel:{color:'#9aa3b2'},splitLine:{lineStyle:{color:'#1d212b'}}},
+    dataZoom:[{type:'inside',start:55,end:100},{type:'slider',bottom:6,height:14,start:55,end:100,textStyle:{color:'#9aa3b2'}}],
+    series:[{name:'PE',type:'line',data:m.pe,showSymbol:false,lineStyle:{width:1.5,color:'#22d3ee'},areaStyle:{color:'rgba(34,211,238,.12)'},markLine:mark}]
+  });
+}
+function refreshDetailHeader(){
+  if(!detailCode)return;
+  const d=data[detailCode]||{},px=document.querySelector('#dHead .px');if(!px)return;
+  const dayc=d.day!=null?cls(d.day):'flat';
+  const price=d.price!=null?fmt(d.price):'—';
+  const dayTxt=d.day!=null?sign(d.day)+d.day.toFixed(2)+'%':'—';
+  const peTxt=d.pe!=null?('PE(TTM) '+d.pe.toFixed(1)):'PE —';
+  px.innerHTML=`<div class="p ${dayc}">${price}</div><div class="pe ${dayc}">${dayTxt} · <span style="color:var(--sub)">${peTxt}</span></div>`;
+}
+async function openDetail(code){
+  if(!code||code.startsWith('na-'))return;
+  detailMode='stock';detailIdxKey=null;detailCode=code;
+  const meta=codeMeta[code]||{},d=data[code]||{};
+  const modal=document.getElementById('detail');if(!modal)return;
+  modal.classList.remove('hidden');
+  modal.classList.remove('etf-mode');
+  setIntroTitle('成分权重 · 公司画像');
+  const head=document.getElementById('dHead');
+  head.querySelector('.nm').textContent=meta.name||code;
+  head.querySelector('.meta').textContent=[meta.board,code,meta.sector].filter(Boolean).join(' · ');
+  refreshDetailHeader();
+  document.getElementById('dIntro').innerHTML=buildIntroHTML(code);
+  document.getElementById('dNews').innerHTML='<div class="d-note">正在获取近期公告…</div>';
+  fetchAnnouncements(code);
+  document.getElementById('dTech').innerHTML='<div class="d-note">正在计算技术指标…</div>';
+  document.getElementById('dKline').innerHTML='';
+  await ensureEcharts();
+  const ok=await ensureKline(code);
+  if(!ok){
+    document.getElementById('dKline').innerHTML='<div class="d-note">该标的（如北交所）浏览器端无可直连的日 K 线源，暂无法绘制 K 线与技术面。</div>';
+    document.getElementById('dTech').innerHTML='<div class="d-note">无日 K 线数据，无法生成技术面分析。现价与日涨跌见顶部。</div>';
+    return;
+  }
+  const m=analyzeTech(code);
+  lastM=m;
+  document.getElementById('dTech').innerHTML=buildTechHTML(m);
+  if(window.echarts){
+    renderKlineChart(m);
+  }
+}
+function closeDetail(){
+  detailCode=null;detailMode='stock';detailIdxKey=null;
+  const modal=document.getElementById('detail');
+  if(modal){modal.classList.add('hidden');modal.classList.remove('etf-mode');}
+  if(klineChart){klineChart.dispose();klineChart=null;}
+  if(peChart){peChart.dispose();peChart=null;}
+}
+
+/* ============== 公司介绍 / 公告 ============== */
+function escHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function genericIntro(meta){
+  const name=meta.name||'该公司', sec=meta.sector||'相关';
+  const ind=INDUSTRIES.find(i=>i.key===(meta.industry||'ai'))||INDUSTRIES[0];
+  const layerTxt=SHORT[meta.layer]?SHORT[meta.layer]+'环节':('「'+(sec)+'」环节');
+  return [
+    ['在产业链的分工', name+' 是'+ind.label+'中「'+sec+'」环节的参与者，处于'+layerTxt+'，为该产业链提供对应支撑。'],
+    ['核心产品', '主营与「'+sec+'」相关的产品与解决方案，是该细分领域的重要供应商之一。'],
+    ['应用场景与作用', '其产品应用于'+ind.label+'对应的'+sec+'环节，是该链条中不可或缺的一环。'],
+    ['技术壁垒', '所在细分领域具备一定的客户认证、工艺/技术积累与规模壁垒，头部企业优势相对明显。']
+  ];
+}
+function buildIntroHTML(code){
+  const meta=codeMeta[code]||{};
+  const p=PROFILES[code];
+  const wHTML=buildWeightHTML(code);
+  if(p&&p.one_liner){
+    let h='<div class="intro-enrich">';
+    if(wHTML)h+=wHTML;
+    h+='<div class="intro-ol">'+escHtml(p.one_liner)+'</div>';
+    h+='<div class="intro-rows">';
+    h+=introRow('业务结构',p.biz);
+    h+=introRow('竞争力 / 技术壁垒',p.edge);
+    h+=introRow('在产业链的真实角色',p.role_in_ai);
+    if(p.perf)h+='<div class="ir"><span class="irk">'+escHtml('最新业绩')+'</span>'+renderPerf(p.perf)+'</div>';
+    h+=introRow('主要风险',p.risk,true);
+    h+='</div></div>';
+    return h;
+  }
+  let blocks;
+  if(p)blocks=[['在产业链的定位',p.role],['核心产品',p.products],['应用场景与作用',p.scenes],['技术壁垒',p.moat]];
+  else blocks=genericIntro(meta);
+  let h=(wHTML?wHTML:'')+'<div class="intro-grid">';
+  for(const b of blocks)h+='<div class="ig"><h4>'+escHtml(b[0])+'</h4><p>'+escHtml(b[1])+'</p></div>';
+  h+='</div>';
+  return h;
+}
+function renderPerf(pf){
+  if(!pf)return '';
+  const strip=v=>(v||'').replace(/^[^：:]{0,24}[：:]\s*/,'');
+  const colorPct=s=>{
+    s=escHtml(s);
+    return s.replace(/([+-]?\d+(?:\.\d+)?%)/g,m=>{
+      const num=parseFloat(m);
+      const c=num>0?'up':(num<0?'down':'flat');
+      return `<span class="pct ${c}">${m}</span>`;
+    });
+  };
+  const rows=[];
+  if(pf.y2025)rows.push(['2025 全年',colorPct(strip(pf.y2025))]);
+  if(pf.q1_2026)rows.push(['2026 Q1',colorPct(strip(pf.q1_2026))]);
+  const h1=strip(pf.h1_2026||'暂无披露');
+  const h1html=/暂无/.test(h1)?`<span class="perf-na">${escHtml(h1)}</span>`:colorPct(h1);
+  rows.push(['2026 半年报预告',h1html]);
+  return '<div class="perf">'+rows.map(r=>`<div class="perf-row"><span class="perf-k">${escHtml(r[0])}</span><span>${r[1]}</span></div>`).join('')+'</div>';
+}
+function buildWeightHTML(code){
+  const mem=STOCK_MEMB[code];
+  if(!mem||!mem.length)return '';
+  const etfs=mem.filter(x=>x.kind==='ETF').sort((a,b)=>(b.weight||0)-(a.weight||0));
+  const idxs=mem.filter(x=>x.kind==='指数');
+  let h='<div class="w-block">';
+  h+='<div class="w-title">成分权重 · 该标的被以下指数 / ETF 纳入</div>';
+  if(etfs.length){
+    h+='<div class="w-sub">ETF（按权重降序）</div><div class="w-rows">';
+    etfs.forEach(x=>{const w=x.weight!=null?x.weight.toFixed(2)+'%':'—';
+      h+=`<div class="w-row" data-etf="${x.code}" title="点击查看 ${escHtml(x.name)} 成分股"><span class="w-nm">${escHtml(x.name)}</span><span class="w-tag">ETF</span><span class="w-w">${w}</span></div>`;});
+    h+='</div>';
+  }
+  if(idxs.length){
+    h+='<div class="w-sub">指数 / 板块（等权合成）</div><div class="w-rows">';
+    idxs.forEach(x=>{const w=x.eq?'等权':(x.weight!=null?x.weight.toFixed(2)+'%':'—');
+      h+=`<div class="w-row" data-idx="${x.key}" title="点击查看 ${escHtml(x.name)} 指数"><span class="w-nm">${escHtml(x.name)}</span><span class="w-tag">指数</span><span class="w-w">${w}</span></div>`;});
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+function introRow(k,v,risk){
+  return '<div class="ir'+(risk?' risk':'')+'"><span class="irk">'+escHtml(k)+'</span><p>'+escHtml(v)+'</p></div>';
+}
+const ANN_PROXY='';  // 【部署到 GitHub Pages 时必填】把 worker.js 用 `wrangler deploy` 部署到 Cloudflare 后，将获得的 Worker 地址填到这里，例如 'https://ai-industry-proxy.<你的子域>.workers.dev'。该 Worker 需同时提供 /api/ann 与 /api/news 两个路由（见 worker.js）。留空则公告/要闻走东方财富 JSONP 直连兜底——localhost 正常，但 GitHub Pages 上可能被来源拦截而不稳定。
+// 公告类型标签（按标题关键词识别，突出“重大”事项）
+function annTag(t){
+  if(/业绩|财报|一季|半年|年报|季报|预告|快报/.test(t))return{tx:'业绩',cls:'t-blue'};
+  if(/增持|减持|回购|股权激励|员工持股/.test(t))return{tx:'增减持',cls:'t-green'};
+  if(/重大|重组|并购|定增|停牌|复牌|退市|收购|增发|配股/.test(t))return{tx:'重大',cls:'t-red'};
+  if(/分红|派息|权益分派|送转|派发/.test(t))return{tx:'分红',cls:'t-orange'};
+  if(/限售|解禁/.test(t))return{tx:'解禁',cls:'t-gray'};
+  if(/股东大会|董事会|监事会/.test(t))return{tx:'治理',cls:'t-gray'};
+  return null;
+}
+function renderAnnBlock(arr,link){
+  const ul=document.getElementById('dAnnList');if(!ul)return false;
+  if(!arr||!arr.length){ul.innerHTML='<li class="news-empty">近期暂无公开公告，可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富公告页</a></li>';return true;}
+  let h='';
+  arr.slice(0,5).forEach(it=>{
+    const title=it.title||it.notice_title||'(无标题)';
+    const date=(it.date||'').slice(0,10);
+    const tag=annTag(title);
+    h+='<li>'+(date?'<span class="nd">'+escHtml(date)+'</span>':'')+'<span class="nt">'+escHtml(title)+'</span>'+(tag?'<span class="tag '+tag.cls+'">'+escHtml(tag.tx)+'</span>':'')+'</li>';
+  });
+  ul.innerHTML=h;return true;
+}
+function renderNewsBlock(arr,link){
+  const ul=document.getElementById('dNewsList');if(!ul)return false;
+  if(!arr||!arr.length){ul.innerHTML='<li class="news-empty">近期暂无公开要闻，可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富资讯页</a></li>';return true;}
+  let h='';
+  arr.slice(0,6).forEach(it=>{
+    const title=it.title||'(无标题)';
+    const date=(it.date||'').slice(0,10);
+    let tag='';
+    const pop=it.pop!=null?String(it.pop):'';
+    if(pop)tag='<span class="tag hot">热度'+(pop.length>5?pop.slice(0,5)+'…':pop)+'</span>';
+    else if(it.col)tag='<span class="tag t-gray">'+escHtml(it.col)+'</span>';
+    h+='<li>'+(date?'<span class="nd">'+escHtml(date)+'</span>':'')+'<span class="nt">'+escHtml(title)+'</span>'+tag+'</li>';
+  });
+  ul.innerHTML=h;return true;
+}
+function jsonpAnn(list,link,fail){
+  let done=false;
+  const cb='_emAnn'+Math.random().toString(36).slice(2);
+  const url='https://np-anotice-stock.eastmoney.com/api/security/ann?sr=-1&page_size=5&page_index=1&ann_type=0&client_source=web&stock_list='+list+'&cb='+cb;
+  const timer=setTimeout(()=>{if(done)return;done=true;cleanup();fail('公告获取超时，');},7000);
+  function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
+  window[cb]=function(json){
+    if(done)return;done=true;cleanup();
+    try{
+      const arr=(json&&json.data&&json.data.list)||[];
+      if(!arr.length){fail('近期暂无公开公告，');return;}
+      const out=arr.map(it=>({title:it.title||it.notice_title,date:(it.notice_date||it.eitime||'')}));
+      if(!renderAnnBlock(out,link))fail('近期暂无公开公告，');
+    }catch(e){fail('公告解析失败，');}
+  };
+  const s=document.createElement('script');s.id='emjs_'+cb;s.src=url;
+  s.onerror=()=>{if(done)return;done=true;cleanup();fail('公告接口暂不可达，');};
+  document.head.appendChild(s);
+}
+function jsonpNews(list,link,fail){
+  let done=false;
+  const cb='_emNews'+Math.random().toString(36).slice(2);
+  const url='https://np-listapi.eastmoney.com/comm/web/getNewsByCode?client=PC&code='+list+'&num=6&page=1&cb='+cb;
+  const timer=setTimeout(()=>{if(done)return;done=true;cleanup();fail('要闻获取超时，');},7000);
+  function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
+  window[cb]=function(json){
+    if(done)return;done=true;cleanup();
+    try{
+      const arr=(((json&&json.data)||{}).list)||(((json&&json.data)||{}).newsList)||[];
+      if(!arr.length){fail('近期暂无公开要闻，');return;}
+      const out=arr.map(it=>({title:it.title||'',date:(it.date||it.datetime||it.showtime||'').slice(0,10),pop:it.popularity!=null?it.popularity:it.count,col:it.column||it.mediaName}));
+      if(!renderNewsBlock(out,link))fail('近期暂无公开要闻，');
+    }catch(e){fail('要闻解析失败，');}
+  };
+  const s=document.createElement('script');s.id='emjs_'+cb;s.src=url;
+  s.onerror=()=>{if(done)return;done=true;cleanup();fail('要闻接口暂不可达，');};
+  document.head.appendChild(s);
+}
+function _annProxyUrl(route,list){
+  if(proxyMode===true&&proxyBase)return proxyBase+route+'?code='+encodeURIComponent(list);
+  if(ANN_PROXY)return ANN_PROXY.replace(/\/$/,'')+route+'?code='+encodeURIComponent(list);
+  return null;
+}
+function fetchAnnOne(list,link){
+  const fail=msg=>{const ul=document.getElementById('dAnnList');if(ul)ul.innerHTML='<li class="news-empty">'+escHtml(msg)+'可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富公告页</a></li>';};
+  const proxyUrl=_annProxyUrl('/api/ann',list);
+  if(proxyUrl){(async()=>{try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),7000);const r=await fetch(proxyUrl,{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(r.ok){const j=await r.json();if(renderAnnBlock((j&&j.list)||[],link))return;}}catch(e){}jsonpAnn(list,link,fail);})();}
+  else jsonpAnn(list,link,fail);
+}
+function fetchNewsOne(list,link){
+  const fail=msg=>{const ul=document.getElementById('dNewsList');if(ul)ul.innerHTML='<li class="news-empty">'+escHtml(msg)+'可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富资讯页</a></li>';};
+  const proxyUrl=_annProxyUrl('/api/news',list);
+  if(proxyUrl){(async()=>{try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),7000);const r=await fetch(proxyUrl,{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(r.ok){const j=await r.json();if(renderNewsBlock((j&&j.list)||[],link))return;}}catch(e){}jsonpNews(list,link,fail);})();}
+  else jsonpNews(list,link,fail);
+}
+async function fetchAnnouncements(code){
+  const el=document.getElementById('dNews');if(!el)return;
+  const map={sh:'SH',sz:'SZ',bj:'BJ'};
+  const pfx=map[code.slice(0,2)];
+  if(!pfx){el.innerHTML='<div class="d-note">该标的（港股/美股）公告与要闻请前往对应交易所或行情终端查看。</div>';return;}
+  const list=pfx+code.slice(2).toUpperCase();
+  const annLink='https://so.eastmoney.com/ann/s/'+list+'.html';
+  const newsLink='https://so.eastmoney.com/news/s/'+list+'.html';
+  el.innerHTML='<div class="news-block"><div class="news-h">重大公告 <span class="news-src">东方财富</span></div><ul class="news-list" id="dAnnList"><li class="news-loading">正在获取…</li></ul></div>'
+             +'<div class="news-block"><div class="news-h">近期要闻 <span class="news-src">东方财富资讯</span></div><ul class="news-list" id="dNewsList"><li class="news-loading">正在获取…</li></ul></div>';
+  fetchAnnOne(list,annLink);
+  fetchNewsOne(list,newsLink);
+}
+
+/* ============== 控制 ============== */
+function setStatus(live,text){const d=document.getElementById('liveDot');d.className='dot'+(live?' live':'');document.getElementById('statusText').textContent=text;}
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false});}
+let lastKline=0, proxyMode=null, proxyBase='';
+// 构造代理候选基址：优先同源（若本身就在 localhost 打开），再补绝对 localhost 地址，
+// 以兼容 file://、托管预览、以及 WorkBuddy 预览面板等不同打开方式。
+function proxyCandidates(){
+  const out=[];
+  try{
+    if(location.protocol==='http:'||location.protocol==='https:'){
+      const h=location.hostname;
+      if(h==='localhost'||h==='127.0.0.1'||h==='0.0.0.0'||h==='[::1]') out.push(location.origin);
+    }
+  }catch(e){}
+  out.push('http://localhost:8787','http://127.0.0.1:8787');
+  return [...new Set(out)];
+}
+async function fetchProxy(base){
+  const r=await fetch(base+'/api/quotes',{cache:'no-store'});
+  if(!r.ok)throw new Error('proxy '+(r.status||'err'));
+  const j=await r.json();
+  if(!j||!j.quotes)throw new Error('proxy empty');
+  for(const code in j.quotes){
+    const q=j.quotes[code];
+    if(!q)continue;
+    data[code]={code,...(codeMeta[code]||{}),...q,okRt:true,okK:true};
+  }
+  applyRealtime();applyKline();buildOverview();
+  return j.updated||'';
+}
+async function tick(){
+  // 先尝试本地代理（多候选地址，自动兼容不同打开方式）；不可达则转腾讯 JSONP 直连
+  const bases=proxyCandidates();
+  let perr=null;
+  for(const base of bases){
+    try{
+      const up=await fetchProxy(base);
+      proxyMode=true;proxyBase=base;
+      setStatus(true,'实时已更新 · '+(up||''));
+      if(detailCode)refreshDetailHeader();
+      else if(detailMode==='index'&&detailIdxKey){const p=detailIdxKey.split('|');refreshIndexHeader(indexChange(p[0],p[1],p[2]||''));}
+      return;
+    }catch(e){ perr=e; }
+  }
+  // JSONP 直连兜底（浏览器直连腾讯，无需后端；适用于 file:// 或外网预览）
+  try{
+    await fetchRealtime();
+    const now=Date.now();
+    if(now-lastKline>60000){ lastKline=now; fetchKlineAll(); }
+    proxyMode=false;
+    setStatus(true,'实时已更新（直连）');
+    if(detailCode)refreshDetailHeader();
+    else if(detailMode==='index'&&detailIdxKey){const p=detailIdxKey.split('|');refreshIndexHeader(indexChange(p[0],p[1],p[2]||''));}
+    return;
+  }catch(e){
+    const detail=(perr&&perr.message?('代理:'+perr.message+' '):'')+(e&&e.message?('直连:'+e.message):'');
+    setStatus(false,'获取失败：'+(e&&e.message?e.message:'网络不可达'));
+    const ov=document.getElementById('overview');
+    if(ov)ov.innerHTML='<div class="ov-top"><h2>行情获取失败</h2></div><div class="d-note">原因：'+escHtml(detail||'未知')+'<br>建议：用本机浏览器打开 <code>http://localhost:8787/ai-industry-chain.html</code>（走本地代理，沙箱可联网）；若已用该地址仍失败，按 F12 把控制台 [行情] 报错发我即可定位。</div>';
+    console.warn('[行情] 获取失败：',detail);
+  }
+}
+function start(){
+  // 全局错误监听：把真实报错打到控制台，便于在“获取失败”时定位根因
+  window.addEventListener('error',e=>console.warn('[页面错误]',e.message,(e.filename||'')+':'+(e.lineno||'')));
+  window.addEventListener('unhandledrejection',e=>console.warn('[未处理Promise]',(e.reason&&e.reason.message)||e.reason));
+  registerMeta();render();
+  tick();timer=setInterval(tick,10000);
+  setInterval(updateClock,1000);updateClock();
+  document.getElementById('refresh').addEventListener('click',()=>tick());
+  document.getElementById('search').addEventListener('input',e=>{searchTerm=e.target.value;applyFilter();});
+  document.getElementById('layerFilter').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;activeIndustry=b.dataset.ind;document.querySelectorAll('#layerFilter button').forEach(x=>x.classList.toggle('active',x===b));applyFilter();buildOverview();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInterval(timer);}else{tick();timer=setInterval(tick,10000);}});
+  // 详情弹层交互
+  document.addEventListener('click',e=>{
+    const ix=e.target.closest('[data-idx]'); if(ix){openIndex(ix.dataset.idx);return;}
+    const et=e.target.closest('[data-etf]'); if(et){openEtf(et.dataset.etf);return;}
+    const dt=e.target.closest('[data-detail]'); if(dt){openDetail(dt.dataset.detail);return;}
+    const row=e.target.closest('.stock'); if(row){const code=row.dataset.code; if(ETF_INFO[code])openEtf(code); else openDetail(code); return;}
+  });
+  const dmodal=document.getElementById('detail');
+  if(dmodal){dmodal.querySelector('.d-close').addEventListener('click',closeDetail);const mk=dmodal.querySelector('.modal-mask');if(mk)mk.addEventListener('click',closeDetail);}
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(detailCode||detailMode==='index'))closeDetail();});
+  window.addEventListener('resize',()=>{if(klineChart)klineChart.resize();if(peChart)peChart.resize();});
+  const bt=document.getElementById('bandToggle');
+  if(bt)bt.addEventListener('change',e=>{showBands=e.target.checked; if(lastM&&(detailCode||detailMode==='index'))renderKlineChart(lastM);});
+}
+start();
+</script>
+</body>
+</html>
