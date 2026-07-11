@@ -239,7 +239,7 @@
   .band-note{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.7;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
   .band-note b{color:#c9d1e0;font-weight:600}
   .band-note .bl{display:inline-block;width:18px;height:0;border-top:2px dashed;vertical-align:middle;margin:0 2px}
-  .band-note .bl.pe{border-color:#ec4899}
+  .band-note .bl.pe{border-color:#a78bfa}
   .band-note .bl.pb{border-color:#facc15}
   .tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
   .tech-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
@@ -388,9 +388,9 @@
     <div class="d-body">
       <div class="d-section"><h3>公司介绍</h3><div id="dIntro"></div></div>
       <div class="d-section"><h3>日 K 线（前复权 · 含均线 MA / 成交量）
-        <label class="band-toggle"><input type="checkbox" id="peBandToggle" checked> PE 带</label><label class="band-toggle"><input type="checkbox" id="pbBandToggle" checked> PB 带</label></h3>
+        <label class="band-toggle"><input type="checkbox" id="peBandToggle" checked> PE 标注</label><label class="band-toggle"><input type="checkbox" id="pbBandToggle" checked> PB 标注</label></h3>
         <div class="chart-box" id="dKline"></div>
-        <div class="band-note" id="bandNote"><span class="bl pe"></span>PE 带（粉）·<span class="bl pb"></span>PB 带（黄）：三条虚线为价格处于历史 25% / 50% / 75% 分位时对应的 PE / PB，区间底纹为正常估值区。<b>平带估算</b>——EPS / BVPS 视为区间恒定，仅反映估值相对位置，非交易所逐日真实估值带。</div>
+        <div class="band-note" id="bandNote"><span class="bl pe"></span>估值带（紫）：基于近 250 日价格历史 25% / 50% / 75% 分位绘制的合理估值区间；因仅取最新 PE/PB 快照（EPS/BVPS 视为区间恒定），PE 与 PB 在价格轴上线性对应、位置必然重合，故合并为一条带并标注各分位对应的 PE / PB 值，区间底纹为正常估值区。<b>平带估算</b>——非交易所逐日真实估值带，仅反映估值相对位置。</div>
       </div>
       <div class="d-section"><h3>技术面综合分析</h3><div class="tech" id="dTech"></div></div>
       <div class="d-section"><h3>重大公告 · 近期要闻</h3><div id="dNews"></div></div>
@@ -1554,28 +1554,22 @@ function renderKlineChart(m){
   const hasPE=m.pe&&m.peStats&&isFinite(m.peStats.cur);
   const hasPB=m.pbCur!=null&&isFinite(m.pbCur);
   const ml=[],ma=[];
-  if(showPEBand&&hasPE){
-    const rPE=m.peStats.cur/m.c;   // 当前PE/现价=1/EPS，把价格换算成对应PE
-    if(isFinite(rPE)&&rPE>0){
+  // 估值带：以价格历史 25%/50%/75% 分位为基准。因仅取最新 PE/PB 快照（EPS/BVPS 视为区间恒定），
+  // PE 与 PB 均和价格线性对应，在价格轴上位置必然重合——故合并为一条带，统一标注各分位对应的 PE / PB 值，
+  // 避免 PE 带与 PB 带虚线完全重合、信息冗余。showPEBand / showPBBand 分别控制是否标注 PE / PB。
+  if((showPEBand&&hasPE)||(showPBBand&&hasPB)){
+    const rPE=hasPE?(m.peStats.cur/m.c):null;
+    const rPB=hasPB?(m.pbCur/m.c):null;
+    if(isFinite(pricePct[0])&&isFinite(pricePct[2])&&(rPE>0||rPB>0)){
       pricePct.forEach((pp,i)=>{
-        const pev=pp*rPE;
         const tag=i===0?'25%':i===1?'50%':'75%';
-        ml.push({yAxis:pp,name:'PE'+tag,lineStyle:{color:'#ec4899',type:'dashed',width:1,opacity:.85},
-          label:{show:true,position:'end',color:'#ec4899',fontSize:10,formatter:()=>'PE '+tag+' '+pev.toFixed(0)}});
+        const pev=rPE&&rPE>0?pp*rPE:null;
+        const pbv=rPB&&rPB>0?pp*rPB:null;
+        const lab=(pev!=null?'PE '+pev.toFixed(0):'')+(pbv!=null?((pev!=null?' / ':'')+'PB '+pbv.toFixed(2)):'');
+        ml.push({yAxis:pp,name:'band'+tag,lineStyle:{color:'#a78bfa',type:'dashed',width:1,opacity:.85},
+          label:{show:true,position:'end',color:'#a78bfa',fontSize:10,formatter:()=>tag+' '+lab}});
       });
-      ma.push([{yAxis:pricePct[0],itemStyle:{color:'rgba(236,72,153,.07)'}},{yAxis:pricePct[2]}]);
-    }
-  }
-  if(showPBBand&&hasPB){
-    const rPB=m.pbCur/m.c;
-    if(isFinite(rPB)&&rPB>0){
-      pricePct.forEach((pp,i)=>{
-        const pbv=pp*rPB;
-        const tag=i===0?'25%':i===1?'50%':'75%';
-        ml.push({yAxis:pp,name:'PB'+tag,lineStyle:{color:'#facc15',type:'dashed',width:1,opacity:.85},
-          label:{show:true,position:'start',color:'#facc15',fontSize:10,formatter:()=>'PB '+tag+' '+pbv.toFixed(2)}});
-      });
-      ma.push([{yAxis:pricePct[0],itemStyle:{color:'rgba(250,204,21,.07)'}},{yAxis:pricePct[2]}]);
+      ma.push([{yAxis:pricePct[0],itemStyle:{color:'rgba(167,139,250,.08)'}},{yAxis:pricePct[2]}]);
     }
   }
   const candleSeries={name:'日K',type:'candlestick',data:candle,itemStyle:{color:'#f0384a',color0:'#16b87a',borderColor:'#f0384a',borderColor0:'#16b87a'}};
@@ -1770,6 +1764,13 @@ function jsonpEMReport(url,cb){
 function secidEM(code){const m=code.slice(0,2),num=code.slice(2);if(m==='sh')return num+'.SH';if(m==='sz')return num+'.SZ';if(m==='bj')return num+'.BJ';return null;}
 function fmtYi(v){if(!isFinite(v))return '—';const a=Math.abs(v);if(a>=1)return v.toFixed(2)+'亿元';return (v*1e4).toFixed(0)+'万元';}
 function sg(v){return v>0?'+':(v<0?'-':'');}
+function cleanNum(s){
+  // 清理业绩预告摘要里的金额数字：35,600,000万元 → 3560.00亿元；其余千分位逗号去掉
+  s=String(s||'');
+  s=s.replace(/(\d{1,3}(?:,\d{3})+)\s*万元/g,function(_,num){return (+num.replace(/,/g,'')/10000).toFixed(2)+'亿元';});
+  s=s.replace(/(\d),(\d)/g,'$1$2');
+  return s;
+}
 async function fetchPerfLive(code){
   // 实时业绩报表（已披露）：RPT_LICO_FN_CPD。返回 {periodKey:'营收，归母净利润（同比%）'}
   const sid=secidEM(code);if(!sid)return null;
@@ -1792,7 +1793,6 @@ async function fetchPerfLive(code){
     return reported;
   }catch(e){return null;}
 }
-function isForecastTitle(t){return /业绩预告|半年度业绩|业绩预增|业绩预减|业绩预亏|预盈|扭亏为盈|预减公告|预增公告|一季度业绩|半年度业绩预告|三季度业绩|年度业绩预告|前三季度业绩| Quarterly| Semi-annual| Annual/.test(t||'');}
 function parseForecastPeriod(title){
   const m=(title||'').match(/(\d{4})年/);const yr=m?+m[1]:new Date().getFullYear();
   let mm='12-31';
@@ -1814,25 +1814,30 @@ function extractPerfKey(text){
   // 仅保留含关键业绩指标的句子：净利/营收/同比/扭亏/预盈预亏/亿元万元/区间
   const key=sents.filter(s=>/净利润|营业收入|营收|归母|扣非|同比|扭亏|亏损|盈利|增长|下降|预计|预盈|预亏|亿元|万元|%～|增幅|减少|变动/.test(s));
   let out=key.length?key.slice(0,3).join('；'):(sents[0]||text);
+  out=cleanNum(out);
   return out.length>150?out.slice(0,150)+'…':out;
 }
-function fetchForecastNotice(code,name){
-  // 最新一期业绩预告：从公司真实披露公告(notice)中按证券短名+标题筛选，取最新一条
-  return new Promise(resolve=>{
-    let done=false;
-    const t=setTimeout(()=>{if(!done){done=true;resolve(null);}},11000);
-    if(!name){clearTimeout(t);resolve(null);return;}
-    jsonpSearchType(name,'notice',4, items=>{
-      if(done)return;done=true;clearTimeout(t);
-      const list=(items||[]).filter(it=>(sameStock(it.sec,name)||relName(it.title,name))&&isForecastTitle(it.title));
-      if(!list.length){resolve(null);return;}
-      list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-      const it=list[0];
-      const periodKey=parseForecastPeriod(it.title);
-      const summary=extractPerfKey(it.summary||it.title);
-      resolve({periodKey,title:it.title,summary,date:it.date||''});
-    });
-  });
+function fetchForecastEM(code){
+  // 业绩预告（实时，按证券代码精确过滤，可靠）：东方财富 RPT_PUBLIC_OP_NEWPREDICT
+  // 旧方案 fetchForecastNotice 用 search-api-web 全文检索公司名，对“被大量基金公告提及”的个股
+  // 会返回无关全局公告、自家预告永远排不到前面；本方案按 SECUCODE 精确过滤，返回结构化预告
+  // （PREDICT_CONTENT 含真实数字、REPORT_DATE 为预告所属报告期、IS_LATEST 标记最新）。
+  const sid=secidEM(code); if(!sid)return Promise.resolve(null);
+  const cb='_emYjyg'+Math.random().toString(36).slice(2);
+  const cols='SECUCODE,SECURITY_NAME_ABBR,NOTICE_DATE,REPORT_DATE,PREDICT_TYPE,PREDICT_CONTENT,CHANGE_REASON_EXPLAIN,IS_LATEST';
+  const url='https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_PUBLIC_OP_NEWPREDICT&columns='+cols+'&filter=(SECUCODE%3D%22'+sid+'%22)&pageSize=8&sortColumns=NOTICE_DATE&sortTypes=-1&source=WEB&client=WEB&callback='+cb;
+  return jsonpEMReport(url,cb).then(json=>{
+    const data=json&&json.result&&json.result.data;
+    if(!data||!data.length)return null;
+    const d=data.find(r=>(r.IS_LATEST==='1'||r.IS_LATEST===1||/^[TtYy]/.test(r.IS_LATEST||'')))||data[0];
+    const reportDate=(d.REPORT_DATE||'').slice(0,10);
+    const periodKey=(reportDate&&/^\d{4}-\d{2}-\d{2}$/.test(reportDate))?reportDate:parseForecastPeriod((d.PREDICT_TYPE||'')+(d.PREDICT_CONTENT||''));
+    // 摘要只取 PREDICT_CONTENT（本身已含关键数字与同比），保持精炼；变动原因说明仅留作 tooltip
+    const content=d.PREDICT_CONTENT||'';
+    const summary=cleanNum(extractPerfKey(content))||(d.PREDICT_TYPE||'');
+    const full=((content+' '+(d.CHANGE_REASON_EXPLAIN||'')).trim());
+    return {periodKey, title:(d.SECURITY_NAME_ABBR||'')+' '+(d.PREDICT_TYPE||'业绩预告'), summary, date:(d.NOTICE_DATE||'').slice(0,10), type:d.PREDICT_TYPE, content:full};
+  }).catch(()=>null);
 }
 function perfLabel(k,isFc){
   const p=k.split('-');const y=p[0],m=p[1],d=p[2];
@@ -1847,16 +1852,15 @@ function renderPerfLive(reported,fc,code){
   const yr=new Date().getFullYear(),ly=yr-1;
   // 去年年度（已披露）
   if(reported&&reported[ly+'-12-31'])rows.push([ly+' 全年',reported[ly+'-12-31']]);
-  // 本年度各期：已披露显示实际值；未披露但有预告则显示预告；两者皆无则停止（尚未到披露期）
+  // 本年度各期：已披露的显示实际值
   const periods=[yr+'-03-31',yr+'-06-30',yr+'-09-30',yr+'-12-31'];
   for(const k of periods){
-    if(reported&&reported[k]){rows.push([perfLabel(k,false),reported[k]]);continue;}
-    if(fc&&fc.periodKey===k){
-      const txt=fc.summary||fc.title;
-      rows.push([perfLabel(k,true),'<span class="perf-fc" title="'+escHtml(fc.title)+'">'+escHtml(txt)+'</span>']);
-      continue;
-    }
-    break;
+    if(reported&&reported[k])rows.push([perfLabel(k,false),reported[k]]);
+  }
+  // 业绩预告：取最新一期，只要其所属报告期尚未披露就展示（不再因序列中断而漏掉）
+  if(fc&&reported&&!reported[fc.periodKey]){
+    const txt=(fc.summary&&fc.summary.trim())?fc.summary:(fc.title||fc.type||'业绩预告');
+    rows.push([perfLabel(fc.periodKey,true),'<span class="perf-fc" title="'+escHtml(fc.title||fc.content||'')+'">'+escHtml(txt)+'</span>']);
   }
   if(!rows.length)return '<div class="d-note">该标的最近暂无公开业绩报表（可能为新股或数据未收录）。</div>';
   return '<div class="perf">'+rows.map(r=>`<div class="perf-row"><span class="perf-k">${escHtml(r[0])}</span><span>${r[1]}</span></div>`).join('')+'</div>';
@@ -1868,7 +1872,7 @@ async function loadPerfBlock(code){
   const name=(codeMeta[code]||{}).name||'';
   try{
     const reported=await fetchPerfLive(code);
-    const fc=name?await fetchForecastNotice(code,name):null;
+    const fc=name?await fetchForecastEM(code):null;
     el.innerHTML=renderPerfLive(reported,fc,code);
   }catch(e){el.innerHTML='<div class="d-note">业绩获取失败，请稍后重试。</div>';}
 }
