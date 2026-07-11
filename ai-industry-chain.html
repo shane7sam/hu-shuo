@@ -198,13 +198,13 @@
     .ov-layers{grid-template-columns:1fr}
     .toprow{grid-template-columns:1fr}
     input[type=search]{width:150px}
-    .col-head,.stock{grid-template-columns:minmax(0,1fr) 70px 128px;gap:6px;padding-left:8px;padding-right:8px}
+    .col-head,.stock{grid-template-columns:minmax(0,1fr) 62px 150px;gap:5px;padding-left:8px;padding-right:8px}
     .col-head{padding-top:6px;padding-bottom:4px}
     .stock{padding:8px}
     .stock .s-pd .price{font-size:13px}
     .stock .s-pd .day{font-size:10.5px}
     .stock .s-extra{gap:4px}
-    .stock .s-extra .m{font-size:10px}
+    .stock .s-extra .m{font-size:10px;white-space:nowrap}
     .stock .s-extra .m.dim{font-size:10px}
     .col-head .ch-pd{font-size:10px;line-height:1.2}
     .col-head .ch-extra{gap:4px;font-size:10px}
@@ -1001,8 +1001,13 @@ function applyKlineTo(code,arr,qb){
 }
 async function fetchKlineAll(){
   const codes=allCodes();
-  await Promise.all(codes.map(c=>fetchKlineOne(c)));
-  applyKline();buildOverview();
+  const STEP=6;                       // 限并发 6：避免手机端大量并行请求排队超时，导致 5/20/60 日显示「—」
+  for(let i=0;i<codes.length;i+=STEP){
+    const batch=codes.slice(i,i+STEP);
+    await Promise.all(batch.map(c=>fetchKlineOne(c).catch(()=>{})));
+    applyKline();                     // 每批完成后渐进式填充，手机端尽早看到数据
+  }
+  buildOverview();
 }
 function applyKline(){
   for(const code in rowEls){
