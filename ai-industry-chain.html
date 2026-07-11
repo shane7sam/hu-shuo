@@ -1718,13 +1718,16 @@ function parseForecastPeriod(title){
   return yr+'-'+mm;
 }
 function extractPerfKey(text){
-  // 从业绩预告公告摘要中提取关键业绩信息（净利润/营收/同比等），去掉冗余的公告套话
+  // 从业绩预告公告摘要中提取关键业绩信息（净利润/营收/同比/预告区间等），去掉冗余的公告套话
   text=(text||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
   if(!text)return '';
   // 去掉开头的"XXX(代码)X月X日晚间发布业绩预告，"之类的引导语
   text=text.replace(/^.*?(发布|披露|公布)(业绩预告|业绩快报|半年度业绩预告|季度业绩预告)[，,、:：]?/,'');
+  // 去掉摘要尾部常见的"风险提示"等套话段
+  text=text.replace(/风险提示[：:].*$/,'');
   const sents=text.split(/[。；;]/).map(s=>s.trim()).filter(Boolean);
-  const key=sents.filter(s=>/净利润|营业收入|营收|同比|扭亏|亏损|盈利|增长|下降|预计|预盈|预亏/.test(s));
+  // 仅保留含关键业绩指标的句子：净利/营收/同比/扭亏/预盈预亏/亿元万元/区间
+  const key=sents.filter(s=>/净利润|营业收入|营收|归母|扣非|同比|扭亏|亏损|盈利|增长|下降|预计|预盈|预亏|亿元|万元|%～|增幅|减少|变动/.test(s));
   let out=key.length?key.slice(0,3).join('；'):(sents[0]||text);
   return out.length>150?out.slice(0,150)+'…':out;
 }
@@ -1941,9 +1944,19 @@ function renderNewsBlock(arr,link){
 function clip(s,n){s=String(s==null?'':s).replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n)+'…':s;}
 function escapeRe(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function shortNameOf(name){
+  let s=name||'';
+  if(!s)return '';
   const pre=['中国','中华','贵州','四川','广东','江苏','浙江','北京','上海','深圳','山东','湖南','湖北','河南','河北','安徽','福建','云南','陕西','山西','辽宁','吉林','黑龙江','天津','重庆','江西','广西','甘肃','新疆','内蒙古','海南','青海','宁夏','西藏','香港','东方','中信','光大','招商','平安','兴业','民生','华夏','国泰','海通','广发','长江','银河','申万','华泰','国信','东吴','浙商','财通','西部','西南','东北','天风','中金'];
-  for(const p of pre){if(name.startsWith(p))return name.slice(p.length);}
-  return name.length>3?name.slice(2):name;
+  for(const p of pre){if(s.startsWith(p)){s=s.slice(p.length);break;}}
+  // 去掉股份公司后缀，得到与 securityShortName 一致的简称
+  s=s.replace(/(股份)?有限公司$/,'')
+    .replace(/股份有限公司$/,'')
+    .replace(/（集团）.*$/,'')
+    .replace(/\(.*\)$/,'')
+    .replace(/（.*\)$/,'')
+    .replace(/[（(].*$/,'')
+    .trim();
+  return s||name||'';
 }
 const ANN_EVT=/公告|披露|股东大会|权益分派|分红预案|利润分配|业绩预告|业绩快报|财报|半年报|年报|季报|重组|定增|增发|配股|减持|增持|回购|股权激励|限售|解禁|停牌|复牌|退市|风险提示|工作会|官微|达成|签约|合作|中标|获批|获准|投产|扩产|新品|发布会|大会/;
 function isAnnItem(t,full,short){
@@ -2026,18 +2039,33 @@ async function fetchAnnouncements(code){
   const byDate=(a,b)=>(b.date||'').localeCompare(a.date||'');   // 时间从近到远
   const recent=it=>withinDays(it.date,20);                       // 仅保留 20 天内
   const short=shortNameOf(name);
-  // ===== 公司公告（A股/港股/美股统一逻辑）=====
-  // 1) 优先用 notice（真实披露公告），按名称匹配（证券短名或标题含公司名）
-  try{
-    let ann=(await searchType(name,'notice',4)).filter(it=>sameStock(it.sec,name)||relName(it.title,name));
-    // 2) notice 无结果（港股/美股常见）时，回退到资讯源里的“公告类”条目
-    if(!ann.length){
-      const arts=await searchType(name,'cmsArticleWebOld',3);
-      ann=arts.filter(it=>relName(it.title,name)&&isAnnItem(it.title,name,short));
-    }
-    ann=ann.filter(recent).sort(byDate);
-    renderAnnBlock(ann, annLink);
-  }catch(e){renderAnnBlock([], annLink);}
+  // ===== 公司公告（A股/港股/美股统一逻辑：时间从近到远、仅保留 20 天内）=====
+  if(isUS||isHK){
+    // 美股/港股：notice 基本无结果，直接用 cmsArticleWebOld（相关要闻），按公司名过滤
+    try{
+      const ann=(await searchType(name,'cmsArticleWebOld',3)).filter(it=>relName(it.title,name));
+      renderAnnBlock(ann.filter(recent).sort(byDate), annLink);
+    }catch(e){renderAnnBlock([], annLink);}
+  }else{
+    // A股：用「全称 + 简称」并行检索真实披露公告（notice 为全市场全文检索，噪声极多），
+    // 仅保留 securityShortName 属于本公司自身的条目（sameStock），杜绝别家公告混入；
+    // 多翻几页以捞到被基金/同行提及淹没的本公司自身公告。
+    try{
+      const kws=[name,short].filter((v,i,a)=>v&&a.indexOf(v)===i);
+      let ann=[], seen=new Set();
+      for(const kw of kws){
+        let list;
+        try{ list=await searchType(kw,'notice',10);}catch(e){list=[];}
+        for(const it of (list||[])){
+          if(!sameStock(it.sec,name))continue;            // 仅本公司自身公告
+          const key=(it.title||'')+(it.date||'');
+          if(seen.has(key))continue; seen.add(key);
+          ann.push(it);
+        }
+      }
+      renderAnnBlock(ann.filter(recent).sort(byDate), annLink);
+    }catch(e){renderAnnBlock([], annLink);}
+  }
   // ===== 近期要闻（同样按时间从近到远、只留 20 天内）=====
   try{
     const news=(await searchType(name,'cmsArticleWebOld',3))
