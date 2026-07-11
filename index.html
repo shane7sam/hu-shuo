@@ -974,10 +974,11 @@ async function fetchKlineOne(code, full){
   const range = full ? '2023-01-01,2099-01-01,800' : '2024-01-01,2099-01-01,80';
   const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+code+',day,'+range+',qfq';
   const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[]).concat([direct]);
+  const timeout = full ? 8000 : 15000;          // 主表 15s 超时（手机弱网友好）；详情页 8s（用户已停留）
   for(const url of urls){
-    for(let attempt=0; attempt<3; attempt++){           // 手机端网络抖动：最多 3 次、指数退避，避免偶发失败导致 5/20/60 日显示「—」
+    for(let attempt=0; attempt<3; attempt++){           // 手机端网络抖动：最多 3 次、指数退避
       try{
-        const r=await fetchJSON(url,5000);
+        const r=await fetchJSON(url,timeout);
         if(!r.ok)throw new Error('http '+(r.status||'err'));
         const j=await r.json();const arr=getKline(j,code);
         if(arr&&arr.length>=2){
@@ -985,7 +986,7 @@ async function fetchKlineOne(code, full){
           return;
         }
       }catch(e){}
-      if(attempt<2) await new Promise(r=>setTimeout(r, 200*(attempt+1) ));
+      if(attempt<2) await new Promise(r=>setTimeout(r, 300*(attempt+1) ));
     }
   }
 }
@@ -1010,12 +1011,15 @@ function applyKlineTo(code,arr,qb){
 async function fetchKlineAll(){
   const codes=allCodes();
   const a=[],us=[]; for(const c of codes)(c.startsWith('us')?us:a).push(c);
-  const SA=12;                                  // A股/港股：腾讯 CORS 稳、体积已缩小，高并发快速填充
+  // 手机浏览器同域名并发连接限制约 6 条；fetch 与 JSONP(脚本标签) 共享限制。
+  // 行情用 JSONP 不占位，但 K 线若并发过高则排队等槽 → 超时全挂。
+  // 并发 3 可确保每批都在限制内完成；超时 15s 留足手机弱网余量。
+  const SA=3;
   for(let i=0;i<a.length;i+=SA){
     await Promise.all(a.slice(i,i+SA).map(c=>fetchKlineOne(c,false).catch(()=>{})));
     applyKline();                               // 每批完成即填充，手机端尽早看到 5/20/60 日
   }
-  const SU=3;                                   // 美股：多兜底源、部分有长超时，低并发避免拖慢整体
+  const SU=2;                                   // 美股：多兜底源、部分有长超时，低并发避免拖慢整体
   for(let i=0;i<us.length;i+=SU){
     await Promise.all(us.slice(i,i+SU).map(c=>fetchKlineOne(c,false).catch(()=>{})));
     applyKline();
@@ -2140,7 +2144,7 @@ async function tick(){
   try{
     await fetchRealtime();
     const now=Date.now();
-    if(now-lastKline>60000){ lastKline=now; fetchKlineAll(); }
+    if(now-lastKline>60000){ lastKline=now; fetchKlineAll().catch(e=>console.warn('[K线]批量加载异常:',(e&&e.message)||e)); }
     proxyMode=false;
     setStatus(true,'实时已更新（直连）');
     if(detailCode)refreshDetailHeader();
