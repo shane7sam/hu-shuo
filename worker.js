@@ -14,9 +14,36 @@
 //   GET /api/ann?code=SH600519        —— 公告（东方财富）
 //   GET /api/news?code=SH600519       —— 要闻（东方财富）
 //   GET /api/kline?code=usNVDA         —— 美股 K 线（Yahoo 全美股覆盖 + push2his 纳斯达克兜底），供页面 KLINE_PROXY 使用
+//   GET /api/sina-kline?symbol=nvda    —— 新浪美股日K（服务端清洗反爬注入，返回干净 JSON 数组，覆盖纳斯达克+纽交所）
 
 const EM_REFERER = 'https://quote.eastmoney.com/';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+
+// 新浪美股日K：服务端清洗反爬注入（</script> 截断 JSONP），返回干净 JSON 数组。
+// 新浪返回: /*<script>location.href='//sina.com';</script>*/var _cb=([{d,o,c,h,l,v},...])
+async function fetchSinaKline(symbol) {
+  const sym = String(symbol || '').trim().toLowerCase();
+  if (!sym) return null;
+  const cbName = '_sina_' + sym.replace(/[^a-z0-9]/g, '_');
+  const sinaUrl = 'https://stock.finance.sina.com.cn/usstock/api/jsonp_v2.php/var%20'
+    + cbName + '=/US_MinKService.getDailyK?symbol=' + sym;
+  try {
+    const r = await fetch(sinaUrl, {
+      headers: { 'User-Agent': UA, 'Referer': 'https://finance.sina.com.cn/', 'Accept': '*/*' }
+    });
+    if (!r.ok) return null;
+    let txt = await r.text();
+    // 剥离反爬注入前缀: /*<script>location.href='//sina.com';</script>*/
+    txt = txt.replace(/^\/\*<script>location\.href=['"]\/\/sina\.com['"];?<\/script>\*\/\s*/, '');
+    // 提取 var <cbName>([...]) 中的数组
+    // 新浪返回可能是 var cb=([...]);（数组外套括号）或 var cb=[...];，需兼容
+    const m = new RegExp('var\\s+' + cbName + '\\s*=\\s*\\(?(\\[[\\s\\S]*?\\])\\)?\\s*;?\\s*$').exec(txt);
+    if (!m) return null;
+    return JSON.parse(m[1]);
+  } catch (e) {
+    return null;
+  }
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -141,6 +168,10 @@ export default {
       if (url.pathname === '/api/kline') {
         const kl = await fetchKlineUS(url.searchParams.get('code') || '');
         return json(kl || { error: 'no kline' }, kl ? 200 : 404);
+      }
+      if (url.pathname === '/api/sina-kline') {
+        const arr = await fetchSinaKline(url.searchParams.get('symbol') || '');
+        return json(arr || { error: 'no data' }, arr ? 200 : 404);
       }
       return json({ error: 'not found' }, 404);
     } catch (e) {
