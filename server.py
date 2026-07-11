@@ -601,6 +601,21 @@ class H(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send(500, json.dumps({'error': str(e)}), 'application/json; charset=utf-8')
             return
+        # 静态文件托管（us_kline_cache.js 等）：请求路径对应 HERE 下真实文件则直接返回
+        try:
+            rel = self.path.lstrip('/').split('?')[0]
+            fpath = os.path.normpath(os.path.join(HERE, rel))
+            if os.path.isfile(fpath) and os.path.commonpath([HERE, fpath]) == HERE:
+                ext = os.path.splitext(fpath)[1].lower().lstrip('.')
+                ctype = {'js':'application/javascript; charset=utf-8','mjs':'application/javascript; charset=utf-8',
+                         'css':'text/css; charset=utf-8','json':'application/json; charset=utf-8',
+                         'png':'image/png','jpg':'image/jpeg','jpeg':'image/jpeg','svg':'image/svg+xml',
+                         'ico':'image/x-icon','woff2':'font/woff2'}.get(ext,'application/octet-stream')
+                with open(fpath,'rb') as fh:
+                    self._send(200, fh.read(), ctype)
+                return
+        except Exception:
+            pass
         # 根路径 / 其他：返回 HTML
         try:
             html = open(HTML, encoding='utf-8').read()
