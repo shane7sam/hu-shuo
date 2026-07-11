@@ -160,25 +160,27 @@
   .card-head .ic svg{width:17px;height:17px}
   .card-head h3{font-size:14px;font-weight:650}
   .card-head .cnt{margin-left:auto;font-size:11px;color:var(--sub);background:var(--panel-2);padding:2px 8px;border-radius:10px}
-  .col-head{display:flex;align-items:center;gap:12px;padding:8px 10px 6px;font-size:11px;color:var(--sub);border-bottom:1px solid var(--line)}
-  .col-head .ch-id{flex:1;min-width:0;text-align:left}
-  .col-head .ch-pd{text-align:right;min-width:88px;flex-shrink:0}
-  .col-head .ch-extra{display:flex;gap:12px;justify-content:flex-end;min-width:150px;flex-shrink:0}
-  .rows{padding:4px 6px 8px}
-  /* 个股行：参考总览「领涨领跌 TOP5」的呈现（名称在左，现价+涨跌幅在右，5/20/60日弱化） */
-  .stock{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:9px;transition:background .12s}
+  .col-head,.stock{display:grid;grid-template-columns:minmax(0,1fr) 92px 156px;align-items:center;gap:10px}
+  .col-head{font-size:11px;color:var(--sub);padding:8px 10px 6px;border-bottom:1px solid var(--line)}
+  .col-head .ch-id{min-width:0;text-align:left;overflow:hidden}
+  .col-head .ch-pd{min-width:0;text-align:right;line-height:1.25}
+  .col-head .ch-extra{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;min-width:0;text-align:right}
+  .col-head .ch-extra span{min-width:0;overflow:hidden}
+  .rows{max-height:360px;overflow-y:auto;padding:4px 6px 8px}
+  /* 个股行：名称在左，现价+涨跌幅在右，5/20/60日弱化；与表头共用 grid 轨道确保对齐 */
+  .stock{padding:8px 10px;border-radius:9px;transition:background .12s}
   .stock:hover{background:var(--panel-2)}
-  .stock .s-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .stock .s-id{min-width:0;display:flex;flex-direction:column;gap:2px;overflow:hidden}
   .stock .s-nm{font-size:13px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .stock .s-sub{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--sub);min-width:0;overflow:hidden}
   .stock .s-sub .board{font-size:10px;color:var(--sub);border:1px solid var(--line);padding:0 5px;border-radius:5px;flex-shrink:0;white-space:nowrap}
   .stock .s-sub .code{font-variant-numeric:tabular-nums;white-space:nowrap}
   .stock .s-sub .etf-idx{font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .stock .s-pd{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:88px;flex-shrink:0}
+  .stock .s-pd{min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
   .stock .s-pd .price{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;line-height:1.15}
   .stock .s-pd .day{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;line-height:1.15}
-  .stock .s-extra{display:flex;gap:12px;align-items:center;font-size:11px;font-variant-numeric:tabular-nums;flex-shrink:0}
-  .stock .s-extra .m{text-align:right}
+  .stock .s-extra{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;min-width:0;font-size:11px;font-variant-numeric:tabular-nums}
+  .stock .s-extra .m{text-align:right;min-width:0;overflow:hidden}
   .stock .s-extra .m.dim{color:var(--sub);font-weight:500}
   .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
   .bg-up{background:var(--up-soft)}.bg-down{background:var(--down-soft)}
@@ -186,7 +188,7 @@
   footer{color:var(--sub);font-size:12px;text-align:center;padding:24px;border-top:1px solid var(--line);line-height:1.8}
   @media(max-width:900px){
     .toprow{grid-template-columns:1fr}
-    .toprow .etf-panel .rows{max-height:none}
+    .rows,.etf-cons{max-height:52vh}
     .ov-movers{grid-template-columns:1fr 1fr}
   }
   @media(max-width:620px){
@@ -196,16 +198,18 @@
     .ov-layers{grid-template-columns:1fr}
     .toprow{grid-template-columns:1fr}
     input[type=search]{width:150px}
-    .stock{flex-wrap:nowrap;gap:6px;padding:8px 8px}
-    .stock .s-id{order:1;flex:1;min-width:0}
-    .stock .s-pd{order:2;min-width:62px}
+    .col-head,.stock{grid-template-columns:minmax(0,1fr) 70px 116px;gap:6px;padding-left:8px;padding-right:8px}
+    .col-head{padding-top:6px;padding-bottom:4px}
+    .stock{padding:8px}
     .stock .s-pd .price{font-size:13px}
     .stock .s-pd .day{font-size:10.5px}
-    .stock .s-extra{order:3;flex-shrink:0;gap:7px;justify-content:flex-end}
+    .stock .s-extra{gap:4px}
     .stock .s-extra .m{font-size:10px}
     .stock .s-extra .m.dim{font-size:10px}
-    .col-head .ch-pd{min-width:72px}
-    .col-head .ch-extra{min-width:120px}
+    .col-head .ch-pd{font-size:10px;line-height:1.2}
+    .col-head .ch-extra{gap:4px;font-size:10px}
+    header{position:static}
+    .legend{display:none}
     body{overflow-x:hidden}
   }
 
@@ -305,9 +309,16 @@
   .tag.t-orange{color:#0b0d10;background:#f59e0b}
   .tag.t-gray{color:var(--sub);background:var(--panel-2);border:1px solid var(--line)}
   .tag.hot{color:#0b0d10;background:#fbbf24}
+  /* 公告/要闻：可点击条目 + 摘要 + 媒体来源 */
+  .news-list li.nl{padding:0;border-bottom:1px dashed var(--line)}
+  .news-list li.nl:last-child{border-bottom:none}
+  .news-list li.nl a{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:9px 0;color:var(--text);text-decoration:none}
+  .news-list li.nl a:hover{background:var(--panel-2);text-decoration:none}
+  .news-list .ns{flex:1 0 100%;color:var(--sub);font-size:12px;line-height:1.5;margin-top:2px}
+  .news-list .nm{font-size:11px;color:var(--sub);margin-left:auto}
   /* ============ ETF 面板：跟踪指数标签 + 指数详情成分表 ============ */
   .etf-idx{font-size:10.5px;color:var(--sub);font-variant-numeric:tabular-nums}
-  .etf-cons{display:flex;flex-direction:column;gap:2px;margin-top:6px;border:1px solid var(--line);border-radius:10px;overflow:hidden;padding:4px}
+  .etf-cons{display:flex;flex-direction:column;gap:2px;margin-top:6px;border:1px solid var(--line);border-radius:10px;overflow-y:auto;max-height:360px;padding:4px}
   .etf-row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px}
   .etf-row.etf-hrow{color:var(--sub);font-weight:700;font-size:11.5px;border-bottom:1px solid var(--line);border-radius:0;padding-bottom:4px}
   .etf-row[data-detail]{cursor:pointer}
@@ -328,6 +339,9 @@
   .w-w{text-align:right;color:var(--midstream);font-weight:700;font-variant-numeric:tabular-nums}
   /* ETF 详情现展示完整 K 线/技术面，不再隐藏其它 section */
   .perf-na{color:var(--sub);font-style:italic}
+  .perf-fc a{color:#22d3ee;font-weight:600;text-decoration:none}
+  .perf-fc a:hover{text-decoration:underline}
+  .etf-full{color:var(--midstream);font-size:11px;margin-left:4px}
   .pct{font-variant-numeric:tabular-nums}
   .pct.up{color:var(--up);font-weight:700}
   .pct.down{color:var(--down);font-weight:700}
@@ -376,7 +390,7 @@
     <div class="d-body">
       <div class="d-section"><h3>公司介绍</h3><div id="dIntro"></div></div>
       <div class="d-section"><h3>日 K 线（前复权 · 含均线 MA / 成交量）
-        <label class="band-toggle"><input type="checkbox" id="bandToggle" checked> 估值带 PE/PB</label></h3>
+        <label class="band-toggle"><input type="checkbox" id="peBandToggle" checked> PE 带</label><label class="band-toggle"><input type="checkbox" id="pbBandToggle" checked> PB 带</label></h3>
         <div class="chart-box" id="dKline"></div>
         <div class="band-note" id="bandNote"><span class="bl pe"></span>PE 带（粉）·<span class="bl pb"></span>PB 带（黄）：三条虚线为价格处于历史 25% / 50% / 75% 分位时对应的 PE / PB，区间底纹为正常估值区。<b>平带估算</b>——EPS / BVPS 视为区间恒定，仅反映估值相对位置，非交易所逐日真实估值带。</div>
       </div>
@@ -428,12 +442,12 @@ const LAYERS=[
 const ETFS=[{n:'科创新材料ETF',c:'sh589180'}, {n:'半导体设备ETF',c:'sh560780'}, {n:'通信ETF',c:'sh515880'}, {n:'科创芯片ETF',c:'sh588890'}, {n:'云计算ETF',c:'sz159273'}, {n:'机器人ETF',c:'sz159559'}, {n:'双创人工智能ETF',c:'sz159142'}];
 
 const ETF_INFO={
- 'sh589180':{index:'上证科创板新材料指数',cons:[{c:'sh688126',n:'沪硅产业',w:7.09},{c:'sh688122',n:'西部超导',w:7.04},{c:'sh688019',n:'安集科技',w:6.41},{c:'sh688065',n:'凯赛生物',w:3.89},{c:'sh688548',n:'广钢气体',w:3.86},{c:'sh688234',n:'天岳先进',w:3.84},{c:'sh688778',n:'厦钨新能',w:3.17},{c:'sh688102',n:'斯瑞新材',w:3.14},{c:'sh688005',n:'容百科技',w:3.09},{c:'sh688388',n:'嘉元科技',w:3.09},]},
- 'sh560780':{index:'中证半导体材料设备指数',cons:[{c:'sh688012',n:'中微公司',w:14.9},{c:'sz002371',n:'北方华创',w:12.93},{c:'sh688072',n:'拓荆科技',w:7.42},{c:'sz300604',n:'长川科技',w:6.33},{c:'sh688120',n:'华海清科',w:5.08},{c:'sh688361',n:'中科飞测',w:3.81},{c:'sh688126',n:'沪硅产业',w:3.8},{c:'sz300346',n:'南大光电',w:3.69},{c:'sz300666',n:'江丰电子',w:3.51},{c:'sh688019',n:'安集科技',w:3.44},]},
- 'sh515880':{index:'中证全指通信设备指数',cons:[{c:'sz300502',n:'新易盛',w:15.0},{c:'sz300308',n:'中际旭创',w:13.66},{c:'sh601138',n:'工业富联',w:10.42},{c:'sz300394',n:'天孚通信',w:7.14},{c:'sz000063',n:'中兴通讯',w:5.35},{c:'sh600487',n:'亨通光电',w:5.3},{c:'sh600522',n:'中天科技',w:4.2},{c:'sz300136',n:'信维通信',w:3.22},{c:'sh600498',n:'烽火通信',w:2.11},{c:'sz002281',n:'光迅科技',w:2.09},]},
- 'sh588890':{index:'上证科创板芯片指数',cons:[{c:'sh688981',n:'中芯国际',w:9.8},{c:'sh688041',n:'海光信息',w:9.66},{c:'sh688256',n:'寒武纪',w:9.56},{c:'sh688008',n:'澜起科技',w:7.8},{c:'sh688012',n:'中微公司',w:7.3},{c:'sh688521',n:'芯原股份',w:4.05},{c:'sh688525',n:'佰维存储',w:3.76},{c:'sh688072',n:'拓荆科技',w:3.39},{c:'sh688498',n:'源杰科技',w:3.28},{c:'sh688347',n:'华虹公司',w:2.35},]},
- 'sz159273':{index:'中证云计算与大数据主题指数',cons:[{c:'sz300502',n:'新易盛',w:11.64},{c:'sz300308',n:'中际旭创',w:10.62},{c:'hk00700',n:'腾讯控股',w:8.27},{c:'hk09988',n:'阿里巴巴-W',w:8.02},{c:'sh603019',n:'中科曙光',w:6.91},{c:'sz300442',n:'润泽科技',w:3.97},{c:'sz000977',n:'浪潮信息',w:3.47},{c:'sh688111',n:'金山办公',w:3.25},{c:'sz000938',n:'紫光股份',w:3.0},{c:'sz002261',n:'拓维信息',w:2.59},]},
- 'sz159559':{index:'中证机器人指数',cons:[{c:'sh688017',n:'绿的谐波',w:6.29},{c:'sz002472',n:'双环传动',w:4.66},{c:'sz300024',n:'机器人',w:4.41},{c:'sh688169',n:'石头科技',w:4.13},{c:'sz300432',n:'富临精工',w:3.23},{c:'sh603486',n:'科沃斯',w:3.23},{c:'sz002230',n:'科大讯飞',w:3.05},{c:'sz002050',n:'三花智控',w:2.95},{c:'sz300124',n:'汇川技术',w:2.94},{c:'sh603728',n:'鸣志电器',w:2.85},]},
+ 'sh589180':{index:'上证科创板新材料指数',cons:[{c:'sh688126',n:'沪硅产业',w:7.09},{c:'sh688122',n:'西部超导',w:7.04},{c:'sh688019',n:'安集科技',w:6.41},{c:'sh688065',n:'凯赛生物',w:3.89},{c:'sh688548',n:'广钢气体',w:3.86},{c:'sh688234',n:'天岳先进',w:3.84},{c:'sh688778',n:'厦钨新能',w:3.17},{c:'sh688102',n:'斯瑞新材',w:3.14},{c:'sh688005',n:'容百科技',w:3.09},{c:'sh688388',n:'嘉元科技',w:3.09},],idx:'000689'},
+ 'sh560780':{index:'中证半导体材料设备指数',cons:[{c:'sh688012',n:'中微公司',w:14.9},{c:'sz002371',n:'北方华创',w:12.93},{c:'sh688072',n:'拓荆科技',w:7.42},{c:'sz300604',n:'长川科技',w:6.33},{c:'sh688120',n:'华海清科',w:5.08},{c:'sh688361',n:'中科飞测',w:3.81},{c:'sh688126',n:'沪硅产业',w:3.8},{c:'sz300346',n:'南大光电',w:3.69},{c:'sz300666',n:'江丰电子',w:3.51},{c:'sh688019',n:'安集科技',w:3.44},],idx:'931743'},
+ 'sh515880':{index:'中证全指通信设备指数',cons:[{c:'sz300502',n:'新易盛',w:15.0},{c:'sz300308',n:'中际旭创',w:13.66},{c:'sh601138',n:'工业富联',w:10.42},{c:'sz300394',n:'天孚通信',w:7.14},{c:'sz000063',n:'中兴通讯',w:5.35},{c:'sh600487',n:'亨通光电',w:5.3},{c:'sh600522',n:'中天科技',w:4.2},{c:'sz300136',n:'信维通信',w:3.22},{c:'sh600498',n:'烽火通信',w:2.11},{c:'sz002281',n:'光迅科技',w:2.09},],idx:'931160'},
+ 'sh588890':{index:'上证科创板芯片指数',cons:[{c:'sh688981',n:'中芯国际',w:9.8},{c:'sh688041',n:'海光信息',w:9.66},{c:'sh688256',n:'寒武纪',w:9.56},{c:'sh688008',n:'澜起科技',w:7.8},{c:'sh688012',n:'中微公司',w:7.3},{c:'sh688521',n:'芯原股份',w:4.05},{c:'sh688525',n:'佰维存储',w:3.76},{c:'sh688072',n:'拓荆科技',w:3.39},{c:'sh688498',n:'源杰科技',w:3.28},{c:'sh688347',n:'华虹公司',w:2.35},],idx:'000685'},
+ 'sz159273':{index:'中证云计算与大数据主题指数',cons:[{c:'sz300502',n:'新易盛',w:11.64},{c:'sz300308',n:'中际旭创',w:10.62},{c:'hk00700',n:'腾讯控股',w:8.27},{c:'hk09988',n:'阿里巴巴-W',w:8.02},{c:'sh603019',n:'中科曙光',w:6.91},{c:'sz300442',n:'润泽科技',w:3.97},{c:'sz000977',n:'浪潮信息',w:3.47},{c:'sh688111',n:'金山办公',w:3.25},{c:'sz000938',n:'紫光股份',w:3.0},{c:'sz002261',n:'拓维信息',w:2.59},],idx:'930851'},
+ 'sz159559':{index:'中证机器人指数',cons:[{c:'sh688017',n:'绿的谐波',w:6.29},{c:'sz002472',n:'双环传动',w:4.66},{c:'sz300024',n:'机器人',w:4.41},{c:'sh688169',n:'石头科技',w:4.13},{c:'sz300432',n:'富临精工',w:3.23},{c:'sh603486',n:'科沃斯',w:3.23},{c:'sz002230',n:'科大讯飞',w:3.05},{c:'sz002050',n:'三花智控',w:2.95},{c:'sz300124',n:'汇川技术',w:2.94},{c:'sh603728',n:'鸣志电器',w:2.85},],idx:'H30590'},
  'sz159142':{index:'中证科创创业人工智能指数',cons:[{c:'sz300502',n:'新易盛',w:10.96},{c:'sh688008',n:'澜起科技',w:10.15},{c:'sz300308',n:'中际旭创',w:9.95},{c:'sh688256',n:'寒武纪',w:7.0},{c:'sh688521',n:'芯原股份',w:5.26},{c:'sz300442',n:'润泽科技',w:4.68},{c:'sh688111',n:'金山办公',w:3.81},{c:'sz300857',n:'协创数据',w:3.59},{c:'sz300418',n:'昆仑万维',w:3.05},{c:'sz300223',n:'北京君正',w:2.51},]},
 };
 
@@ -910,8 +924,9 @@ async function fetchKlineOne(code){
           const d=data[code]||(data[code]={...codeMeta[code]});
           d.p5=periodPct(closes,5);d.p20=periodPct(closes,20);d.p60=periodPct(closes,60);d.okK=true;
           d.kline=arr;            // 存原始日K数组，供详情页绘制与技术分析
-          const qb=jsonQtBlock(j,code);   // 腾讯行情块：p[46]=市净率(LF)
-          if(qb){const pb=parseFloat(qb[46]); if(isFinite(pb)&&pb>0) d.pb=pb;}
+          const qb=jsonQtBlock(j,code);   // 腾讯行情块：p[39]=市盈率(TTM)，p[46]=市净率(LF)
+          if(qb){const pb=parseFloat(qb[46]); if(isFinite(pb)&&pb>0) d.pb=pb;
+            const pe=parseFloat(qb[39]); if(isFinite(pe)&&pe>0) d.pe=pe;}
           return;
         }
       }catch(e){}
@@ -1155,17 +1170,9 @@ function setIntroTitle(t){const s=document.getElementById('dIntro');if(!s)return
 function buildEtfIntroHTML(code,info){
   let h='<div class="intro-enrich">';
   const nm=(codeMeta[code]&&codeMeta[code].name)||code;
-  h+=`<div class="intro-ol">${escHtml(nm)} 跟踪指数「<b>${escHtml(info.index)}</b>」。以下为成分股（按当日涨跌幅排序），点击任意成分可下钻查看个股 K 线与技术面。</div>`;
-  const cons=[...(info.cons||[])].sort((a,b)=>(b.w||0)-(a.w||0));
-  h+='<div class="etf-cons">';
-  h+='<div class="etf-row etf-hrow"><span class="etf-nm">成分股</span><span class="etf-code">代码</span><span class="etf-w">权重</span><span class="etf-day">日涨跌</span></div>';
-  cons.forEach(r=>{
-    const dd=data[r.c]||{};
-    const dayc=dd.day!=null?cls(dd.day):'flat';
-    const dayTxt=dd.day!=null?sign(dd.day)+dd.day.toFixed(2)+'%':'—';
-    h+=`<div class="etf-row" data-detail="${r.c}"><span class="etf-nm">${escHtml(r.n)}</span><span class="etf-code">${r.c}</span><span class="etf-w">${(r.w||0).toFixed(2)}%</span><span class="etf-day ${dayc}">${dayTxt}</span></div>`;
-  });
-  h+='</div></div>';
+  const isFull=!!info.idx;
+  h+=`<div class="intro-ol">${escHtml(nm)} 跟踪指数「<b>${escHtml(info.index)}</b>」。以下为成分股（按当日涨跌幅排序），点击任意成分可下钻查看个股 K 线与技术面。${isFull?'<span class="etf-full">· 已实时抓取全部成分股</span>':''}</div>`;
+  h+='<div class="etf-cons" id="etfCons">'+etfConsRows(info.cons)+'</div></div>';
   return h;
 }
 async function openEtf(code){
@@ -1186,6 +1193,7 @@ async function openEtf(code){
   head.querySelector('.px').innerHTML=`<div class="p ${dayc}">${price}</div><div class="pe ${dayc}">${dayTxt} · <span style="color:var(--sub)">ETF</span></div>`;
   setIntroTitle('跟踪指数 · 成分股');
   document.getElementById('dIntro').innerHTML=buildEtfIntroHTML(code,info);
+  if(info.idx)loadEtfCons(code,info.idx);
   document.getElementById('dKline').innerHTML='<div class="d-note">正在绘制 ETF 自身日 K 线（前复权）…</div>';
   document.getElementById('dTech').innerHTML='<div class="d-note">正在计算技术指标…</div>';
   document.getElementById('dNews').innerHTML='<div class="d-note">ETF 无单一公司公告；成分股公告可在个股详情中查看。</div>';
@@ -1203,7 +1211,7 @@ async function openEtf(code){
 }
 
 /* ============== 详情 · 技术指标 · 图表 ============== */
-let detailCode=null, klineChart=null, peChart=null, showBands=true, lastM=null;
+let detailCode=null, klineChart=null, peChart=null, showPEBand=true, showPBBand=true, lastM=null;
 function lastVal(arr){for(let i=arr.length-1;i>=0;i--)if(arr[i]!=null)return arr[i];return null;}
 function emaArr(arr,n){const k=2/(n+1),out=[];let p=0;arr.forEach((v,i)=>{p=i===0?v:v*k+p*(1-k);out.push(p);});return out;}
 function computeMA(closes,n){const o=[];for(let i=0;i<closes.length;i++){if(i<n-1){o.push(null);continue;}let s=0;for(let j=i-n+1;j<=i;j++)s+=closes[j];o.push(+(s/n).toFixed(3));}return o;}
@@ -1375,7 +1383,7 @@ function renderKlineChart(m){
   const hasPE=m.pe&&m.peStats&&isFinite(m.peStats.cur);
   const hasPB=m.pbCur!=null&&isFinite(m.pbCur);
   const ml=[],ma=[];
-  if(showBands&&hasPE){
+  if(showPEBand&&hasPE){
     const rPE=m.peStats.cur/m.c;   // 当前PE/现价=1/EPS，把价格换算成对应PE
     if(isFinite(rPE)&&rPE>0){
       pricePct.forEach((pp,i)=>{
@@ -1387,7 +1395,7 @@ function renderKlineChart(m){
       ma.push([{yAxis:pricePct[0],itemStyle:{color:'rgba(236,72,153,.07)'}},{yAxis:pricePct[2]}]);
     }
   }
-  if(showBands&&hasPB){
+  if(showPBBand&&hasPB){
     const rPB=m.pbCur/m.c;
     if(isFinite(rPB)&&rPB>0){
       pricePct.forEach((pp,i)=>{
@@ -1465,6 +1473,7 @@ async function openDetail(code){
   head.querySelector('.meta').textContent=[meta.board,code,meta.sector].filter(Boolean).join(' · ');
   refreshDetailHeader();
   document.getElementById('dIntro').innerHTML=buildIntroHTML(code);
+  loadPerfBlock(code);
   document.getElementById('dNews').innerHTML='<div class="d-note">正在获取近期公告…</div>';
   fetchAnnouncements(code);
   document.getElementById('dTech').innerHTML='<div class="d-note">正在计算技术指标…</div>';
@@ -1526,7 +1535,7 @@ function buildIntroHTML(code){
   else blocks=genericIntro(meta);
   let h=(wHTML?wHTML:'')+'<div class="intro-grid">';
   for(const b of blocks)h+='<div class="ig"><h4>'+escHtml(b[0])+'</h4><p>'+escHtml(b[1])+'</p></div>';
-  h+='</div>';
+  h+='</div><div class="ir"><span class="irk">最新业绩（实时）</span><div id="dPerf"></div></div>';
   return h;
 }
 function renderPerf(pf){
@@ -1544,27 +1553,109 @@ function renderPerf(pf){
   if(pf.y2025)rows.push(['2025 全年',colorPct(strip(pf.y2025))]);
   if(pf.q1_2026)rows.push(['2026 Q1',colorPct(strip(pf.q1_2026))]);
   const h1=strip(pf.h1_2026||'暂无披露');
-  const h1html=/暂无/.test(h1)?`<span class="perf-na">${escHtml(h1)}</span>`:colorPct(h1);
+  const h1html=/暂无/.test(h1)?`<span id="perfH1" class="perf-na">${escHtml(h1)}</span>`:colorPct(h1);
   rows.push(['2026 半年报预告',h1html]);
   return '<div class="perf">'+rows.map(r=>`<div class="perf-row"><span class="perf-k">${escHtml(r[0])}</span><span>${r[1]}</span></div>`).join('')+'</div>';
+}
+/* ============== 业绩报表（实时）/ 公告半年报预告 相关 ============== */
+function jsonpEMReport(url,cb){
+  return new Promise(resolve=>{
+    let done=false;
+    const timer=setTimeout(()=>{if(done)return;done=true;cleanup();resolve(null);},8000);
+    function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
+    window[cb]=function(json){if(done)return;done=true;cleanup();resolve(json);};
+    const s=document.createElement('script');s.id='emjs_'+cb;s.src=url;
+    s.onerror=()=>{if(done)return;done=true;cleanup();resolve(null);};
+    document.head.appendChild(s);
+  });
+}
+function secidEM(code){const m=code.slice(0,2),num=code.slice(2);if(m==='sh')return num+'.SH';if(m==='sz')return num+'.SZ';if(m==='bj')return num+'.BJ';return null;}
+function fmtYi(v){if(!isFinite(v))return '—';const a=Math.abs(v);if(a>=1)return v.toFixed(2)+'亿元';return (v*1e4).toFixed(0)+'万元';}
+function sg(v){return v>0?'+':(v<0?'-':'');}
+async function fetchPerfLive(code){
+  const sid=secidEM(code);if(!sid)return null;
+  const cb='_emFn'+Math.random().toString(36).slice(2);
+  const cols='SECURITY_NAME_ABBR,SECUCODE,REPORTDATE,TOTAL_OPERATE_INCOME,YSTZ,PARENT_NETPROFIT,SJLTZ';
+  const url='https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_LICO_FN_CPD&columns='+cols+'&filter=(SECUCODE%3D%22'+sid+'%22)&pageSize=8&sortColumns=REPORTDATE&sortTypes=-1&source=WEB&client=WEB&callback='+cb;
+  try{
+    const json=await jsonpEMReport(url,cb);
+    const data=json&&json.result&&json.result.data;
+    if(!data||!data.length)return null;
+    let y=null,q=null;
+    for(const r of data){const rd=(r.REPORTDATE||'').slice(0,10);if(rd==='2025-12-31')y=r;else if(rd==='2026-03-31')q=r;}
+    const build=o=>{if(!o)return null;const inc=(+o.TOTAL_OPERATE_INCOME)/1e8,np=(+o.PARENT_NETPROFIT)/1e8;
+      const incY=o.YSTZ,npY=o.SJLTZ;
+      const incStr=fmtYi(inc)+(incY!=null&&isFinite(+incY)?('（同比'+sg(+incY)+(+incY).toFixed(2)+'%）'):'');
+      const npStr=(np<0?'归母净亏':'归母净利')+fmtYi(Math.abs(np))+(npY!=null&&isFinite(+npY)?('（同比'+sg(+npY)+(+npY).toFixed(2)+'%）'):'');
+      return incStr+'，'+npStr;};
+    return {y2025:build(y),q1_2026:build(q),hasY:!!y,hasQ:!!q};
+  }catch(e){return null;}
+}
+function renderPerfLive(obj){
+  if(!obj||(!obj.hasY&&!obj.hasQ))return '<div class="d-note">该标的最近暂无公开业绩报表（可能为新股或数据未收录）。</div>';
+  const rows=[];
+  if(obj.y2025)rows.push(['2025 全年',escHtml(obj.y2025)]);
+  if(obj.q1_2026)rows.push(['2026 Q1',escHtml(obj.q1_2026)]);
+  rows.push(['2026 半年报预告','<span id="perfH1" class="perf-na">暂无披露</span>']);
+  return '<div class="perf">'+rows.map(r=>`<div class="perf-row"><span class="perf-k">${escHtml(r[0])}</span><span>${r[1]}</span></div>`).join('')+'</div>';
+}
+let gH1Forecast=null;
+function detectH1(arr){return (arr||[]).find(it=>/业绩预告|半年报预|半年度业绩预|业绩预增|业绩预减|业绩预亏|预盈|扭亏为盈|预减公告|预增公告/.test(it.title||''))||null;}
+function applyH1Forecast(){
+  const el=document.getElementById('perfH1');if(!el||!gH1Forecast)return;
+  const code=detailCode;if(!code)return;
+  const map={sh:'SH',sz:'SZ',bj:'BJ'};const pfx=map[code.slice(0,2)]||'';
+  const list=pfx+code.slice(2).toUpperCase();
+  const link='https://so.eastmoney.com/ann/s/'+list+'.html';
+  el.className='perf-fc';
+  el.innerHTML='<a href="'+link+'" target="_blank" rel="noopener" title="'+escHtml(gH1Forecast.title)+'">已发布（见公告）</a>';
+}
+async function loadPerfBlock(code){
+  const el=document.getElementById('dPerf');if(!el)return;
+  const p=PROFILES[code];
+  if(p&&p.perf)return;
+  el.innerHTML='<div class="d-note">正在抓取最新业绩报表（实时）…</div>';
+  try{
+    const obj=await fetchPerfLive(code);
+    if(obj)el.innerHTML=renderPerfLive(obj);
+    else el.innerHTML='<div class="d-note">该标的最近暂无公开业绩报表（可能为新股或数据未收录）。</div>';
+  }catch(e){el.innerHTML='<div class="d-note">业绩报表获取失败，请稍后重试。</div>';}
+  applyH1Forecast();
+}
+/* ============== ETF 全部成分股（实时） ============== */
+function toDash(sec){if(/^6/.test(sec))return 'sh'+sec;if(/^[03]/.test(sec))return 'sz'+sec;if(/^[48]/.test(sec))return 'bj'+sec;return sec;}
+function etfConsRows(cons){
+  const list=[...(cons||[])].sort((a,b)=>((b.w||0)-(a.w||0)));
+  let h='<div class="etf-row etf-hrow"><span class="etf-nm">成分股</span><span class="etf-code">代码</span><span class="etf-day">日涨跌</span></div>';
+  if(!list.length){h+='<div class="etf-row"><span class="etf-nm" style="color:var(--sub)">暂无成分股数据</span></div>';return h;}
+  list.forEach(r=>{const dd=data[r.c]||{};const dayc=dd.day!=null?cls(dd.day):'flat';const dayTxt=dd.day!=null?sign(dd.day)+dd.day.toFixed(2)+'%':'—';
+    h+=`<div class="etf-row" data-detail="${r.c}"><span class="etf-nm">${escHtml(r.n)}</span><span class="etf-code">${r.c}</span><span class="etf-day ${dayc}">${dayTxt}</span></div>`;});
+  return h;
+}
+async function loadEtfCons(code,idx){
+  const el=document.getElementById('etfCons');if(!el||!idx)return;
+  el.innerHTML='<div class="etf-row"><span class="etf-nm" style="color:var(--sub)">正在抓取全部成分股（实时）…</span></div>';
+  const cb='_emIdx'+Math.random().toString(36).slice(2);
+  const cols='SECURITY_CODE,SECURITY_NAME_ABBR';
+  const url='https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_INDEX_CONSTITUENT&columns='+cols+'&filter=(INDEX_CODE%3D%22'+idx+'%22)&pageSize=300&source=WEB&client=WEB&callback='+cb;
+  try{
+    const json=await jsonpEMReport(url,cb);
+    const data=json&&json.result&&json.result.data;
+    if(!data||!data.length){el.innerHTML=etfConsRows((ETF_INFO[code]||{}).cons);return;}
+    const list=data.map(r=>({c:toDash(r.SECURITY_CODE),n:r.SECURITY_NAME_ABBR}));
+    el.innerHTML=etfConsRows(list);
+  }catch(e){el.innerHTML=etfConsRows((ETF_INFO[code]||{}).cons);}
 }
 function buildWeightHTML(code){
   const mem=STOCK_MEMB[code];
   if(!mem||!mem.length)return '';
   const etfs=mem.filter(x=>x.kind==='ETF').sort((a,b)=>(b.weight||0)-(a.weight||0));
-  const idxs=mem.filter(x=>x.kind==='指数');
   let h='<div class="w-block">';
-  h+='<div class="w-title">成分权重 · 该标的被以下指数 / ETF 纳入</div>';
+  h+='<div class="w-title">成分权重 · 该标的被以下 ETF 纳入</div>';
   if(etfs.length){
     h+='<div class="w-sub">ETF（按权重降序）</div><div class="w-rows">';
     etfs.forEach(x=>{const w=x.weight!=null?x.weight.toFixed(2)+'%':'—';
       h+=`<div class="w-row" data-etf="${x.code}" title="点击查看 ${escHtml(x.name)} 成分股"><span class="w-nm">${escHtml(x.name)}</span><span class="w-tag">ETF</span><span class="w-w">${w}</span></div>`;});
-    h+='</div>';
-  }
-  if(idxs.length){
-    h+='<div class="w-sub">指数 / 板块（等权合成）</div><div class="w-rows">';
-    idxs.forEach(x=>{const w=x.eq?'等权':(x.weight!=null?x.weight.toFixed(2)+'%':'—');
-      h+=`<div class="w-row" data-idx="${x.key}" title="点击查看 ${escHtml(x.name)} 指数"><span class="w-nm">${escHtml(x.name)}</span><span class="w-tag">指数</span><span class="w-w">${w}</span></div>`;});
     h+='</div>';
   }
   h+='</div>';
@@ -1573,7 +1664,7 @@ function buildWeightHTML(code){
 function introRow(k,v,risk){
   return '<div class="ir'+(risk?' risk':'')+'"><span class="irk">'+escHtml(k)+'</span><p>'+escHtml(v)+'</p></div>';
 }
-const ANN_PROXY='';  // 【部署到 GitHub Pages 时必填】把 worker.js 用 `wrangler deploy` 部署到 Cloudflare 后，将获得的 Worker 地址填到这里，例如 'https://ai-industry-proxy.<你的子域>.workers.dev'。该 Worker 需同时提供 /api/ann 与 /api/news 两个路由（见 worker.js）。留空则公告/要闻走东方财富 JSONP 直连兜底——localhost 正常，但 GitHub Pages 上可能被来源拦截而不稳定。
+const ANN_PROXY='';  // 公告/要闻默认走东方财富 search-api-web JSONP 直连（按股票名称检索、按时间排序，自带摘要与原文链接）。如需自建代理兜底，可填 Cloudflare Worker 地址，但其路由需返回 {ann:[],news:[]} 结构，本版未再调用该代理。
 // 公告类型标签（按标题关键词识别，突出“重大”事项）
 function annTag(t){
   if(/业绩|财报|一季|半年|年报|季报|预告|快报/.test(t))return{tx:'业绩',cls:'t-blue'};
@@ -1586,99 +1677,116 @@ function annTag(t){
 }
 function renderAnnBlock(arr,link){
   const ul=document.getElementById('dAnnList');if(!ul)return false;
-  if(!arr||!arr.length){ul.innerHTML='<li class="news-empty">近期暂无公开公告，可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富公告页</a></li>';return true;}
-  let h='';
-  arr.slice(0,5).forEach(it=>{
-    const title=it.title||it.notice_title||'(无标题)';
-    const date=(it.date||'').slice(0,10);
-    const tag=annTag(title);
-    h+='<li>'+(date?'<span class="nd">'+escHtml(date)+'</span>':'')+'<span class="nt">'+escHtml(title)+'</span>'+(tag?'<span class="tag '+tag.cls+'">'+escHtml(tag.tx)+'</span>':'')+'</li>';
-  });
-  ul.innerHTML=h;return true;
-}
-function renderNewsBlock(arr,link){
-  const ul=document.getElementById('dNewsList');if(!ul)return false;
-  if(!arr||!arr.length){ul.innerHTML='<li class="news-empty">近期暂无公开要闻，可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富资讯页</a></li>';return true;}
+  if(!arr||!arr.length){ul.innerHTML='<li class="news-empty">近期暂无该公司重大公告，可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富公告页</a></li>';return true;}
   let h='';
   arr.slice(0,6).forEach(it=>{
     const title=it.title||'(无标题)';
     const date=(it.date||'').slice(0,10);
-    let tag='';
-    const pop=it.pop!=null?String(it.pop):'';
-    if(pop)tag='<span class="tag hot">热度'+(pop.length>5?pop.slice(0,5)+'…':pop)+'</span>';
-    else if(it.col)tag='<span class="tag t-gray">'+escHtml(it.col)+'</span>';
-    h+='<li>'+(date?'<span class="nd">'+escHtml(date)+'</span>':'')+'<span class="nt">'+escHtml(title)+'</span>'+tag+'</li>';
+    const tag=annTag(title);
+    const sum=it.summary?('<span class="ns">'+escHtml(clip(it.summary,70))+'</span>'):'';
+    const url=it.url?(' href="'+escHtml(it.url)+'" target="_blank" rel="noopener"'):'';
+    h+='<li class="nl"><a'+url+'>'
+      +(date?'<span class="nd">'+escHtml(date)+'</span>':'')
+      +'<span class="nt">'+escHtml(title)+'</span>'
+      +sum
+      +(tag?'<span class="tag '+tag.cls+'">'+escHtml(tag.tx)+'</span>':'')
+      +'</a></li>';
+  });
+  ul.innerHTML=h;
+  gH1Forecast=detectH1(arr);applyH1Forecast();
+  return true;
+}
+function renderNewsBlock(arr,link){
+  const ul=document.getElementById('dNewsList');if(!ul)return false;
+  if(!arr||!arr.length){ul.innerHTML='<li class="news-empty">近期暂无该公司相关要闻，可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富资讯页</a></li>';return true;}
+  let h='';
+  arr.slice(0,6).forEach(it=>{
+    const title=it.title||'(无标题)';
+    const date=(it.date||'').slice(0,10);
+    const sum=it.summary?('<span class="ns">'+escHtml(clip(it.summary,70))+'</span>'):'';
+    const src=it.src?('<span class="nm">'+escHtml(it.src)+'</span>'):'';
+    const url=it.url?(' href="'+escHtml(it.url)+'" target="_blank" rel="noopener"'):'';
+    h+='<li class="nl"><a'+url+'>'
+      +(date?'<span class="nd">'+escHtml(date)+'</span>':'')
+      +'<span class="nt">'+escHtml(title)+'</span>'
+      +sum+src
+      +'</a></li>';
   });
   ul.innerHTML=h;return true;
 }
-function jsonpAnn(list,link,fail){
-  let done=false;
-  const cb='_emAnn'+Math.random().toString(36).slice(2);
-  const url='https://np-anotice-stock.eastmoney.com/api/security/ann?sr=-1&page_size=5&page_index=1&client_source=web&stock_list='+list+'&cb='+cb;
-  const timer=setTimeout(()=>{if(done)return;done=true;cleanup();fail('公告获取超时，');},7000);
-  function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
-  window[cb]=function(json){
-    if(done)return;done=true;cleanup();
-    try{
-      const arr=(json&&json.data&&json.data.list)||[];
-      if(!arr.length){fail('近期暂无公开公告，');return;}
-      const out=arr.map(it=>({title:it.title||it.notice_title,date:(it.notice_date||it.eitime||'')}));
-      if(!renderAnnBlock(out,link))fail('近期暂无公开公告，');
-    }catch(e){fail('公告解析失败，');}
-  };
-  const s=document.createElement('script');s.id='emjs_'+cb;s.src=url;
-  s.onerror=()=>{if(done)return;done=true;cleanup();fail('公告接口暂不可达，');};
-  document.head.appendChild(s);
+// 统一资讯源：东方财富搜索（按“股票名称”检索，按时间排序）。
+// 返回的均为此股相关、时效性强的新闻/公告，每条带 content 摘要与 url 原文链接。
+// 旧接口 np-anotice-stock 为全市场公告板，会忽略 stock_list 返回别家公司公告，已弃用。
+function clip(s,n){s=String(s==null?'':s).replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n)+'…':s;}
+function escapeRe(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function shortNameOf(name){
+  const pre=['中国','中华','贵州','四川','广东','江苏','浙江','北京','上海','深圳','山东','湖南','湖北','河南','河北','安徽','福建','云南','陕西','山西','辽宁','吉林','黑龙江','天津','重庆','江西','广西','甘肃','新疆','内蒙古','海南','青海','宁夏','西藏','香港','东方','中信','光大','招商','平安','兴业','民生','华夏','国泰','海通','广发','长江','银河','申万','华泰','国信','东吴','浙商','财通','西部','西南','东北','天风','中金'];
+  for(const p of pre){if(name.startsWith(p))return name.slice(p.length);}
+  return name.length>3?name.slice(2):name;
 }
-function jsonpNews(list,link,fail){
+const ANN_EVT=/公告|披露|股东大会|权益分派|分红预案|利润分配|业绩预告|业绩快报|财报|半年报|年报|季报|重组|定增|增发|配股|减持|增持|回购|股权激励|限售|解禁|停牌|复牌|退市|风险提示|工作会|官微|达成|签约|合作|中标|获批|获准|投产|扩产|新品|发布会|大会/;
+function isAnnItem(t,full,short){
+  // 必须是“该股”自身相关（标题含公司全称或简称），杜绝别家公司公告混入
+  if(t.indexOf(full)<0&&t.indexOf(short)<0)return false;
+  if(annTag(t))return true;
+  return ANN_EVT.test(t);
+}
+function jsonpSearch(name,list,annLink,newsLink,fail){
   let done=false;
-  const cb='_emNews'+Math.random().toString(36).slice(2);
-  const inner={uid:'',keyword:list,type:['cmsArticleWebOld'],client:'web',clientType:'web',clientVersion:'curr',param:{cmsArticleWebOld:{searchScope:'default',sort:'default',pageIndex:1,pageSize:6,preTag:'',postTag:''}}};
+  const cb='_emSrch'+Math.random().toString(36).slice(2);
+  const inner={uid:'',keyword:name,type:['cmsArticleWebOld'],client:'web',clientType:'web',clientVersion:'curr',param:{cmsArticleWebOld:{searchScope:'default',sort:'time',pageIndex:1,pageSize:14,preTag:'<em>',postTag:'</em>'}}};
   const url='https://search-api-web.eastmoney.com/search/jsonp?cb='+cb+'&param='+encodeURIComponent(JSON.stringify(inner));
-  const timer=setTimeout(()=>{if(done)return;done=true;cleanup();fail('要闻获取超时，');},7000);
+  const timer=setTimeout(()=>{if(done)return;done=true;cleanup();fail('资讯获取超时，');},8000);
   function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
   window[cb]=function(json){
     if(done)return;done=true;cleanup();
     try{
       const arr=(((json&&json.result)||{}).cmsArticleWebOld)||[];
-      if(!arr.length){fail('近期暂无公开要闻，');return;}
-      const out=arr.map(it=>({title:(it.title||'').replace(/<[^>]+>/g,''),date:(it.date||'').slice(0,10),col:it.mediaName||''}));
-      if(!renderNewsBlock(out,link))fail('近期暂无公开要闻，');
-    }catch(e){fail('要闻解析失败，');}
+      if(!arr.length){renderAnnBlock([],annLink);renderNewsBlock([],newsLink);return;}
+      const full=name,short=shortNameOf(name);
+      const items=arr.map(it=>({
+        title:(it.title||'').replace(/<[^>]+>/g,''),
+        date:(it.date||'').slice(0,10),
+        summary:(it.content||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(),
+        url:it.url||'',
+        src:it.mediaName||''
+      }));
+      const rel=it=>(it.title.indexOf(full)>=0||it.title.indexOf(short)>=0);
+      const ann=items.filter(it=>isAnnItem(it.title,full,short));
+      let news=items.filter(it=>!isAnnItem(it.title,full,short));
+      // 公告不足 3 条时，补充该股相关的公司动态（标题含公司名），保证板块不为空
+      if(ann.length<3){
+        const extra=news.filter(rel).slice(0,3-ann.length);
+        const set=new Set(extra);
+        ann.push(...extra);
+        news=news.filter(it=>!set.has(it));
+      }
+      renderAnnBlock(ann,annLink);
+      renderNewsBlock(news,newsLink);
+    }catch(e){fail('资讯解析失败，');}
   };
   const s=document.createElement('script');s.id='emjs_'+cb;s.src=url;
-  s.onerror=()=>{if(done)return;done=true;cleanup();fail('要闻接口暂不可达，');};
+  s.onerror=()=>{if(done)return;done=true;cleanup();fail('资讯接口暂不可达，');};
   document.head.appendChild(s);
-}
-function _annProxyUrl(route,list){
-  if(proxyMode===true&&proxyBase)return proxyBase+route+'?code='+encodeURIComponent(list);
-  if(ANN_PROXY)return ANN_PROXY.replace(/\/$/,'')+route+'?code='+encodeURIComponent(list);
-  return null;
-}
-function fetchAnnOne(list,link){
-  const fail=msg=>{const ul=document.getElementById('dAnnList');if(ul)ul.innerHTML='<li class="news-empty">'+escHtml(msg)+'可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富公告页</a></li>';};
-  const proxyUrl=_annProxyUrl('/api/ann',list);
-  if(proxyUrl){(async()=>{try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),7000);const r=await fetch(proxyUrl,{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(r.ok){const j=await r.json();if(renderAnnBlock((j&&j.list)||[],link))return;}}catch(e){}jsonpAnn(list,link,fail);})();}
-  else jsonpAnn(list,link,fail);
-}
-function fetchNewsOne(list,link){
-  const fail=msg=>{const ul=document.getElementById('dNewsList');if(ul)ul.innerHTML='<li class="news-empty">'+escHtml(msg)+'可前往 <a href="'+link+'" target="_blank" rel="noopener">东方财富资讯页</a></li>';};
-  const proxyUrl=_annProxyUrl('/api/news',list);
-  if(proxyUrl){(async()=>{try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),7000);const r=await fetch(proxyUrl,{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(r.ok){const j=await r.json();if(renderNewsBlock((j&&j.list)||[],link))return;}}catch(e){}jsonpNews(list,link,fail);})();}
-  else jsonpNews(list,link,fail);
 }
 async function fetchAnnouncements(code){
   const el=document.getElementById('dNews');if(!el)return;
-  const map={sh:'SH',sz:'SZ',bj:'BJ'};
+  const map={sh:'SH',sz:'SZ',bj:'BJ','51':'SH','58':'SH','56':'SH','59':'SH','15':'SZ','16':'SZ'};
   const pfx=map[code.slice(0,2)];
-  if(!pfx){el.innerHTML='<div class="d-note">该标的（港股/美股）公告与要闻请前往对应交易所或行情终端查看。</div>';return;}
+  const meta=codeMeta[code]||{};
+  const name=meta.name||'';
+  if(!pfx||!name){el.innerHTML='<div class="d-note">该标的暂无匹配的公告与要闻来源，请前往对应交易所或行情终端查看。</div>';return;}
   const list=pfx+code.slice(2).toUpperCase();
   const annLink='https://so.eastmoney.com/ann/s/'+list+'.html';
   const newsLink='https://so.eastmoney.com/news/s/'+list+'.html';
-  el.innerHTML='<div class="news-block"><div class="news-h">重大公告 <span class="news-src">东方财富</span></div><ul class="news-list" id="dAnnList"><li class="news-loading">正在获取…</li></ul></div>'
+  el.innerHTML='<div class="news-block"><div class="news-h">重大公告 <span class="news-src">东方财富 · 公司公告</span></div><ul class="news-list" id="dAnnList"><li class="news-loading">正在获取…</li></ul></div>'
              +'<div class="news-block"><div class="news-h">近期要闻 <span class="news-src">东方财富资讯</span></div><ul class="news-list" id="dNewsList"><li class="news-loading">正在获取…</li></ul></div>';
-  fetchAnnOne(list,annLink);
-  fetchNewsOne(list,newsLink);
+  const fail=msg=>{
+    const a=document.getElementById('dAnnList'),n=document.getElementById('dNewsList');
+    if(a)a.innerHTML='<li class="news-empty">'+escHtml(msg)+'可前往 <a href="'+annLink+'" target="_blank" rel="noopener">东方财富公告页</a></li>';
+    if(n)n.innerHTML='<li class="news-empty">'+escHtml(msg)+'可前往 <a href="'+newsLink+'" target="_blank" rel="noopener">东方财富资讯页</a></li>';
+  };
+  jsonpSearch(name,list,annLink,newsLink,fail);
 }
 
 /* ============== 控制 ============== */
@@ -1765,8 +1873,10 @@ function start(){
   if(dmodal){dmodal.querySelector('.d-close').addEventListener('click',closeDetail);dmodal.querySelector('#dBack').addEventListener('click',closeDetail);const mk=dmodal.querySelector('.modal-mask');if(mk)mk.addEventListener('click',closeDetail);}
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(detailCode||detailMode==='index'))closeDetail();});
   window.addEventListener('resize',()=>{if(klineChart)klineChart.resize();if(peChart)peChart.resize();});
-  const bt=document.getElementById('bandToggle');
-  if(bt)bt.addEventListener('change',e=>{showBands=e.target.checked; if(lastM&&(detailCode||detailMode==='index'))renderKlineChart(lastM);});
+  const peTb=document.getElementById('peBandToggle'), pbTb=document.getElementById('pbBandToggle');
+  const onBand=()=>{if(lastM&&(detailCode||detailMode==='index'))renderKlineChart(lastM);};
+  if(peTb)peTb.addEventListener('change',e=>{showPEBand=e.target.checked;onBand();});
+  if(pbTb)pbTb.addEventListener('change',e=>{showPBBand=e.target.checked;onBand();});
 }
 start();
 </script>
