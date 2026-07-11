@@ -356,10 +356,16 @@
   <div class="topbar">
     <div class="brand">
       <div class="logo">胡</div>
-      <div><h1>胡说·产业链投研</h1></div>
+      <div><h1>胡说·产业链投研</h1><div class="tag">AI产业链 · 商业航天 · 人形机器人 · 医药生物 核心标的总览</div></div>
     </div>
     <div class="spacer"></div>
     <div class="controls">
+      <div class="toggle" id="layerFilter">
+        <button data-ind="ai" class="active">AI产业链</button>
+        <button data-ind="space">商业航天</button>
+        <button data-ind="robot">人形机器人</button>
+        <button data-ind="bio">医药生物</button>
+      </div>
       <button id="refresh">立即刷新</button>
     </div>
     <div class="status"><span class="dot" id="liveDot"></span><span id="statusText">连接中…</span><span id="clock"></span></div>
@@ -391,6 +397,7 @@
     </div>
   </div>
 </div>
+<script src="us_kline_cache.js"></script>
 <script>
 
 const LAYERS=[
@@ -952,49 +959,61 @@ async function fetchKlineOne(code, full){
   // 兜底②：Yahoo Finance（覆盖全美股，但无 CORS 头、浏览器 fetch 可能被拦截）
   if(code.startsWith('us')){
     const tk=code.slice(2).toUpperCase();
-    let ok=false;
-    // 主源①：新浪美股日K（Worker 代理清洗反爬注入，CORS 直连，覆盖纳斯达克+纽交所）
-    try{
-      const sj=await fetchSinaUsProxy(tk);
-      if(Array.isArray(sj)&&sj.length>=20){
-        const arr=sj.map(x=>[x.d,+x.o,+x.c,+x.h,+x.l,+(x.v||0)]);
-        applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='sina';return;
-      }
-    }catch(e){}
-    // 可选主源②：Cloudflare Worker 代理（覆盖全部美股，含纽交所；服务端带 Referer 抓 Yahoo/push2his，开放 CORS）
+    const isLocal=/^(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/.test(location.hostname);
+    // ====== A+B 双保险：云端美股 K 线 ======
+    // A) Cloudflare Worker 代理（部署 worker.js 后填入 KLINE_PROXY）：服务端抓 Yahoo/Sina，回 CORS JSON，覆盖全美股、最实时。
     if(KLINE_PROXY){
       try{
         const r=await fetchJSON(KLINE_PROXY+'/api/kline?code='+encodeURIComponent(code),12000);
         if(r.ok){const j=await r.json();const arr=parseEMKline(j)||getKline(j,code);if(arr&&arr.length>=2){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='proxy';return;}}
       }catch(e){}
+      // Worker 失败（CF 不可达等）→ 直接走内嵌快照，省去云端必败的慢超时
+      if(window.US_KLINE_CACHE&&Array.isArray(window.US_KLINE_CACHE[code])&&window.US_KLINE_CACHE[code].length>=20){
+        applyKlineTo(code,window.US_KLINE_CACHE[code],null);const dd=data[code];if(dd)dd.klineSrc='cache';return;
+      }
+      console.warn('[K线]美股',tk,'Worker 代理失败且无缓存');return;
     }
-    // 主源：东方财富 push2his（JSONP 脚本标签，浏览器可直连，无需 CORS）
-    // 注意：push2his 仅纳斯达克(105)稳定可用，纽交所(107)多数返回 data:null；NYSE 美股靠下方 Yahoo 兜底。
-    for(const mkt of ['105','107']){
+    // 无 Worker：本地(server.py)走新浪等实时源；云端(github.io)直接走内嵌快照(其余实时源在 github.io 下均被反爬/CORS 拦截)
+    if(isLocal){
+      // 本地主源：新浪美股日K（server.py 同源代理带 Referer，可绕过反爬）
       try{
-        const cb='_emKl'+Math.random().toString(36).slice(2);
-        const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+mkt+'.'+tk+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
-        const json=await jsonpKline(emUrl,cb);
-        const arr=parseEMKline(json);
-        if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='em';ok=true;break;}
+        const scb='_sinaUs'+Math.random().toString(36).slice(2);
+        const sj=await jsonpSinaUs(tk, scb);
+        if(Array.isArray(sj)&&sj.length>=20){
+          const arr=sj.map(x=>[x.d,+x.o,+x.c,+x.h,+x.l,+(x.v||0)]);
+          applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='sina';return;
+        }
+      }catch(e){}
+      // 本地兜底：东财 push2his（纳斯达克105 / 纽交所107）
+      for(const mkt of ['105','107']){
+        try{
+          const cb='_emKl'+Math.random().toString(36).slice(2);
+          const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+mkt+'.'+tk+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
+          const json=await jsonpKline(emUrl,cb);
+          const arr=parseEMKline(json);
+          if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='em';return;}
+        }catch(e){}
+      }
+      // 本地兜底：港股代码映射（仅 LNVGY/NIO 有港股对应，腾讯 CORS 开放）
+      const fb=US_KLINE_FALLBACK[code];
+      if(fb){
+        try{
+          const fr = full ? '2023-01-01,2099-01-01,800' : '2024-01-01,2099-01-01,80';
+          const r2=await fetchJSON('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+fb+',day,'+fr+',qfq',8000);
+          if(r2.ok){const j2=await r2.json();const arr2=getKline(j2,fb);if(arr2&&arr2.length>=20){applyKlineTo(code,arr2,null);const dd=data[code];if(dd)dd.klineSrc='hk';return;}}
+        }catch(e){}
+      }
+      // 本地兜底：Yahoo（server.py 代理下可达）
+      try{
+        const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',10000);
+        if(yr.ok){const yj=await yr.json();const arr=yahooToKline(yj);if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='yahoo';return;}}
       }catch(e){}
     }
-    if(ok)return;
-    // 兜底①：港股代码映射（仅 LNVGY/NIO 有港股对应，腾讯 CORS 开放）
-    const fb=US_KLINE_FALLBACK[code];
-    if(fb){
-      try{
-        const fr = full ? '2023-01-01,2099-01-01,800' : '2024-01-01,2099-01-01,80';
-        const r2=await fetchJSON('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+fb+',day,'+fr+',qfq',8000);
-        if(r2.ok){const j2=await r2.json();const arr2=getKline(j2,fb);if(arr2&&arr2.length>=20){applyKlineTo(code,arr2,null);const dd=data[code];if(dd)dd.klineSrc='hk';return;}}
-      }catch(e){}
+    // B) 内嵌静态快照（部署时预生成 us_kline_cache.js，GitHub Pages 零运行时依赖，云端必显示）
+    if(window.US_KLINE_CACHE&&Array.isArray(window.US_KLINE_CACHE[code])&&window.US_KLINE_CACHE[code].length>=20){
+      applyKlineTo(code,window.US_KLINE_CACHE[code],null);const dd=data[code];if(dd)dd.klineSrc='cache';return;
     }
-    // 兜底②：Yahoo Finance（覆盖全部美股；浏览器直连可能因无 CORS 被拦截，best-effort）
-    try{
-      const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',10000);
-      if(yr.ok){const yj=await yr.json();const arr=yahooToKline(yj);if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='yahoo';return;}}
-    }catch(e){}
-    console.warn('[K线]美股',tk,'所有源均失败(push2his+HK映射+Yahoo)');
+    console.warn('[K线]美股',tk,'所有源均失败(无缓存)');
     return;
   }
   // A股/港股：腾讯直连（CORS *）；本地代理优先。
@@ -1031,21 +1050,18 @@ function jsonpKline(url,cb){
 }
 // 新浪美股日K（国内 JSONP，覆盖纳斯达克+纽交所，手机端浏览器直连可达，无需 CORS/代理）
 // 响应形如： var _cb=([{"d":"2026-07-10","o":"202.00","h":"211.00","l":"201.92","c":"210.96","v":"148421001","a":"0"},...]);
-// 美股日K：新浪源有反爬注入（</script> 截断 JSONP），浏览器直连不可靠。
-// 改走 Cloudflare Worker 代理：Worker 服务端 fetch 新浪 → 剥离注入前缀 → 返回干净 JSON + CORS。
-// 详见 worker.js 的 /api/sina-kline 路由。KLINE_PROXY 填 Worker 地址后美股（纳斯达克+纽交所）全量覆盖。
 function jsonpSinaUs(tk, cbName){
-  // 保留兼容签名但不再使用；美股统一走 Worker 代理 fetchSinaUsProxy
-  return Promise.resolve(null);
-}
-async function fetchSinaUsProxy(tk){
-  if(!KLINE_PROXY) return null;
-  try{
-    const r=await fetchJSON(KLINE_PROXY+'/api/sina-kline?symbol='+encodeURIComponent(tk.toLowerCase()),15000);
-    if(!r.ok) return null;
-    const arr=await r.json();
-    return Array.isArray(arr)&&arr.length>=20?arr:null;
-  }catch(e){ return null; }
+  return new Promise(resolve=>{
+    let done=false;
+    const timer=setTimeout(()=>{if(done)return;done=true;cleanup();resolve(null);},12000);
+    function cleanup(){clearTimeout(timer);const s=document.getElementById('sina_'+cbName);if(s&&s.parentNode)s.parentNode.removeChild(s);try{delete window[cbName];}catch(e){}}
+    const s=document.createElement('script');
+    s.id='sina_'+cbName;
+    s.src='https://stock.finance.sina.com.cn/usstock/api/jsonp_v2.php/var%20'+cbName+'=/US_MinKService.getDailyK?symbol='+tk.toLowerCase();
+    s.onload=()=>{if(done)return;done=true;const arr=window[cbName];cleanup();resolve(Array.isArray(arr)?arr:null);};
+    s.onerror=()=>{if(done)return;done=true;cleanup();resolve(null);};
+    document.head.appendChild(s);
+  });
 }
 function applyKlineTo(code,arr,qb){
   const closes=arr.map(e=>parseFloat(e[2]));
@@ -1134,9 +1150,10 @@ function buildOverview(){
   let usHtml='';
   if(us.length){
     const usSorted=[...us].sort((a,b)=>b.day-a.day);
-    usHtml=`<div class="ov-us"><h4>美股 · 领涨概念（单列，不参与 TOP 排行）</h4><div class="us-list">`+
-      usSorted.map(d=>`<div class="us-row clickable" data-detail="${d.code}"><span class="us-nm">${(codeMeta[d.code]&&codeMeta[d.code].name)||d.name||d.code}<span class="us-sec">${d.sector||'—'}</span></span><span class="${cls(d.day)}">${sign(d.day)}${d.day.toFixed(2)}%</span></div>`).join('')+
-      `</div><div class="d-note">美股仅作领涨概念展示（含对应产业链环节），不计入上方涨跌分布与 TOP 排行。</div></div>`;
+    const usTop=usSorted.filter(d=>d.day>0).slice(0,5);
+    const usBot=usSorted.filter(d=>d.day<0).slice(-5).reverse();
+    const usMoverRow=d=>`<div class="row clickable" data-detail="${d.code}"><span class="nm">${(codeMeta[d.code]&&codeMeta[d.code].name)||d.name||d.code}<span class="sec">美股 · ${d.sector||'—'}</span></span><span class="pct ${cls(d.day)}">${sign(d.day)}${d.day.toFixed(2)}%</span></div>`;
+    usHtml=`<div class="ov-movers"><div class="mover up"><h4>领涨 TOP5</h4>${usTop.length?usTop.map(usMoverRow).join(''):'<div class="row"><span class="nm" style="color:var(--sub)">暂无涨幅数据</span></div>'}</div><div class="mover down"><h4>领跌 TOP5</h4>${usBot.length?usBot.map(usMoverRow).join(''):'<div class="row"><span class="nm" style="color:var(--sub)">暂无跌幅数据</span></div>'}</div></div>`;
   }
   ov.innerHTML=`
     <div class="ov-top">
@@ -1168,7 +1185,7 @@ function buildOverview(){
     <div class="ov-movers">
       <div class="mover up"><h4>领涨 TOP5</h4>${top.map(moverRow).join('')}</div>
       <div class="mover down"><h4>领跌 TOP5</h4>${bottom.map(moverRow).join('')}</div>
-      <div class="mover mid"><h4>近60日趋势 TOP5</h4>${mid.length?mid.map(midRow).join(''):'<div class="row"><span class="nm" style="color:var(--sub)">暂无区间数据</span></div>'}</div>
+      
     </div>
     ${usHtml}
     <div class="commentary">${commentary({ind,list:stocks,up,down,flat,avg,secRows,top,bottom,us,missingK})}</div>`;
@@ -1768,8 +1785,8 @@ async function fetchPerfLive(code){
       const rd=(r.REPORTDATE||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(rd))continue;
       const inc=(+r.TOTAL_OPERATE_INCOME)/1e8, np=(+r.PARENT_NETPROFIT)/1e8;
       const incY=r.YSTZ, npY=r.SJLTZ;
-      const incStr=fmtYi(inc)+(incY!=null&&isFinite(+incY)?('（同比'+sg(+incY)+(+incY).toFixed(2)+'%）'):'');
-      const npStr=(np<0?'归母净亏':'归母净利')+fmtYi(Math.abs(np))+(npY!=null&&isFinite(+npY)?('（同比'+sg(+npY)+(+npY).toFixed(2)+'%）'):'');
+      const incStr=fmtYi(inc)+(incY!=null&&isFinite(+incY)?('（同比'+sg(+incY)+Math.abs(+incY).toFixed(2)+'%）'):'');
+      const npStr=(np<0?'归母净亏':'归母净利')+fmtYi(Math.abs(np))+(npY!=null&&isFinite(+npY)?('（同比'+sg(+npY)+Math.abs(+npY).toFixed(2)+'%）'):'');
       reported[rd]=incStr+'，'+npStr;
     }
     return reported;
@@ -1957,7 +1974,7 @@ function introRow(k,v,risk){
   return '<div class="ir'+(risk?' risk':'')+'"><span class="irk">'+escHtml(k)+'</span><p>'+escHtml(v)+'</p></div>';
 }
 const ANN_PROXY='';  // 公告/要闻默认走东方财富 search-api-web JSONP 直连（按股票名称检索、按时间排序，自带摘要与原文链接）。如需自建代理兜底，可填 Cloudflare Worker 地址，但其路由需返回 {ann:[],news:[]} 结构，本版未再调用该代理。
-const KLINE_PROXY=''; // 美股 K 线代理（Cloudflare Worker，**必需**）。新浪美股日K 有反爬注入（</script> 截断 JSONP），浏览器直连不可靠；本页美股统一走 Worker 代理：/api/sina-kline 路由服务端清洗注入 + /api/kline 兜底 Yahoo/push2his。部署见 worker.js。留空则美股 K 线全量不可用。
+const KLINE_PROXY=''; // 美股 K 线代理(Cloudflare Worker，方案 A)。部署 worker.js 后填入其地址(如 https://xxx.workers.dev)，即启用最实时的美股 K 线(覆盖纳斯达克+纽交所)。未部署时，云端自动回退到内嵌静态快照 us_kline_cache.js(方案 B)，保证必显示、零运行时依赖。本地(server.py)不受影响，仍走新浪直连。worker.js 路由见 /api/kline 与 /api/sina-kline。
 // 公告类型标签（按标题关键词识别，突出“重大”事项）
 function annTag(t){
   if(/业绩|财报|一季|半年|年报|季报|预告|快报/.test(t))return{tx:'业绩',cls:'t-blue'};
@@ -2216,7 +2233,7 @@ function start(){
   tick();timer=setInterval(tick,10000);
   setInterval(updateClock,1000);updateClock();
   document.getElementById('refresh').addEventListener('click',()=>tick());
-  // 搜索与板块切换已移除（导航栏精简）；默认显示全量数据
+  document.getElementById('layerFilter').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;activeIndustry=b.dataset.ind;document.querySelectorAll('#layerFilter button').forEach(x=>x.classList.toggle('active',x===b));applyFilter();buildOverview();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInterval(timer);}else{tick();timer=setInterval(tick,10000);}});
   // 详情弹层交互
   document.addEventListener('click',e=>{
