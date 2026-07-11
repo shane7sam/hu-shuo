@@ -10,9 +10,10 @@
 //   4) 部署后会得到一个地址，如 https://ai-industry-proxy.<你的子域>.workers.dev
 //   5) 把该地址填进 ai-industry-chain.html 里的 ANN_PROXY 常量，重新推送即可。
 //
-// 需同时提供两个路由（与 server.py 一致）：
-//   GET /api/ann?code=SH600519
-//   GET /api/news?code=SH600519
+// 需提供以下路由：
+//   GET /api/ann?code=SH600519        —— 公告（东方财富）
+//   GET /api/news?code=SH600519       —— 要闻（东方财富）
+//   GET /api/kline?code=usNVDA         —— 美股 K 线（Yahoo 全美股覆盖 + push2his 纳斯达克兜底），供页面 KLINE_PROXY 使用
 
 const EM_REFERER = 'https://quote.eastmoney.com/';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
@@ -36,6 +37,53 @@ function emAnnCode(code) {
   const num = m[2].toUpperCase();
   const map = { SH: 'SH', SZ: 'SZ', BJ: 'BJ' };
   return map[pfx] ? map[pfx] + num : null;
+}
+
+// 美股 K 线：主源 Yahoo（全美股覆盖，含纽交所），兜底 push2his（纳斯达克）。
+// 返回与页面 parseEMKline 兼容的结构：{ data: { klines: ["date,o,c,h,l,v", ...] } }
+async function fetchKlineUS(code) {
+  const tk = String(code || '').replace(/^us/i, '').toUpperCase();
+  if (!tk) return null;
+  // 1) Yahoo（覆盖最全，含纽交所）
+  try {
+    const yUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + tk + '?range=2y&interval=1d';
+    const yr = await fetch(yUrl, { headers: { 'User-Agent': UA, 'Accept': '*/*' } });
+    if (yr.ok) {
+      const yj = await yr.json();
+      const r = yj && yj.chart && yj.chart.result && yj.chart.result[0];
+      if (r && r.timestamp && r.indicators && r.indicators.quote && r.indicators.quote[0]) {
+        const q = r.indicators.quote[0], ts = r.timestamp, out = [];
+        for (let i = 0; i < ts.length; i++) {
+          const o = q.open[i], c = q.close[i], h = q.high[i], l = q.low[i], v = q.volume[i];
+          if (o == null || c == null || h == null || l == null) continue;
+          const dt = new Date(ts[i] * 1000);
+          const ds = dt.getUTCFullYear() + '-' + String(dt.getUTCMonth() + 1).padStart(2, '0') + '-' + String(dt.getUTCDate()).padStart(2, '0');
+          out.push([ds, +o, +c, +h, +l, +(v || 0)].join(','));
+        }
+        if (out.length >= 2) return { data: { klines: out } };
+      }
+    }
+  } catch (e) {}
+  // 2) 兜底 push2his（纳斯达克 105）
+  try {
+    const cb = '_emkl' + Math.random().toString(36).slice(2);
+    const emUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=105.' + tk
+      + '&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb=' + cb;
+    const er = await fetch(emUrl, { headers: { 'User-Agent': UA, 'Referer': EM_REFERER, 'Accept': '*/*' } });
+    if (er.ok) {
+      const txt = await er.text();
+      const m = /^([A-Za-z_$][\w$]*)\s*\(([\s\S]*)\)\s*;?\s*$/.exec(txt.trim());
+      const j = JSON.parse(m ? m[2] : txt);
+      const d = j && j.data;
+      if (d) {
+        let klines = null;
+        if (Array.isArray(d.klines)) klines = d.klines;
+        else for (const k in d) { if (d[k] && Array.isArray(d[k].klines)) { klines = d[k].klines; break; } }
+        if (klines && klines.length >= 2) return { data: { klines } };
+      }
+    }
+  } catch (e) {}
+  return null;
 }
 
 function stripJsonp(txt) {
@@ -89,6 +137,10 @@ export default {
       }
       if (url.pathname === '/api/news') {
         return json({ list: await fetchNews(url.searchParams.get('code') || '') });
+      }
+      if (url.pathname === '/api/kline') {
+        const kl = await fetchKlineUS(url.searchParams.get('code') || '');
+        return json(kl || { error: 'no kline' }, kl ? 200 : 404);
       }
       return json({ error: 'not found' }, 404);
     } catch (e) {
