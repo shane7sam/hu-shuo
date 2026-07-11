@@ -930,7 +930,14 @@ function periodPct(closes,n){
   return (closes[closes.length-1]-base)/base*100;
 }
 const US_KLINE_FALLBACK={usLNVGY:'hk0992',usNIO:'hk09866'};
-async function fetchKlineOne(code){
+// 带超时的 fetch：手机端网络抖动时连接「挂起」不再干等到浏览器长超时（30s+），而是 ms 后 Abort 失败、交给上层重试
+async function fetchJSON(url, ms){
+  const ac=new AbortController();
+  const to=setTimeout(()=>ac.abort(), ms||5000);
+  try{ return await fetch(url,{signal:ac.signal,cache:'no-store'}); }
+  finally{ clearTimeout(to); }
+}
+async function fetchKlineOne(code, full){
   // 美股 K 线：主源走腾讯代理域 proxy.finance.qq.com（CORS 开放、全美股通用），分支内注释见下。
   // 注意：① proxy.finance.qq.com 对美股 kline 返回完整历史；② 东方财富 105.<TICKER> 只对纳斯达克有效（纽交所 JNPR/GLW/BA­BA 等取不到 data），现统一改走腾讯代理域 proxy.finance.qq.com（CORS 开放、全美股通用）。
   if(code.startsWith('us')){
@@ -950,26 +957,27 @@ async function fetchKlineOne(code){
     const fb=US_KLINE_FALLBACK[code];
     if(fb){
       try{
-        const r2=await fetch('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+fb+',day,2023-01-01,2099-01-01,800,qfq',{cache:'no-store'});
+        const fr = full ? '2023-01-01,2099-01-01,800' : '2024-01-01,2099-01-01,80';
+        const r2=await fetchJSON('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+fb+',day,'+fr+',qfq',5000);
         if(r2.ok){const j2=await r2.json();const arr2=getKline(j2,fb);if(arr2&&arr2.length>=20){applyKlineTo(code,arr2,null);const dd=data[code];if(dd)dd.klineSrc='hk';return;}}
       }catch(e){}
     }
     // 兜底②：Yahoo Finance（覆盖全部美股；best-effort，浏览器 CORS 受限时可能失败）
     try{
-      const ac=new AbortController();const to=setTimeout(()=>ac.abort(),7000);
-      const yr=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',{signal:ac.signal,cache:'no-store'});
-      clearTimeout(to);
+      const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',7000);
       if(yr.ok){const yj=await yr.json();const arr=yahooToKline(yj);if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='yahoo';return;}}
     }catch(e){}
     return;
   }
-  // A股/港股：腾讯直连（CORS *）；本地代理优先
-  const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
+  // A股/港股：腾讯直连（CORS *）；本地代理优先。
+  // 主表只需近 ~80 天即可算 5/20/60 日，体积减小 ~8 倍、手机端极快；详情页传 full=true 取完整历史画 K 线。
+  const range = full ? '2023-01-01,2099-01-01,800' : '2024-01-01,2099-01-01,80';
+  const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+code+',day,'+range+',qfq';
   const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[]).concat([direct]);
   for(const url of urls){
-    for(let attempt=0; attempt<2; attempt++){
+    for(let attempt=0; attempt<3; attempt++){           // 手机端网络抖动：最多 3 次、指数退避，避免偶发失败导致 5/20/60 日显示「—」
       try{
-        const r=await fetch(url,{cache:'no-store'});
+        const r=await fetchJSON(url,5000);
         if(!r.ok)throw new Error('http '+(r.status||'err'));
         const j=await r.json();const arr=getKline(j,code);
         if(arr&&arr.length>=2){
@@ -977,7 +985,7 @@ async function fetchKlineOne(code){
           return;
         }
       }catch(e){}
-      if(attempt<1) await new Promise(r=>setTimeout(r,300));
+      if(attempt<2) await new Promise(r=>setTimeout(r, 200*(attempt+1) ));
     }
   }
 }
@@ -1001,11 +1009,16 @@ function applyKlineTo(code,arr,qb){
 }
 async function fetchKlineAll(){
   const codes=allCodes();
-  const STEP=6;                       // 限并发 6：避免手机端大量并行请求排队超时，导致 5/20/60 日显示「—」
-  for(let i=0;i<codes.length;i+=STEP){
-    const batch=codes.slice(i,i+STEP);
-    await Promise.all(batch.map(c=>fetchKlineOne(c).catch(()=>{})));
-    applyKline();                     // 每批完成后渐进式填充，手机端尽早看到数据
+  const a=[],us=[]; for(const c of codes)(c.startsWith('us')?us:a).push(c);
+  const SA=12;                                  // A股/港股：腾讯 CORS 稳、体积已缩小，高并发快速填充
+  for(let i=0;i<a.length;i+=SA){
+    await Promise.all(a.slice(i,i+SA).map(c=>fetchKlineOne(c,false).catch(()=>{})));
+    applyKline();                               // 每批完成即填充，手机端尽早看到 5/20/60 日
+  }
+  const SU=3;                                   // 美股：多兜底源、部分有长超时，低并发避免拖慢整体
+  for(let i=0;i<us.length;i+=SU){
+    await Promise.all(us.slice(i,i+SU).map(c=>fetchKlineOne(c,false).catch(()=>{})));
+    applyKline();
   }
   buildOverview();
 }
@@ -1457,8 +1470,8 @@ function ensureEcharts(){
 }
 async function ensureKline(code){
   const d=data[code];
-  if(d&&d.kline&&d.kline.length>=2)return true;
-  await fetchKlineOne(code);
+  if(d&&d.kline&&d.kline.length>=120)return true;   // 已含完整历史（主表只拉近 80 天，需升级为完整供 K 线图）
+  await fetchKlineOne(code,true);                    // 详情页要完整历史画 K 线
   const d2=data[code];
   return !!(d2&&d2.kline&&d2.kline.length>=2);
 }
