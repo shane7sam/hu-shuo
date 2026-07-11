@@ -886,7 +886,12 @@ async function fetchRealtime(){
   const codes=allCodes();const chunks=[];
   for(let i=0;i<codes.length;i+=90)chunks.push(codes.slice(i,i+90));
   const res=(await Promise.all(chunks.map(jsonpFetch))).flat();
-  res.forEach(r=>{const m=codeMeta[r.code]||{};data[r.code]={...m,...r,okRt:true};});
+  res.forEach(r=>{const m=codeMeta[r.code]||{};
+    // 保留 K 线衍生字段（p5/p20/p60/kline/pe/pb/klineSrc），防止行情刷新时把 5/20/60 日数据清空导致闪烁
+    const prev=data[r.code];
+    const kFields=prev?{p5:prev.p5,p20:prev.p20,p60:prev.p60,kline:prev.kline,pe:prev.pe,pb:prev.pb,klineSrc:prev.klineSrc}:{};
+    data[r.code]={...m,...r,...kFields,okRt:true};
+  });
   applyRealtime();
   buildOverview();
 }
@@ -938,35 +943,40 @@ async function fetchJSON(url, ms){
   finally{ clearTimeout(to); }
 }
 async function fetchKlineOne(code, full){
-  // 美股 K 线：主源走腾讯代理域 proxy.finance.qq.com（CORS 开放、全美股通用），分支内注释见下。
-  // 注意：① proxy.finance.qq.com 对美股 kline 返回完整历史；② 东方财富 105.<TICKER> 只对纳斯达克有效（纽交所 JNPR/GLW/BA­BA 等取不到 data），现统一改走腾讯代理域 proxy.finance.qq.com（CORS 开放、全美股通用）。
+  // ====== 美股 K 线 ======
+  // 腾讯 proxy.finance.qq.com 对美股返回 "param error"，不支持。
+  // 主源：东方财富 push2his（JSONP 脚本标签，浏览器可直连，无需 CORS）
+  // 兜底①：港股映射（LNVGY/NIO 有港股代码，腾讯 CORS 开放）
+  // 兜底②：Yahoo Finance（覆盖全美股，但无 CORS 头、浏览器 fetch 可能被拦截）
   if(code.startsWith('us')){
     const tk=code.slice(2).toUpperCase();
-    // 重要：腾讯 usfqkline 对美股仅返回 2 个点（IPO 日 + 最新日），无法绘制 K 线，已弃用。
-    // 主源改为东方财富 push2his（JSONP，浏览器可直连）：先 105(纳斯达克) 再 107(纽交所)。
+    let ok=false;
+    // 主源：push2his 先试纳斯达克(105)再试纽交所(107)
     for(const mkt of ['105','107']){
       try{
         const cb='_emKl'+Math.random().toString(36).slice(2);
         const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+mkt+'.'+tk+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
         const json=await jsonpKline(emUrl,cb);
         const arr=getKline(json,code);
-        if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='em';return;}
+        if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='em';ok=true;break;}
       }catch(e){}
     }
-    // 兜底①：港股代码（LNVGY/NIO 有港股，腾讯 CORS 开放、数据完整）。币种为港元，详情页注明。
+    if(ok)return;
+    // 兜底①：港股代码映射（仅 LNVGY/NIO 有港股对应）
     const fb=US_KLINE_FALLBACK[code];
     if(fb){
       try{
         const fr = full ? '2023-01-01,2099-01-01,800' : '2024-01-01,2099-01-01,80';
-        const r2=await fetchJSON('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+fb+',day,'+fr+',qfq',5000);
+        const r2=await fetchJSON('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+fb+',day,'+fr+',qfq',8000);
         if(r2.ok){const j2=await r2.json();const arr2=getKline(j2,fb);if(arr2&&arr2.length>=20){applyKlineTo(code,arr2,null);const dd=data[code];if(dd)dd.klineSrc='hk';return;}}
       }catch(e){}
     }
-    // 兜底②：Yahoo Finance（覆盖全部美股；best-effort，浏览器 CORS 受限时可能失败）
+    // 兜底②：Yahoo Finance（CORS 受限时浏览器 fetch 会拦截；best-effort）
     try{
-      const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',7000);
+      const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',10000);
       if(yr.ok){const yj=await yr.json();const arr=yahooToKline(yj);if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='yahoo';return;}}
     }catch(e){}
+    console.warn('[K线]美股',tk,'所有源均失败(push2his+HK映射+Yahoo)');
     return;
   }
   // A股/港股：腾讯直连（CORS *）；本地代理优先。
@@ -993,7 +1003,7 @@ async function fetchKlineOne(code, full){
 function jsonpKline(url,cb){
   return new Promise(resolve=>{
     let done=false;
-    const timer=setTimeout(()=>{if(done)return;done=true;cleanup();resolve(null);},9000);
+    const timer=setTimeout(()=>{if(done)return;done=true;cleanup();resolve(null);},15000);
     function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
     window[cb]=function(json){if(done)return;done=true;cleanup();resolve(json);};
     const s=document.createElement('script');s.id='emjs_'+cb;s.src=url;
@@ -2121,7 +2131,10 @@ async function fetchProxy(base){
   for(const code in j.quotes){
     const q=j.quotes[code];
     if(!q)continue;
-    data[code]={code,...(codeMeta[code]||{}),...q,okRt:true,okK:true};
+    // 保留 K 线衍生字段（p5/p20/p60/kline/pe/pb/klineSrc），防止代理刷新时把 5/20/60 日数据清空导致闪烁
+    const prev=data[code];
+    const kFields=prev?{p5:prev.p5,p20:prev.p20,p60:prev.p60,kline:prev.kline,pe:prev.pe,pb:prev.pb,klineSrc:prev.klineSrc}:{};
+    data[code]={code,...(codeMeta[code]||{}),...q,...kFields,okRt:true,okK:true};
   }
   applyRealtime();applyKline();buildOverview();
   return j.updated||'';
