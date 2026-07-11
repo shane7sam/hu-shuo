@@ -259,12 +259,12 @@
   @media(max-width:620px){
     .modal-panel{width:100%;height:100%;max-height:100vh}
     .chart-box{height:300px}
-    .d-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"back title close" "px px px";gap:8px 10px;align-items:center;padding:12px 14px}
-    .d-back{grid-area:back}
-    .d-head>div:first-of-type{grid-area:title;min-width:0}
-    .d-head .px{grid-area:px;margin-left:0;width:100%;text-align:left}
-    .d-close{grid-area:close}
-    /* 长名字（如 II-VI(Coherent)、超微(Supermicro)）在手机端不撑破网格：列可收缩 + 任意处断行 */
+    /* 手机端详情头部：用 flex 而非 grid-areas，避免部分移动端浏览器把返回/名字区域裁切隐藏；长名字任意处断行 */
+    .d-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;padding:12px 14px;position:relative}
+    .d-back{order:1;flex:0 0 auto}
+    .d-head>div:first-of-type{order:2;flex:1 1 auto;min-width:0}
+    .d-close{order:3;flex:0 0 auto}
+    .d-head .px{order:4;flex:0 0 100%;width:100%;margin-left:0;text-align:left}
     .d-head .nm,.d-head .meta{min-width:0;overflow-wrap:anywhere;word-break:break-word}
     .d-body{padding:12px 14px 36px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
     .ov-movers{grid-template-columns:1fr}
@@ -917,16 +917,20 @@ function periodPct(closes,n){
   return (closes[closes.length-1]-base)/base*100;
 }
 async function fetchKlineOne(code){
-  // 优先走本地代理 /api/kline（server.py 多源回退，含美股）；静态部署(proxyBase 为空)时走浏览器直连
-  const isUS=code.startsWith('us');
-  const path = isUS ? 'usfqkline/get' : 'fqkline/get';
-  const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/'+path+'?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
-  // 美股：腾讯 usfqkline 仅返回 1 天（不可用），改用东方财富 push2his（浏览器直连，CORS *，已验证 105.NVDA 返回 310 条日K）
-  const emSecid = isUS ? '105.'+code.slice(2).toUpperCase() : null;
-  const emUrl = emSecid ? 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+emSecid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101' : null;
-  const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[])
-    .concat(emUrl?[emUrl]:[])
-    .concat([direct]);
+  // 美股：腾讯 usfqkline 仅返回 1 天（接口废），改用东方财富 push2his JSONP（绕过 CORS；已验证 105.NVDA 返回 853 条日K）
+  if(code.startsWith('us')){
+    const cb='_emKl'+Math.random().toString(36).slice(2);
+    const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=105.'+code.slice(2).toUpperCase()+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
+    const json=await jsonpKline(emUrl,cb);
+    const arr=getKline(json,code);
+    if(arr&&arr.length>=2){applyKlineTo(code,arr,null);return;}
+    // 兜底：仍尝试腾讯直连（极端情况）
+    try{const r=await fetch('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/usfqkline/get?param='+code+',day,2023-01-01,2099-01-01,800,qfq',{cache:'no-store'});if(r.ok){const j=await r.json();const a=getKline(j,code);if(a&&a.length>=2){applyKlineTo(code,a,null);return;}}}catch(e){}
+    return;
+  }
+  // A股/港股：腾讯直连（CORS *）；本地代理优先
+  const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
+  const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[]).concat([direct]);
   for(const url of urls){
     for(let attempt=0; attempt<2; attempt++){
       try{
@@ -934,19 +938,31 @@ async function fetchKlineOne(code){
         if(!r.ok)throw new Error('http '+(r.status||'err'));
         const j=await r.json();const arr=getKline(j,code);
         if(arr&&arr.length>=2){
-          const closes=arr.map(e=>parseFloat(e[2]));
-          const d=data[code]||(data[code]={...codeMeta[code]});
-          d.p5=periodPct(closes,5);d.p20=periodPct(closes,20);d.p60=periodPct(closes,60);d.okK=true;
-          d.kline=arr;            // 存原始日K数组，供详情页绘制与技术分析
-          const qb=jsonQtBlock(j,code);   // 腾讯行情块：p[39]=市盈率(TTM)，p[46]=市净率(LF)
-          if(qb){const pb=parseFloat(qb[46]); if(isFinite(pb)&&pb>0) d.pb=pb;
-            const pe=parseFloat(qb[39]); if(isFinite(pe)&&pe>0) d.pe=pe;}
+          applyKlineTo(code,arr,jsonQtBlock(j,code));
           return;
         }
       }catch(e){}
       if(attempt<1) await new Promise(r=>setTimeout(r,300));
     }
   }
+}
+function jsonpKline(url,cb){
+  return new Promise(resolve=>{
+    let done=false;
+    const timer=setTimeout(()=>{if(done)return;done=true;cleanup();resolve(null);},9000);
+    function cleanup(){try{delete window[cb];}catch(e){}const s=document.getElementById('emjs_'+cb);if(s&&s.parentNode)s.parentNode.removeChild(s);clearTimeout(timer);}
+    window[cb]=function(json){if(done)return;done=true;cleanup();resolve(json);};
+    const s=document.createElement('script');s.id='emjs_'+cb;s.src=url;
+    s.onerror=()=>{if(done)return;done=true;cleanup();resolve(null);};
+    document.head.appendChild(s);
+  });
+}
+function applyKlineTo(code,arr,qb){
+  const closes=arr.map(e=>parseFloat(e[2]));
+  const d=data[code]||(data[code]={...codeMeta[code]});
+  d.p5=periodPct(closes,5);d.p20=periodPct(closes,20);d.p60=periodPct(closes,60);d.okK=true;
+  d.kline=arr;            // 存原始日K数组，供详情页绘制与技术分析
+  if(qb){const pb=parseFloat(qb[46]);if(isFinite(pb)&&pb>0)d.pb=pb;const pe=parseFloat(qb[39]);if(isFinite(pe)&&pe>0)d.pe=pe;}
 }
 async function fetchKlineAll(){
   const codes=allCodes();
@@ -1539,7 +1555,8 @@ function buildIntroHTML(code){
     h+=introRow('业务结构',p.biz);
     h+=introRow('竞争力 / 技术壁垒',p.edge);
     h+=introRow('在产业链的真实角色',p.role_in_ai);
-    if(p.perf)h+='<div class="ir"><span class="irk">'+escHtml('最新业绩')+'</span>'+renderPerf(p.perf)+'</div>';
+    // 始终保留 #dPerf 容器：先用档案 perf 占位，loadPerfBlock 抓到实时数据后覆盖（解决档案过期导致 Q1 显示暂未披露）
+    h+='<div class="ir"><span class="irk">最新业绩（实时）</span><div id="dPerf">'+(p.perf?renderPerf(p.perf):'')+'</div></div>';
     h+=introRow('主要风险',p.risk,true);
     h+='</div></div>';
     return h;
@@ -1626,9 +1643,8 @@ function applyH1Forecast(){
 }
 async function loadPerfBlock(code){
   const el=document.getElementById('dPerf');if(!el)return;
-  const p=PROFILES[code];
-  if(p&&p.perf)return;
-  el.innerHTML='<div class="d-note">正在抓取最新业绩报表（实时）…</div>';
+  // 若已有占位内容（档案 perf）则不闪烁清空；否则显示加载中
+  if(!el.innerHTML.trim())el.innerHTML='<div class="d-note">正在抓取最新业绩报表（实时）…</div>';
   try{
     const obj=await fetchPerfLive(code);
     if(obj)el.innerHTML=renderPerfLive(obj);
