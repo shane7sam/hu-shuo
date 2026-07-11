@@ -917,30 +917,32 @@ function periodPct(closes,n){
   return (closes[closes.length-1]-base)/base*100;
 }
 async function fetchKlineOne(code){
-  // 美股：腾讯 web.ifzq.gtimg.cn 源站日K 对纳斯达克+纽交所全通用（返回完整历史）。
-  // 注意：① proxy.finance.qq.com 对美股 kline 仅返回 1 天；② 东方财富 105.<TICKER> 只对纳斯达克有效（纽交所 JNPR/GLW/BA­BA 等取不到 data），故统一走腾讯源站；东方财富 JSONP 仅作兜底。
+  // 美股 K 线：主源走腾讯代理域 proxy.finance.qq.com（CORS 开放、全美股通用），分支内注释见下。
+  // 注意：① proxy.finance.qq.com 对美股 kline 返回完整历史；② 东方财富 105.<TICKER> 只对纳斯达克有效（纽交所 JNPR/GLW/BA­BA 等取不到 data），现统一改走腾讯代理域 proxy.finance.qq.com（CORS 开放、全美股通用）。
   if(code.startsWith('us')){
-    const tencent='https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
+    // 主源：腾讯代理域 proxy.finance.qq.com（与 A/港股同源，CORS 开放，浏览器可直连），
+    // 对纳斯达克+纽交所全美股返回完整历史日K（实测 usNVDA/usJNPR 均含 2026-07-10 最新交易日）。
+    // 注：腾讯源站 web.ifzq.gtimg.cn 虽也返回完整历史，但无 CORS 头、不支持 JSONP，浏览器 fetch 被跨域拦截，故不可用；
+    //     东方财富 push2his 的 105.<TICKER> 只对纳斯达克有效（纽交所 JNPR/GLW/BABA 等取不到 data），仅作极端兜底。
+    const url='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/usfqkline/get?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
     for(let attempt=0;attempt<2;attempt++){
       try{
-        const r=await fetch(tencent,{cache:'no-store'});
+        const r=await fetch(url,{cache:'no-store'});
         if(!r.ok)throw new Error('http '+(r.status||'err'));
-        const j=await r.json();const a=getKline(j,code);
-        if(a&&a.length>=2){applyKlineTo(code,a,null);return;}
+        const j=await r.json();const arr=getKline(j,code);
+        if(arr&&arr.length>=2){applyKlineTo(code,arr,null);return;}
       }catch(e){}
       if(attempt<1)await new Promise(r=>setTimeout(r,300));
     }
-    // 兜底：东方财富 push2his JSONP（纳斯达克 ticker 可用；极端情况备份）
+    // 兜底：东方财富 push2his JSONP（纳斯达克 ticker 可用）
     const tk=code.slice(2).toUpperCase();
-    for(const pre of ['105','107']){
-      try{
-        const cb='_emKl'+Math.random().toString(36).slice(2);
-        const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+pre+'.'+tk+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
-        const json=await jsonpKline(emUrl,cb);
-        const arr=getKline(json,code);
-        if(arr&&arr.length>=2){applyKlineTo(code,arr,null);return;}
-      }catch(e){}
-    }
+    try{
+      const cb='_emKl'+Math.random().toString(36).slice(2);
+      const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=105.'+tk+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
+      const json=await jsonpKline(emUrl,cb);
+      const arr=getKline(json,code);
+      if(arr&&arr.length>=2){applyKlineTo(code,arr,null);return;}
+    }catch(e){}
     return;
   }
   // A股/港股：腾讯直连（CORS *）；本地代理优先
@@ -1047,7 +1049,7 @@ function buildOverview(){
   if(us.length){
     const usSorted=[...us].sort((a,b)=>b.day-a.day);
     usHtml=`<div class="ov-us"><h4>美股 · 领涨概念（单列，不参与 TOP 排行）</h4><div class="us-list">`+
-      usSorted.map(d=>`<div class="us-row clickable" data-detail="${d.code}"><span class="us-nm">${d.name}<span class="us-sec">${d.sector||'—'}</span></span><span class="${cls(d.day)}">${sign(d.day)}${d.day.toFixed(2)}%</span></div>`).join('')+
+      usSorted.map(d=>`<div class="us-row clickable" data-detail="${d.code}"><span class="us-nm">${(codeMeta[d.code]&&codeMeta[d.code].name)||d.name||d.code}<span class="us-sec">${d.sector||'—'}</span></span><span class="${cls(d.day)}">${sign(d.day)}${d.day.toFixed(2)}%</span></div>`).join('')+
       `</div><div class="d-note">美股仅作领涨概念展示（含对应产业链环节），不计入上方涨跌分布与 TOP 排行。</div></div>`;
   }
   ov.innerHTML=`
@@ -1458,7 +1460,26 @@ function renderKlineChart(m){
   klineChart.setOption({
     backgroundColor:'transparent',animation:false,
     legend:{data:['日K','MA5','MA10','MA20','MA60'],textStyle:{color:'#9aa3b2'},top:0},
-    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#1d212b',borderColor:'#2a2f3a',textStyle:{color:'#e6e9ef'}},
+    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#1d212b',borderColor:'#2a2f3a',textStyle:{color:'#e6e9ef'},
+      formatter:function(ps){
+        if(!ps||!ps.length)return '';
+        const idx=ps[0].dataIndex;const dt=m.dates[idx]||'';
+        let s='<div style="font-size:12px;color:#9aa3b2;margin-bottom:3px">'+dt+'</div>';
+        for(const p of ps){
+          const v=p.value;
+          if(p.seriesName==='日K'&&Array.isArray(v)){
+            let o,c,l,h;
+            if(v.length>=5){o=v[1];c=v[2];l=v[3];h=v[4];}
+            else if(v.length>=4){o=v[0];c=v[1];l=v[2];h=v[3];}
+            if(o!=null)s+='<div style="margin:1px 0">'+p.marker+'开 '+o+'　收 '+c+'　低 '+l+'　高 '+h+'</div>';
+          } else if(typeof v==='number'&&isFinite(v)){
+            s+='<div style="margin:1px 0">'+p.marker+p.seriesName+' '+v+'</div>';
+          } else if(v&&typeof v==='object'&&v.value!=null){
+            s+='<div style="margin:1px 0">'+p.marker+p.seriesName+' '+v.value+'</div>';
+          }
+        }
+        return s;
+      }},
     axisPointer:{link:[{xAxisIndex:'all'}]},
     grid:[{left:56,right:16,top:34,height:'56%'},{left:56,right:16,top:'74%',height:'16%'}],
     xAxis:[{type:'category',data:m.dates,axisLine:{lineStyle:{color:'#2a2f3a'}},axisLabel:{color:'#9aa3b2'},boundaryGap:false},
