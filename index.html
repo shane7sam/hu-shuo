@@ -918,6 +918,19 @@ function getKline(json,code){
   }
   return null;
 }
+// 东方财富 push2his K线解析：响应按 secid 嵌套 —— json.data['105.NVDA'].klines = ["date,o,c,h,l,v",...]
+// getKline(json,'usNVDA') 按 usNVDA 查不到该节点，故用本函数遍历 json.data 任一含 .klines 的节点。
+function parseEMKline(json){
+  const d=json&&json.data;if(!d)return null;
+  if(Array.isArray(d.klines)) return d.klines.map(s=>{const p=String(s).split(',');return [p[0],p[1],p[2],p[3],p[4],p[5]];});
+  for(const k in d){
+    const node=d[k];
+    if(node&&Array.isArray(node.klines)&&node.klines.length){
+      return node.klines.map(s=>{const p=String(s).split(',');return [p[0],p[1],p[2],p[3],p[4],p[5]];});
+    }
+  }
+  return null;
+}
 function yahooToKline(json){
   const r=json&&json.chart&&json.chart.result&&json.chart.result[0];
   if(!r||!r.timestamp||!r.indicators||!r.indicators.quote||!r.indicators.quote[0])return null;
@@ -951,18 +964,26 @@ async function fetchKlineOne(code, full){
   if(code.startsWith('us')){
     const tk=code.slice(2).toUpperCase();
     let ok=false;
-    // 主源：push2his 先试纳斯达克(105)再试纽交所(107)
+    // 可选主源：Cloudflare Worker 代理（覆盖全部美股，含纽交所；服务端带 Referer 抓 Yahoo/push2his，开放 CORS）
+    if(KLINE_PROXY){
+      try{
+        const r=await fetchJSON(KLINE_PROXY+'/api/kline?code='+encodeURIComponent(code),12000);
+        if(r.ok){const j=await r.json();const arr=parseEMKline(j)||getKline(j,code);if(arr&&arr.length>=2){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='proxy';return;}}
+      }catch(e){}
+    }
+    // 主源：东方财富 push2his（JSONP 脚本标签，浏览器可直连，无需 CORS）
+    // 注意：push2his 仅纳斯达克(105)稳定可用，纽交所(107)多数返回 data:null；NYSE 美股靠下方 Yahoo 兜底。
     for(const mkt of ['105','107']){
       try{
         const cb='_emKl'+Math.random().toString(36).slice(2);
         const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+mkt+'.'+tk+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
         const json=await jsonpKline(emUrl,cb);
-        const arr=getKline(json,code);
+        const arr=parseEMKline(json);
         if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='em';ok=true;break;}
       }catch(e){}
     }
     if(ok)return;
-    // 兜底①：港股代码映射（仅 LNVGY/NIO 有港股对应）
+    // 兜底①：港股代码映射（仅 LNVGY/NIO 有港股对应，腾讯 CORS 开放）
     const fb=US_KLINE_FALLBACK[code];
     if(fb){
       try{
@@ -971,7 +992,7 @@ async function fetchKlineOne(code, full){
         if(r2.ok){const j2=await r2.json();const arr2=getKline(j2,fb);if(arr2&&arr2.length>=20){applyKlineTo(code,arr2,null);const dd=data[code];if(dd)dd.klineSrc='hk';return;}}
       }catch(e){}
     }
-    // 兜底②：Yahoo Finance（CORS 受限时浏览器 fetch 会拦截；best-effort）
+    // 兜底②：Yahoo Finance（覆盖全部美股；浏览器直连可能因无 CORS 被拦截，best-effort）
     try{
       const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',10000);
       if(yr.ok){const yj=await yr.json();const arr=yahooToKline(yj);if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='yahoo';return;}}
@@ -1921,6 +1942,7 @@ function introRow(k,v,risk){
   return '<div class="ir'+(risk?' risk':'')+'"><span class="irk">'+escHtml(k)+'</span><p>'+escHtml(v)+'</p></div>';
 }
 const ANN_PROXY='';  // 公告/要闻默认走东方财富 search-api-web JSONP 直连（按股票名称检索、按时间排序，自带摘要与原文链接）。如需自建代理兜底，可填 Cloudflare Worker 地址，但其路由需返回 {ann:[],news:[]} 结构，本版未再调用该代理。
+const KLINE_PROXY=''; // 美股 K 线代理（Cloudflare Worker，可选）。填后美股（含纽交所）K 线改走 Worker 代理 Yahoo/push2his，覆盖最全、最稳；留空则纳斯达克走 push2his JSONP、纽交所靠 Yahoo 直连（可能受 CORS 限制）。部署见 worker.js 的 /api/kline 路由。
 // 公告类型标签（按标题关键词识别，突出“重大”事项）
 function annTag(t){
   if(/业绩|财报|一季|半年|年报|季报|预告|快报/.test(t))return{tx:'业绩',cls:'t-blue'};
