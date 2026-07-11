@@ -23,10 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # GitHub Pages 以 index.html 为入口；本项目仪表盘是 ai-industry-chain.html，
-      # 复制为 index.html 供 Pages 根路径直接访问（不污染仓库，仅 CI 内临时生成）。
+      # 仓库中已有 index.html 则直接使用；否则从 ai-industry-chain.html 复制。
       - name: Prepare index.html
-        run: cp ai-industry-chain.html index.html
+        run: |
+          if [ -f ai-industry-chain.html ]; then
+            cp ai-industry-chain.html index.html
+          elif [ ! -f index.html ]; then
+            echo "Error: Neither ai-industry-chain.html nor index.html found!" >&2
+            exit 1
+          fi
 
       - uses: actions/configure-pages@v5
 
