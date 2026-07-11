@@ -917,15 +917,30 @@ function periodPct(closes,n){
   return (closes[closes.length-1]-base)/base*100;
 }
 async function fetchKlineOne(code){
-  // 美股：腾讯 usfqkline 仅返回 1 天（接口废），改用东方财富 push2his JSONP（绕过 CORS；已验证 105.NVDA 返回 853 条日K）
+  // 美股：腾讯 web.ifzq.gtimg.cn 源站日K 对纳斯达克+纽交所全通用（返回完整历史）。
+  // 注意：① proxy.finance.qq.com 对美股 kline 仅返回 1 天；② 东方财富 105.<TICKER> 只对纳斯达克有效（纽交所 JNPR/GLW/BA­BA 等取不到 data），故统一走腾讯源站；东方财富 JSONP 仅作兜底。
   if(code.startsWith('us')){
-    const cb='_emKl'+Math.random().toString(36).slice(2);
-    const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=105.'+code.slice(2).toUpperCase()+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
-    const json=await jsonpKline(emUrl,cb);
-    const arr=getKline(json,code);
-    if(arr&&arr.length>=2){applyKlineTo(code,arr,null);return;}
-    // 兜底：仍尝试腾讯直连（极端情况）
-    try{const r=await fetch('https://proxy.finance.qq.com/ifzqgtimg/appstock/app/usfqkline/get?param='+code+',day,2023-01-01,2099-01-01,800,qfq',{cache:'no-store'});if(r.ok){const j=await r.json();const a=getKline(j,code);if(a&&a.length>=2){applyKlineTo(code,a,null);return;}}}catch(e){}
+    const tencent='https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
+    for(let attempt=0;attempt<2;attempt++){
+      try{
+        const r=await fetch(tencent,{cache:'no-store'});
+        if(!r.ok)throw new Error('http '+(r.status||'err'));
+        const j=await r.json();const a=getKline(j,code);
+        if(a&&a.length>=2){applyKlineTo(code,a,null);return;}
+      }catch(e){}
+      if(attempt<1)await new Promise(r=>setTimeout(r,300));
+    }
+    // 兜底：东方财富 push2his JSONP（纳斯达克 ticker 可用；极端情况备份）
+    const tk=code.slice(2).toUpperCase();
+    for(const pre of ['105','107']){
+      try{
+        const cb='_emKl'+Math.random().toString(36).slice(2);
+        const emUrl='https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+pre+'.'+tk+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101&cb='+cb;
+        const json=await jsonpKline(emUrl,cb);
+        const arr=getKline(json,code);
+        if(arr&&arr.length>=2){applyKlineTo(code,arr,null);return;}
+      }catch(e){}
+    }
     return;
   }
   // A股/港股：腾讯直连（CORS *）；本地代理优先
