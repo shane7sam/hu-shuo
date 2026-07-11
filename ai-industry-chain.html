@@ -160,7 +160,7 @@
   .card-head .ic svg{width:17px;height:17px}
   .card-head h3{font-size:14px;font-weight:650}
   .card-head .cnt{margin-left:auto;font-size:11px;color:var(--sub);background:var(--panel-2);padding:2px 8px;border-radius:10px}
-  .col-head,.stock{display:grid;grid-template-columns:minmax(0,1fr) 92px 156px;align-items:center;gap:10px}
+  .col-head,.stock{display:grid;grid-template-columns:minmax(0,1fr) 84px 172px;align-items:center;gap:10px}
   .col-head{font-size:11px;color:var(--sub);padding:8px 10px 6px;border-bottom:1px solid var(--line)}
   .col-head .ch-id{min-width:0;text-align:left;overflow:hidden}
   .col-head .ch-pd{min-width:0;text-align:right;line-height:1.25}
@@ -198,7 +198,7 @@
     .ov-layers{grid-template-columns:1fr}
     .toprow{grid-template-columns:1fr}
     input[type=search]{width:150px}
-    .col-head,.stock{grid-template-columns:minmax(0,1fr) 70px 116px;gap:6px;padding-left:8px;padding-right:8px}
+    .col-head,.stock{grid-template-columns:minmax(0,1fr) 70px 128px;gap:6px;padding-left:8px;padding-right:8px}
     .col-head{padding-top:6px;padding-bottom:4px}
     .stock{padding:8px}
     .stock .s-pd .price{font-size:13px}
@@ -899,9 +899,15 @@ function applyRealtime(){
   }
 }
 function getKline(json,code){
-  const d=json&&json.data&&json.data[code];if(!d)return null;
-  for(const k of ['qfqday','day'])if(Array.isArray(d[k]))return d[k];
-  for(const k in d)if(Array.isArray(d[k])&&Array.isArray(d[k][0]))return d[k];
+  const d=json&&json.data&&json.data[code];
+  if(d){
+    for(const k of ['qfqday','day'])if(Array.isArray(d[k]))return d[k];
+    for(const k in d)if(Array.isArray(d[k])&&Array.isArray(d[k][0]))return d[k];
+  }
+  // 东方财富（美股等）：klines 为逗号分隔字符串数组 date,open,close,high,low,volume
+  if(json&&json.data&&Array.isArray(json.data.klines)){
+    return json.data.klines.map(s=>{const p=s.split(',');return [p[0],p[1],p[2],p[3],p[4],p[5]];});
+  }
   return null;
 }
 function periodPct(closes,n){
@@ -909,10 +915,16 @@ function periodPct(closes,n){
   return (closes[closes.length-1]-base)/base*100;
 }
 async function fetchKlineOne(code){
-  // 优先走本地代理 /api/kline（沙箱服务端抓取，规避本机跨域/区域拦截）；不可达再直连腾讯
-  const path = code.startsWith('us') ? 'usfqkline/get' : 'fqkline/get';
+  // 优先走本地代理 /api/kline（server.py 多源回退，含美股）；静态部署(proxyBase 为空)时走浏览器直连
+  const isUS=code.startsWith('us');
+  const path = isUS ? 'usfqkline/get' : 'fqkline/get';
   const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/'+path+'?param='+code+',day,2023-01-01,2099-01-01,800,qfq';
-  const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[]).concat([direct]);
+  // 美股：腾讯 usfqkline 仅返回 1 天（不可用），改用东方财富 push2his（浏览器直连，CORS *，已验证 105.NVDA 返回 310 条日K）
+  const emSecid = isUS ? '105.'+code.slice(2).toUpperCase() : null;
+  const emUrl = emSecid ? 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+emSecid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=0&beg=20230101&end=20990101' : null;
+  const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[])
+    .concat(emUrl?[emUrl]:[])
+    .concat([direct]);
   for(const url of urls){
     for(let attempt=0; attempt<2; attempt++){
       try{
