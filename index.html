@@ -46,7 +46,15 @@
   .search-results .sr-board{flex:0 0 auto;font-size:10px;color:var(--sub);border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-left:auto}
   .search-results .sr-empty{padding:14px 8px;color:var(--sub);font-size:12.5px;text-align:center}
   .search-results .sr-hint{padding:8px 10px;color:var(--sub);font-size:11px;border-top:1px solid var(--line);margin-top:4px}
-  @media(max-width:780px){.stock-search input[type=search]{width:160px}.search-results{width:240px}}
+  @media(max-width:780px){.stock-search input[type=search]{width:160px}.search-results{width:260px}}
+  /* 手机搜索：输入框独占一行、下拉从底部弹出不溢出 */
+  @media(max-width:600px){
+    .stock-search{width:100%;order:99;margin-top:6px;flex:1 1 100%}
+    .stock-search input[type=search]{width:100%;box-sizing:border-box;font-size:15px;padding:10px 14px;border-radius:10px}
+    .search-results{position:fixed;top:auto;bottom:0;left:0;right:0;width:100%;max-height:55vh;border-radius:14px 14px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.42);margin:0;z-index:55;padding:8px}
+    .search-results .sr-item{padding:10px 12px;font-size:14px}
+    .sr-hint{padding:10px 12px;font-size:12px}
+  }
   main{padding:18px 20px 60px;max-width:1540px;margin:0 auto}
   .legend{display:flex;gap:12px;font-size:12px;color:var(--sub);align-items:center}
   .up-chip{color:var(--up)}.down-chip{color:var(--down)}
@@ -432,6 +440,25 @@
   .fn-ind-switch button.active{color:#fff;font-weight:700}
   .float-nav.collapsed .fn-ind-switch{display:none}
   @media(max-width:1100px){.float-nav{display:none}}
+  /* 手机端底部产业链快捷栏 */
+  .mob-ind-bar{display:none}
+  @media(max-width:620px){
+    .mob-ind-bar{
+      display:flex;position:fixed;bottom:0;left:0;right:0;z-index:45;
+      background:var(--panel);border-top:1px solid var(--line);
+      padding:7px 10px;gap:6px;
+      box-shadow:0 -4px 16px rgba(0,0,0,.2);
+      padding-bottom:max(7px,env(safe-area-inset-bottom,7px))
+    }
+    .mob-ind-bar button{
+      flex:1;font-size:11.5px;font-weight:600;padding:9px 2px;border-radius:8px;
+      border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      transition:.12s
+    }
+    .mob-ind-bar button.active{color:#fff;font-weight:700}
+    main{padding-bottom:72px}/* 为底部栏留空间 */
+  }
 </style>
 </head>
 <body>
@@ -470,6 +497,8 @@
   实时行情：腾讯证券（<code>qt.gtimg.cn</code>，JSONP 浏览器直连）；A 股 / 港股 / 美股前复权日 K 线：腾讯（<code>proxy.finance.qq.com</code>，浏览器直连）。区间涨跌为前复权收盘价口径。<br>
   日涨跌为实时报价，5/20/60 日为前复权区间涨跌幅；北交所仅有实时报价、无浏览器可直连的日 K 线源，故其 5/20/60 日显示「—」。本页为纯静态站点，可托管于 GitHub Pages 等任意静态空间，仅供信息展示，不构成投资建议。
 </footer>
+<!-- 手机端底部产业链快捷栏（≤620px 显示） -->
+<div class="mob-ind-bar" id="mobIndBar"></div>
 <div id="detail" class="modal hidden">
   <div class="modal-mask"></div>
   <div class="modal-panel">
@@ -3878,6 +3907,15 @@ function setIndustry(ind){
     x.style.borderColor=on?col:'';
     x.style.color=on?'#fff':col;
   });
+  /* 同步手机底部产业链栏 */
+  document.querySelectorAll('#mobIndBar button').forEach(x=>{
+    const on=x.dataset.ind===ind;
+    x.classList.toggle('active',on);
+    const col=(INDUSTRIES.find(i=>i.key===ind)||{}).color||'var(--midstream)';
+    x.style.background=on?col:'';
+    x.style.borderColor=on?col:'';
+    x.style.color=on?'#fff':col;
+  });
   applyFilter();buildOverview();buildFloatNav();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -3925,6 +3963,20 @@ function buildFloatNav(){
   nav.querySelectorAll('.fn-ind-btn').forEach(b=>{
     b.addEventListener('click',()=>setIndustry(b.dataset.ind));
   });
+  // 手机端底部产业链栏
+  const mbar=document.getElementById('mobIndBar');
+  if(mbar){
+    const indLabels={ai:'AI智能',space:'航天',robot:'机器人',bio:'创新药'};
+    mbar.innerHTML=INDUSTRIES.map(i=>{
+      const on=i.key===activeIndustry;
+      const col=i.color;
+      const style=on?`background:${col};border-color:${col};color:#fff`:`color:${col}`;
+      return `<button data-ind="${i.key}" style="${style}">${indLabels[i.key]||i.label}</button>`;
+    }).join('');
+    mbar.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click',()=>setIndustry(b.dataset.ind));
+    });
+  }
   // scroll-spy
   requestAnimationFrame(()=>initScrollSpy());
 }
@@ -4143,6 +4195,7 @@ async function fetchJSON(url, ms){
   try{ return await fetch(url,{signal:ac.signal,cache:'no-store'}); }
   finally{ clearTimeout(to); }
 }
+const FIVE_YEARS_BARS=1300; // 约 5 年交易日，K 线/估值统一窗口上限（不足 5 年则取最长可用）
 async function fetchKlineOne(code, full){
   // ====== 美股 K 线（多源容错，不再单点依赖 Worker）======
   // 此前云端(github.io)一旦 Cloudflare Worker 失联、且静态快照未随仓库部署，美股 K 线即全黑。
@@ -4191,7 +4244,7 @@ async function fetchKlineOne(code, full){
     // 5) Yahoo（仅本地 server.py 代理下可达；浏览器端常被 CORS 拦截，best-effort）
     if(isLocal){
       try{
-        const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=2y&interval=1d',10000);
+        const yr=await fetchJSON('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=5y&interval=1d',10000);
         if(yr.ok){const yj=await yr.json();const arr=yahooToKline(yj);if(arr&&arr.length>=20){applyKlineTo(code,arr,null);const dd=data[code];if(dd)dd.klineSrc='yahoo';return;}}
       }catch(e){}
     }
@@ -4202,29 +4255,33 @@ async function fetchKlineOne(code, full){
     console.warn('[K线]美股',tk,'所有源均失败');
     return;
   }
-  // A股/港股：腾讯直连（CORS *）；本地代理优先。
+  // A股/港股：腾讯直连（CORS *）；本地代理可作为补充，但绝不作为唯一来源（否则详情页只拿到代理的 ~80 天，导致云端/手机/本地 K 线长度不一致、估值水位错位）。
   // 主表只需近 ~80 天即可算 5/20/60 日，体积减小 ~8 倍、手机端极快；详情页传 full=true 取完整历史画 K 线。
-  // 腾讯日K线硬上限约640条/请求且忽略 beg，仅返回"截至 end 的最近640条"；故 full 模式须按 end 锚定分段拼接才能凑满5年。
-  const segs = full
-    ? [['2021-01-01','2023-11-16','1500'],['2023-11-17','2099-01-01','1500']]
-    : [['2024-01-01','2099-01-01','80']];
+  // 腾讯日K线硬上限约640条/请求且忽略 beg，仅返回"截至 end 的最近 N 条"；故 full 模式用 3 段锚定 end 拼接，保证覆盖 ≥5 年；
+  // 最后统一截断到最近 FIVE_YEARS_BARS（约 5 年），不足则保留全部（"不足 5 年按最长时间"）。
   const timeout = full ? 9000 : 12000;          // 主表 12s 超时；详情页 9s（分段，稍宽松）
   let merged=[], lastQb=null;
+  // 本地代理（server.py）若有更实时数据，先合并进来；但绝不因它短区间而跳过腾讯全量分段。
+  if(proxyBase){
+    try{
+      const r=await fetchJSON(proxyBase+'/api/kline?code='+encodeURIComponent(code), full?6000:timeout);
+      if(r.ok){const j=await r.json();const arr=getKline(j,code);if(arr&&arr.length>=2){merged=mergeKline(merged,arr);lastQb=jsonQtBlock(j,code);}}
+    }catch(e){}
+  }
+  const segs = full
+    ? [['2020-01-01','2022-06-30','1500'],['2022-07-01','2024-12-31','1500'],['2025-01-01','2099-01-01','1500']]
+    : [['2024-01-01','2099-01-01','80']];
   for(const [bs,es,lm] of segs){
     const direct='https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get?param='+code+',day,'+bs+','+es+','+lm+',qfq';
-    const urls=(proxyBase?[proxyBase+'/api/kline?code='+encodeURIComponent(code)]:[]).concat([direct]);
-    for(const url of urls){
-      let ok=false;
-      for(let attempt=0; attempt<2; attempt++){
-        try{
-          const r=await fetchJSON(url,timeout);
-          if(!r.ok)throw new Error('http '+(r.status||'err'));
-          const j=await r.json();const arr=getKline(j,code);
-          if(arr&&arr.length>=2){ merged=mergeKline(merged,arr); lastQb=jsonQtBlock(j,code); ok=true; break; }
-        }catch(e){}
-        if(attempt<1) await new Promise(r=>setTimeout(r,400));
-      }
-      if(ok) break;        // 本段已从某源取到，转下一段
+    let ok=false;
+    for(let attempt=0; attempt<2 && !ok; attempt++){
+      try{
+        const r=await fetchJSON(direct,timeout);
+        if(!r.ok)throw new Error('http '+(r.status||'err'));
+        const j=await r.json();const arr=getKline(j,code);
+        if(arr&&arr.length>=2){ merged=mergeKline(merged,arr); lastQb=jsonQtBlock(j,code); ok=true; }
+      }catch(e){}
+      if(!ok && attempt<1) await new Promise(r=>setTimeout(r,400));
     }
   }
   // 港股 fallback：腾讯对港股日 K 线硬限约 9 条（limit/beg 参数均无效），不足时用东财 push2his JSONP 补充完整历史。
@@ -4247,7 +4304,7 @@ async function fetchKlineOne(code, full){
       if(aShareCode){
         try{
           const segs = full
-            ? [['2021-01-01','2023-11-16','1500'],['2023-11-17','2099-01-01','1500']]
+            ? [['2020-01-01','2022-06-30','1500'],['2022-07-01','2024-12-31','1500'],['2025-01-01','2099-01-01','1500']]
             : [['2024-01-01','2099-01-01','80']];
           let aMerged=[];
           for(const [bs,es,lm] of segs){
@@ -4269,6 +4326,8 @@ async function fetchKlineOne(code, full){
       }
     }
   }
+  // 统一截断到最近 5 年（约 FIVE_YEARS_BARS 交易日）；不足 5 年则保留全部——保证云端/手机/本地 K 线与估值窗口口径一致。
+  if(merged.length>FIVE_YEARS_BARS) merged=merged.slice(-FIVE_YEARS_BARS);
   if(merged.length){ applyKlineTo(code,merged,lastQb); return; }
 }
 function jsonpKline(url,cb){
