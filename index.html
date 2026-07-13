@@ -517,7 +517,7 @@
 <footer>
   实时行情：腾讯证券（<code>qt.gtimg.cn</code>，JSONP 浏览器直连）；A 股 / 港股 / 美股前复权日 K 线：腾讯（<code>proxy.finance.qq.com</code>，浏览器直连）。区间涨跌为前复权收盘价口径。<br>
   日涨跌为实时报价，5/20/60 日为前复权区间涨跌幅；北交所仅有实时报价、无浏览器可直连的日 K 线源，故其 5/20/60 日显示「—」。本页为纯静态站点，可托管于 GitHub Pages 等任意静态空间，仅供信息展示，不构成投资建议。<br>
-  <span style="font-size:11px;color:var(--sub)">v2026.07.13-2</span>
+  <span style="font-size:11px;color:var(--sub)">v2026.07.13-3</span>
 </footer>
 <!-- 手机端底部产业链快捷栏（≤620px 显示） -->
 <div class="mob-ind-bar" id="mobIndBar"></div>
@@ -4922,7 +4922,7 @@ function buildTechHTML(m){
   ];
   const vlabelCls=m.verdict==='看多'?'up':m.verdict==='看空'?'down':'flat';
   let html=`<div class="verdict"><div class="vh"><span class="vlabel ${vlabelCls}">${m.verdict}</span><span class="score">综合技术评分 ${m.score>0?'+':''}${m.score.toFixed(1)}（区间约 -7 ~ +7）</span></div><ul class="vreason">`;
-  html+=`<li>现价 <b>${f(c)}</b>；近 20 日区间 <b>${f(m.lo20)}</b>–<b>${f(m.hi20)}</b>，近 60 日区间 <b>${f(m.lo60)}</b>–<b>${f(m.hi60)}</b>。</li>`;
+  html+=`<li>现价 <b>${f(c)}</b>；近 20 日收盘区间 <b>${f(m.lo20)}</b>–<b>${f(m.hi20)}</b>，近 1 年高低区间 <b>${f(Math.min.apply(null,m.lows.slice(-250)))}</b>–<b>${f(Math.max.apply(null,m.highs.slice(-250)))}</b>。</li>`;
   html+=`<li>${maTxt}。</li>`;
   html+=`<li>MACD：${macdTxt}；KDJ：${kdjTxt}；RSI：${rsiTxt}；BOLL：${bollTxt}。</li>`;
   if(volTxt)html+=`<li>量能：${volTxt}。</li>`;
@@ -5320,12 +5320,18 @@ function closeDetail(){
   if(peChart){peChart.dispose();peChart=null;}
 }
 function loadRiskBlock(code, m){
-  // 按最新行情动态评估风险：水位分位（综合 PE/PB）、价格 60 日位置、近 60 日最大回撤、年化波动率、技术面 → 综合风险评级
+  // 按最新行情动态评估风险：估值水位（近5年 PE/PB 分位）、价格 1 年位置、近 1 年最大回撤、年化波动率、技术面 → 综合风险评级
   const el=document.getElementById('dRiskLive'); if(!el)return;
   if(!m){el.innerHTML='<span class="d-note">无日 K 线数据，无法评估行情风险。</span>';return;}
   const c=m.c;
-  const pos=(m.hi60>m.lo60)?((c-m.lo60)/(m.hi60-m.lo60)*100):50;            // 现价处近 60 日区间的位置（%）
-  const w=m.closes.slice(-60); const peak=Math.max.apply(null,w); const dd=peak>0?((peak-c)/peak*100):0; // 近 60 日最大回撤
+  const pf=x=>(x==null?'—':(+x).toFixed(2));
+  // 价格位置：近 1 年（250 交易日）【最高价~最低价】真实波动区间（标准 52 周区间口径）。
+  // 估值用近 5 年、行情风险用近 1 年，两套窗口各自标注、不混为一谈；实时价若短暂越界则钳制到 [0,100]。
+  const loR=Math.min.apply(null,m.lows.slice(-250));
+  const hiR=Math.max.apply(null,m.highs.slice(-250));
+  let pos=(hiR>loR)?((c-loR)/(hiR-loR)*100):50;
+  pos=Math.max(0,Math.min(100,pos));
+  const w=m.closes.slice(-250); const peak=Math.max.apply(null,w); const dd=peak>0?((peak-c)/peak*100):0; // 近 1 年最大回撤
   const rets=[]; for(let i=1;i<w.length;i++){if(w[i-1])rets.push(w[i]/w[i-1]-1);}
   const mean=rets.reduce((a,b)=>a+b,0)/rets.length;
   const variance=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/rets.length;
@@ -5335,10 +5341,10 @@ function loadRiskBlock(code, m){
   const peQ=m.peStats&&m.peConform?m.peStats.q:null;
   let score=0; const reasons=[];
   // 价格位置：高位追高风险；低位本身不额外加分，避免“底部”被误判为“高风险”
-  if(pos>85){score+=2;reasons.push('现价处近60日高位（'+pos.toFixed(0)+'%分位），追高风险');}
-  else if(pos<15){reasons.push('现价处近60日低位（'+pos.toFixed(0)+'%分位），短期偏弱或超跌');}
-  if(dd>30){score+=2;reasons.push('近60日最大回撤'+dd.toFixed(0)+'%，下行波动较大');}
-  else if(dd>15){score+=1;reasons.push('近60日回撤'+dd.toFixed(0)+'%，有一定回撤');}
+  if(pos>85){score+=2;reasons.push('现价处近1年高位（'+pos.toFixed(0)+'%分位），追高风险');}
+  else if(pos<15){reasons.push('现价处近1年低位（'+pos.toFixed(0)+'%分位，区间 '+pf(loR)+'~'+pf(hiR)+'），短期偏弱或超跌');}
+  if(dd>30){score+=2;reasons.push('近1年最大回撤'+dd.toFixed(0)+'%，下行波动较大');}
+  else if(dd>15){score+=1;reasons.push('近1年回撤'+dd.toFixed(0)+'%，有一定回撤');}
   if(vol>60){score+=2;reasons.push('年化波动率约'+vol.toFixed(0)+'%，高波动');}
   else if(vol>40){score+=1;reasons.push('年化波动率约'+vol.toFixed(0)+'%，波动中等');}
   // 水位/PE 分位评分（优先用水位综合分位，fallback 到 PE 分位）
@@ -5356,9 +5362,10 @@ function loadRiskBlock(code, m){
   el.innerHTML='<div class="risk-live-box">'
     +'<div class="rl-row"><span>综合风险（行情）</span><b class="t '+lvlCls+'">'+level+'风险</b></div>'
     +'<div class="rl-metrics">'
-      +'<span>水位分位 <b>'+wlDisplay+'</b></span>'
+      +'<span>估值水位(近5年) <b>'+wlDisplay+'</b></span>'
       +'<span>价格位置 <b>'+pos.toFixed(0)+'%</b></span>'
-      +'<span>近60日回撤 <b>'+dd.toFixed(0)+'%</b></span>'
+      +'<span>近1年区间 <b>'+pf(loR)+' ~ '+pf(hiR)+'</b></span>'
+      +'<span>近1年回撤 <b>'+dd.toFixed(0)+'%</b></span>'
       +'<span>年化波动 <b>'+vol.toFixed(0)+'%</b></span>'
     +'</div>'
     +'<div class="rl-reason">'+(reasons.length?reasons.map(r=>'· '+r).join('；')+'。':'各项指标较平稳，未见显著风险信号。')+'</div>'
