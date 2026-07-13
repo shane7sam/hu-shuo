@@ -305,17 +305,23 @@
   .val-analysis li{font-size:12.5px;line-height:1.85;color:var(--text);margin:5px 0}
   .val-analysis li b{color:var(--text);font-weight:700}
   /* 估值水位标尺：绿(便宜)→黄(中性)→红(偏贵)，三角标当前位置 */
-  .val-gauge{margin:2px 0 12px;display:flex;align-items:center;gap:10px}
-  .val-gauge .vg-bar{flex:1;position:relative;height:9px;border-radius:5px;
+  .val-gauge{margin:2px 0 12px;display:flex;align-items:flex-start;gap:10px}
+  .val-gauge .vg-ruler{flex:1;position:relative}
+  .val-gauge .vg-bar{position:relative;height:9px;border-radius:5px;
     background:linear-gradient(90deg,#3C9D3C 0%,#9FD49F 22%,#EAF3DE 38%,#F1EFE8 50%,#FCEBEB 62%,#EF9B9B 78%,#E04848 100%)}
   .val-gauge .vg-mark{position:absolute;top:-4px;width:0;height:0;
     border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid #185FA5;
     transform:translateX(-50%);transition:left .25s}
-  .val-gauge .vg-cap{font-size:11px;font-weight:700;color:var(--text);min-width:54px;text-align:right}
-  .val-gauge .vg-scale{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;font-size:10px;color:var(--color-text-secondary);margin:6px 0 4px 0;position:relative}
-  .val-gauge .vg-scale span{text-align:center;position:relative;padding-top:8px}
-  .val-gauge .vg-scale span::before{content:'';position:absolute;top:0;left:50%;width:1px;height:7px;background:var(--color-border);transform:translateX(-50%)}
-  .val-gauge .vg-link{font-size:10.5px;color:var(--muted);margin:2px 0 6px 0;line-height:1.4}
+  .val-gauge .vg-cap{font-size:11px;font-weight:700;color:var(--text);min-width:60px;text-align:right;display:flex;align-items:center;height:9px}
+  .val-gauge .vg-scale{display:block;position:relative;height:18px;font-size:10px;color:var(--sub);margin-top:5px}
+  .val-gauge .vg-scale span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;padding-top:7px}
+  .val-gauge .vg-scale span::before{content:'';position:absolute;top:0;left:50%;width:1px;height:5px;background:var(--line);transform:translateX(-50%)}
+  .val-gauge .vg-scale span:first-child{left:0;transform:none}
+  .val-gauge .vg-scale span:nth-child(2){left:25%}
+  .val-gauge .vg-scale span:nth-child(3){left:50%}
+  .val-gauge .vg-scale span:nth-child(4){left:75%}
+  .val-gauge .vg-scale span:last-child{left:100%;transform:none}
+  .val-gauge .vg-link{font-size:10.5px;color:var(--sub);margin:2px 0 6px 0;line-height:1.4}
   @media(max-width:620px){
     .modal-panel{width:100%;height:100%;max-height:100vh}
     .chart-box{height:400px}
@@ -457,6 +463,21 @@
       transition:.12s
     }
     .mob-ind-bar button.active{color:#fff;font-weight:700}
+    /* 手机端细分赛道底部抽屉 */
+    .mob-layer-panel{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;justify-content:flex-end}
+    .mob-layer-panel.hidden{display:none!important}
+    .mob-layer-panel .mob-layer-mask{position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px)}
+    .mob-layer-panel .mob-layer-sheet{position:relative;background:var(--panel);border-top:1px solid var(--line);border-radius:14px 14px 0 0;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 -8px 30px rgba(0,0,0,.42)}
+    .mob-layer-panel .mob-layer-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+    .mob-layer-panel .mob-layer-head h4{font-size:14px;font-weight:700;margin:0}
+    .mob-layer-panel .mob-layer-head button{background:transparent;border:none;color:var(--sub);font-size:18px;width:32px;height:32px;border-radius:8px;cursor:pointer}
+    .mob-layer-panel .mob-layer-head button:hover{background:var(--panel-2)}
+    .mob-layer-panel .mob-layer-body{overflow-y:auto;padding:8px 14px 18px}
+    .mob-layer-panel .mob-layer-group{margin-bottom:10px}
+    .mob-layer-panel .mob-layer-group h5{font-size:12px;color:var(--sub);margin:8px 0 6px;padding-left:6px;border-left:3px solid var(--midstream)}
+    .mob-layer-panel .mob-layer-group button{display:block;width:100%;text-align:left;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px 12px;margin:5px 0;font-size:13px;cursor:pointer}
+    .mob-layer-panel .mob-layer-group button:hover{border-color:var(--midstream);background:var(--panel)}
+    .mob-layer-btn{flex:0 0 auto!important;min-width:48px;padding:9px 8px!important}
     main{padding-bottom:72px}/* 为底部栏留空间 */
   }
 </style>
@@ -499,6 +520,14 @@
 </footer>
 <!-- 手机端底部产业链快捷栏（≤620px 显示） -->
 <div class="mob-ind-bar" id="mobIndBar"></div>
+<!-- 手机端细分赛道底部抽屉 -->
+<div class="mob-layer-panel hidden" id="mobLayerPanel">
+  <div class="mob-layer-mask"></div>
+  <div class="mob-layer-sheet">
+    <div class="mob-layer-head"><h4>细分赛道</h4><button id="mobLayerClose">×</button></div>
+    <div class="mob-layer-body" id="mobLayerBody"></div>
+  </div>
+</div>
 <div id="detail" class="modal hidden">
   <div class="modal-mask"></div>
   <div class="modal-panel">
@@ -3917,6 +3946,7 @@ function setIndustry(ind){
     x.style.color=on?'#fff':col;
   });
   applyFilter();buildOverview();buildFloatNav();
+  if(document.getElementById('mobLayerPanel')&&!document.getElementById('mobLayerPanel').classList.contains('hidden')) buildMobLayerPanel();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -3972,14 +4002,61 @@ function buildFloatNav(){
       const col=i.color;
       const style=on?`background:${col};border-color:${col};color:#fff`:`color:${col}`;
       return `<button data-ind="${i.key}" style="${style}">${indLabels[i.key]||i.label}</button>`;
-    }).join('');
-    mbar.querySelectorAll('button').forEach(b=>{
+    }).join('')+`<button class="mob-layer-btn" id="mobLayerBtn">赛道</button>`;
+    mbar.querySelectorAll('button[data-ind]').forEach(b=>{
       b.addEventListener('click',()=>setIndustry(b.dataset.ind));
     });
+    const lb=document.getElementById('mobLayerBtn');
+    if(lb)lb.addEventListener('click',()=>toggleMobLayerPanel());
+  }
+  // 手机端细分赛道抽屉：关闭按钮
+  const panel=document.getElementById('mobLayerPanel');
+  if(panel){
+    panel.querySelector('.mob-layer-mask').addEventListener('click',()=>closeMobLayerPanel());
+    const closeBtn=document.getElementById('mobLayerClose');
+    if(closeBtn)closeBtn.addEventListener('click',()=>closeMobLayerPanel());
   }
   // scroll-spy
   requestAnimationFrame(()=>initScrollSpy());
 }
+/* 手机端细分赛道抽屉 */
+function buildMobLayerPanel(){
+  const body=document.getElementById('mobLayerBody');
+  if(!body)return;
+  const ind=INDUSTRIES.find(i=>i.key===activeIndustry)||INDUSTRIES[0];
+  const colors={up:'var(--upstream)',mid:'var(--midstream)',down:'var(--downstream)'};
+  let h='';
+  for(const l of ind.layers){
+    const c=l.color||colors[l.key]||ind.color;
+    h+=`<div class="mob-layer-group"><h5 style="border-color:${c}">${l.name.replace(/[:：].*/,'')}</h5>`;
+    l.sectors.forEach((s,i)=>{
+      const sid=`sec-${ind.key}-${l.key}-${i}`;
+      h+=`<button data-target="#${sid}">${s.title}</button>`;
+    });
+    h+=`</div>`;
+  }
+  body.innerHTML=h;
+  body.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const target=b.dataset.target;
+      closeMobLayerPanel();
+      if(target){
+        const el=document.querySelector(target);
+        if(el){
+          const off=el.getBoundingClientRect().top+window.scrollY-70;
+          window.scrollTo({top:off,behavior:'smooth'});
+        }
+      }
+    });
+  });
+}
+function toggleMobLayerPanel(){
+  const panel=document.getElementById('mobLayerPanel');
+  if(!panel)return;
+  if(panel.classList.contains('hidden')){ buildMobLayerPanel(); panel.classList.remove('hidden'); }
+  else { panel.classList.add('hidden'); }
+}
+function closeMobLayerPanel(){ const panel=document.getElementById('mobLayerPanel'); if(panel)panel.classList.add('hidden'); }
 let _spyHandler=null;
 function initScrollSpy(){
   if(_spyHandler){window.removeEventListener('scroll',_spyHandler);_spyHandler=null;}
@@ -4924,7 +5001,7 @@ function buildValAnalysis(m){
     if(!usePS) parts.push(`<li>PE 不显示：公司最近四个季度累计每股收益为负或接近零。</li>`);
   }
   const tierColor = vcls==='down'?'#E04848':vcls==='up'?'#3C9D3C':'#9aa0a6';
-  const gaugeHtml = posQ!=null ? `<div class="val-gauge"><div class="vg-bar"><span class="vg-mark" style="left:${(posQ*100).toFixed(0)}%;border-top-color:${tierColor}"></span></div><span class="vg-cap" style="color:${tierColor}">${(posQ*100).toFixed(0)}% 分位</span></div><div class="vg-scale"><span>很低</span><span>偏低</span><span>中性</span><span>偏高</span><span>很高</span></div>` : '';
+  const gaugeHtml = posQ!=null ? `<div class="val-gauge"><div class="vg-ruler"><div class="vg-bar"><span class="vg-mark" style="left:${(posQ*100).toFixed(0)}%;border-top-color:${tierColor}"></span></div><div class="vg-scale"><span>很低</span><span>偏低</span><span>中性</span><span>偏高</span><span>很高</span></div></div><span class="vg-cap" style="color:${tierColor}">${(posQ*100).toFixed(0)}% 分位</span></div>` : '';
   return `<div class="val-analysis"><div class="vh"><h4>估值分析</h4><span class="vlabel ${vcls}">${verdict}</span></div>${gaugeHtml}<ul>${parts.join('')}</ul></div>`;
 }
 
@@ -4960,7 +5037,8 @@ const THEMES={
     chart:{up:'#f0384a',down:'#16b87a',axis:'#9aa3b2',grid:'#1d212b',split:'#2a2f3a',
       tipBg:'#1d212b',tipBorder:'#2a2f3a',tipText:'#e6e9ef',
       ma5:'#f5a623',ma10:'#3b82f6',ma20:'#a855f7',ma60:'#22d3ee',
-      pe:'#fbbf24',band:'#f472b6',mark:'#5d6675',cross:'rgba(59,130,246,.2)'}},
+      pe:'#fbbf24',band:'#f472b6',mark:'#5d6675',cross:'rgba(59,130,246,.2)',
+      waterLevel:{high:'rgba(224,72,72,.25)',mid:'rgba(255,255,255,.08)',low:'rgba(34,211,153,.20)'}}},
   b:{name:'暖纸米色',vars:{
       '--bg':'#f7f3ec','--panel':'#ffffff','--panel-2':'#faf6ef','--line':'#eae2d4',
       '--text':'#2a2620','--sub':'#7a7065',
@@ -4970,7 +5048,8 @@ const THEMES={
     chart:{up:'#e23b4e',down:'#11a86d',axis:'#7a7065',grid:'#eae2d4',split:'#f0ece3',
       tipBg:'#ffffff',tipBorder:'#eae2d4',tipText:'#2a2620',
       ma5:'#c2761b',ma10:'#2563eb',ma20:'#9333ea',ma60:'#0d9488',
-      pe:'#fbbf24',band:'#f472b6',mark:'#9a9183',cross:'rgba(217,119,6,.16)'}},
+      pe:'#fbbf24',band:'#f472b6',mark:'#9a9183',cross:'rgba(217,119,6,.16)',
+      waterLevel:{high:'rgba(224,59,78,.15)',mid:'rgba(122,112,101,.08)',low:'rgba(17,168,109,.14)'}}},
   c:{name:'薄荷科技',vars:{
       '--bg':'#eef7f4','--panel':'#ffffff','--panel-2':'#f0f7f5','--line':'#d9e8e3',
       '--text':'#173a33','--sub':'#5f8077',
@@ -4980,7 +5059,8 @@ const THEMES={
     chart:{up:'#e0457b',down:'#11a86d',axis:'#5f8077',grid:'#d9e8e3',split:'#e6f1ed',
       tipBg:'#ffffff',tipBorder:'#d9e8e3',tipText:'#173a33',
       ma5:'#d97706',ma10:'#0d9488',ma20:'#8b5cf6',ma60:'#0891b2',
-      pe:'#fbbf24',band:'#f472b6',mark:'#8aa39c',cross:'rgba(13,148,136,.16)'}},
+      pe:'#fbbf24',band:'#f472b6',mark:'#8aa39c',cross:'rgba(13,148,136,.16)',
+      waterLevel:{high:'rgba(224,69,123,.15)',mid:'rgba(95,128,119,.08)',low:'rgba(17,168,109,.14)'}}},
   p:{name:'深石墨金',vars:{
       '--bg':'#1c1c1f','--panel':'#26262a','--panel-2':'#2e2e33','--line':'#3a3a40',
       '--text':'#ece9e2','--sub':'#a8a39a',
@@ -4990,7 +5070,8 @@ const THEMES={
     chart:{up:'#ff6b6b',down:'#34d399',axis:'#a8a39a',grid:'#3a3a40',split:'#2e2e33',
       tipBg:'#26262a',tipBorder:'#3a3a40',tipText:'#ece9e2',
       ma5:'#d98e32',ma10:'#3b82f6',ma20:'#a855f7',ma60:'#e0b341',
-      pe:'#fbbf24',band:'#f472b6',mark:'#8a857d',cross:'rgba(224,179,65,.20)'}}
+      pe:'#fbbf24',band:'#f472b6',mark:'#8a857d',cross:'rgba(224,179,65,.20)',
+      waterLevel:{high:'rgba(255,107,107,.25)',mid:'rgba(255,255,255,.08)',low:'rgba(52,211,153,.20)'}}}
 };
 let curTheme='init';
 let chartPalette=THEMES.init.chart;
@@ -5049,9 +5130,9 @@ function renderKlineChart(m){
     const wlDot=curWL!=null?(wlTier.cls==='down'?'#E04848':wlTier.cls==='up'?'#3C9D3C':WL):WL;
     wlSeries={name:'估值水位',type:'line',data:wl,showSymbol:false,lineStyle:{width:2,color:WL},z:5,
       markArea:{silent:true,data:[
-        [{yAxis:80,itemStyle:{color:'#FCEBEB',opacity:.5}},{yAxis:100}],
-        [{yAxis:20,itemStyle:{color:'#EAF3DE',opacity:.5}},{yAxis:80}],
-        [{yAxis:0,itemStyle:{color:'#F1EFE8',opacity:.4}},{yAxis:20}]
+        [{yAxis:80,itemStyle:{color:chartPalette.waterLevel.high,opacity:.5}},{yAxis:100}],
+        [{yAxis:20,itemStyle:{color:chartPalette.waterLevel.mid,opacity:.5}},{yAxis:80}],
+        [{yAxis:0,itemStyle:{color:chartPalette.waterLevel.low,opacity:.4}},{yAxis:20}]
       ]},
       markPoint: curWL!=null?{symbol:'circle',symbolSize:10,itemStyle:{color:wlDot, borderColor:'#fff', borderWidth:1.5},
         label:{show:true,backgroundColor:wlDot,borderColor:wlDot,borderRadius:3,padding:[3,6],color:'#fff',fontSize:12,fontWeight:700,formatter:curWL.toFixed(0)+'%', offset:[0,-8]},
