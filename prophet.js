@@ -71,11 +71,12 @@
 
   // ---------- 东方财富（JSONP 直连 / 本地同源） ----------
   function emFilterWindow() {
+    // 严格过滤：只取「今天起 ~ 今天+30天」开始的事件（与 Worker fetchEM 的 sd<today 过滤一致）
     var d = new Date();
-    var s = new Date(d.getTime() - 3 * 86400000);
+    var s = d; // 从今天开始（不再用 today-3天）
     var e = new Date(d.getTime() + 30 * 86400000);
     var fmt = function (x) { return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
-    return "(END_DATE>='" + fmt(s) + "')(START_DATE<'" + fmt(e) + "')";
+    return "(START_DATE>='" + fmt(s) + "')(START_DATE<'" + fmt(e) + "')";
   }
 
   function normalizeEM(row) {
@@ -155,14 +156,19 @@
     if (!el) return;
     evMap = {};
     evSeq = 0;
+    // 按来源统计（便于诊断）
+    var clsCount = 0, emCount = 0;
+    (events || []).forEach(function (e) { if (e.src === 'cls') clsCount++; else emCount++; });
     if (!events || !events.length) {
       el.innerHTML = '<div class="prophet-empty">事件日历暂不可用（代理未部署或网络异常）。'
         + '网页端财联社需部署 Cloudflare Worker 的 /api/prophet/cls、东财走 JSONP 直连；本地端由 server.py 提供。</div>';
       return;
     }
     var groups = groupByDate(events);
+    var srcHint = '（财联社 ' + clsCount + ' 条 · 东财 ' + emCount + ' 条）';
     var html = '<div class="prophet-head">事件日历 · 财联社 + 东方财富（未来 30 天）'
-      + '<span class="plegend"><i class="lg cls">财联社</i><i class="lg em">东财</i></span></div>';
+      + '<span class="plegend"><i class="lg cls">财联社</i><i class="lg em">东财</i>'
+      + '<span class="psrc-count">' + srcHint + '</span></span></div>';
     groups.forEach(function (g) {
       html += '<div class="pday"><div class="pdate">' + escapeHtml(g.date) + '</div><div class="pitems">';
       g.items.slice().sort(function (a, b) {
@@ -362,6 +368,9 @@
     var emP = fetchEM();
     var both = await Promise.all([clsP, emP]);
     var merged = both[0].concat(both[1]);
+    // 客户端安全过滤：丢弃今天之前开始的事件（防止上游过滤宽松导致过去事件泄露）
+    var todayStr = new Date().toISOString().slice(0, 10);
+    merged = merged.filter(function (ev) { return ev.date >= todayStr; });
     var c = pv ? pv.querySelector('#prophetContent') : document.getElementById('prophetContent');
     renderCalendar(merged, c);
   }
@@ -375,6 +384,7 @@
       '.plegend .lg{padding:1px 8px;border-radius:10px;}',
       '.plegend .lg.cls{color:#e0a93b;background:rgba(224,169,59,.12);}',
       '.plegend .lg.em{color:#5b9bd5;background:rgba(91,155,213,.12);}',
+      '.psrc-count{font-size:11px;color:var(--sub);font-weight:400;margin-left:6px;}',
       '.prophet-empty{color:var(--sub);padding:40px;text-align:center;}',
       '.pday{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);}',
       '.pdate{flex:0 0 92px;font-size:13px;font-weight:700;color:var(--sub);padding-top:2px;}',
