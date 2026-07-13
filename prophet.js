@@ -83,6 +83,8 @@
     if (!row || typeof row !== 'object') return null;
     var sd = (row.START_DATE || '').slice(0, 10);
     if (!sd) return null;
+    // 过滤掉「经济数据」类型（宏观指标发布等，非事件型日历条目）
+    if (row.FE_TYPE === '经济数据') return null;
     var sp = (row.SPONSOR_NAME || '').split(',')[0].trim().slice(0, 20);
     return {
       src: 'em',
@@ -91,7 +93,7 @@
       title: row.FE_NAME || '',
       country: sp,
       importance: emImportance(row.STD_TYPE_CODE),
-      cat: row.FE_TYPE === '经济数据' ? 'macro' : 'event'
+      cat: 'event'
     };
   }
 
@@ -369,8 +371,9 @@
     var both = await Promise.all([clsP, emP]);
     var merged = both[0].concat(both[1]);
     // 客户端安全过滤：丢弃今天之前开始的事件（防止上游过滤宽松导致过去事件泄露）
+    // 同时过滤东财经济数据类型（网页端 JSONP 直连路径不经过 Worker 过滤）
     var todayStr = new Date().toISOString().slice(0, 10);
-    merged = merged.filter(function (ev) { return ev.date >= todayStr; });
+    merged = merged.filter(function (ev) { return ev.date >= todayStr && ev.cat !== 'macro'; });
     var c = pv ? pv.querySelector('#prophetContent') : document.getElementById('prophetContent');
     renderCalendar(merged, c);
   }
@@ -602,11 +605,20 @@
       list.innerHTML = '<div class="news-loading">获取失败：' + escapeHtml((e && e.message) || e) + '</div>';
       return;
     }
+    // 按源诊断（便于排查全空问题）
+    var diag = [];
+    keys.forEach(function (k, i) {
+      var n = (results[i] || []).length;
+      diag.push(NEWS_SRC[k].label + '(' + n + ')');
+    });
+    console.log('[Prophet] news source stats: ' + diag.join(', '));
     var all = [];
     results.forEach(function (items) { (items || []).forEach(function (it) { all.push(it); }); });
     all.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
     if (!all.length) {
-      var tip = filter === 'jin10' ? '金十需配置 secret-key（见部署说明）' : '数据源暂未返回内容';
+      // 更详细的空结果提示：列出各源状态
+      var detail = keys.map(function (k) { return NEWS_SRC[k].label; }).join(' / ');
+      var tip = filter === 'jin10' ? '金十需配置 secret-key（见部署说明）' : ('以下源均无数据返回：' + detail + '。若持续为空，请检查 Worker 是否正常运行（' + (window.PROPHET_PROXY || '未配置') + '）');
       list.innerHTML = '<div class="news-loading">暂无可显示的新闻（' + tip + '）。</div>';
       return;
     }
