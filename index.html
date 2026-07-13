@@ -36,6 +36,16 @@
   button:hover{border-color:var(--midstream);color:#fff}
   .toggle{display:flex;gap:6px}
   .toggle button.active{background:var(--midstream);border-color:var(--midstream);color:#fff}
+  /* 顶部主导航：产业链 / 预言家 */
+  .main-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .nav-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:5px 6px}
+  .nav-label{font-size:13px;font-weight:700;color:var(--text);padding:7px 10px;white-space:nowrap;cursor:default}
+  .main-nav>button{font-size:13px;font-weight:600;padding:8px 16px}
+  .main-nav>button.active[data-menu="prophet"]{background:var(--midstream);border-color:var(--midstream);color:#fff}
+  .sub-filter{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .sub-filter button{font-size:12px;font-weight:600;padding:7px 14px;color:var(--sub);background:var(--panel);border-color:var(--line);border-radius:8px;transition:.12s}
+  .sub-filter button:hover{border-color:var(--midstream);color:var(--text)}
+  .sub-filter button.active{color:#fff !important}
   /* 顶部股票搜索框 */
   .stock-search{position:relative}
   .stock-search input[type=search]{width:230px;padding:8px 12px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);font-size:13px;outline:none}
@@ -425,22 +435,25 @@
   .risk-live-box .rl-reason{font-size:11.5px;color:var(--sub);line-height:1.7;margin-top:8px}
 
   /* ═══ 浮动导航菜单（页面定位） ═══ */
-  /* 总览上方产业链标签栏（桌面端显示） */
-  .ind-tabs{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-  .ind-tabs button{font-size:13px;font-weight:700;padding:9px 20px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);transition:.12s}
-  .ind-tabs button:hover{border-color:var(--midstream)}
-  .ind-tabs button.active{color:#fff !important}
-  @media(max-width:1100px){.ind-tabs{display:none}}
-
-  .float-nav{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:40;width:222px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:8px 6px;max-height:calc(100vh - 110px);overflow-y:auto;transition:width .22s,opacity .2s}
-  .float-nav::-webkit-scrollbar{width:0}
-  .float-nav.collapsed{width:46px;padding:8px 2px;overflow:hidden}
-  .float-nav.collapsed .fn-group-title,.float-nav.collapsed .fn-item{display:none}
-  .fn-toggle{display:grid;place-items:center;width:32px;height:30px;margin:0 auto 6px;border:none;background:var(--panel-2);border-radius:8px;color:var(--sub);cursor:pointer;font-size:15px;line-height:1;transition:background .15s,color .15s}
-  .fn-toggle:hover{background:var(--line);color:var(--text)}
-  .fn-group-title{font-size:10.5px;letter-spacing:.5px;color:var(--sub);font-weight:700;padding:8px 6px 3px;border-top:1px solid var(--line);margin:4px 2px 2px;cursor:default}
+  .float-nav{position:fixed;right:0;top:118px;bottom:24px;z-index:40;width:214px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:0;overflow:hidden;display:flex;flex-direction:column;transition:width .22s,opacity .2s}
+  .float-nav.collapsed{width:34px;border-radius:14px 0 0 14px;padding:0;top:50%;bottom:auto;height:auto;transform:translateY(-50%);align-items:center;justify-content:flex-start;border-right:none;background:color-mix(in srgb,var(--panel) 96%,transparent)}
+  .float-nav.collapsed .fn-header,.float-nav.collapsed .fn-body{display:none}
+  .float-nav:not(.collapsed) .fn-toggle{display:none}
+  .fn-toggle{display:grid;place-items:center;width:34px;height:46px;border:none;background:transparent;border-radius:0;color:var(--sub);cursor:pointer;font-size:22px;line-height:1;transition:background .15s,color .15s}
+  .fn-toggle:hover{background:var(--panel-2);color:var(--text)}
+  .fn-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
+  .fn-title{font-size:13px;font-weight:700;color:var(--text)}
+  .fn-close{display:grid;place-items:center;width:28px;height:28px;border:none;background:transparent;border-radius:8px;color:var(--sub);cursor:pointer;font-size:22px;line-height:1;transition:background .15s,color .15s}
+  .fn-close:hover{background:var(--panel-2);color:var(--text)}
+  .fn-body{overflow-y:auto;padding:8px 6px;flex:1;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .fn-body::-webkit-scrollbar{width:6px}
+  .fn-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+  .fn-body::-webkit-scrollbar-track{background:transparent}
+  .fn-industry-group{padding-bottom:4px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .fn-industry-group .fn-item{font-weight:600}
+  .fn-group-title{font-size:10.5px;letter-spacing:.5px;color:var(--sub);font-weight:700;padding:6px 6px 2px;border-top:1px solid var(--line);margin:4px 2px 2px;cursor:default}
   .fn-group-title:first-of-type{border-top:none;margin-top:0}
-  .fn-item{display:flex;align-items:center;gap:7px;padding:5px 8px;cursor:pointer;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid transparent;transition:all .12s;line-height:1.35}
+  .fn-item{display:flex;align-items:center;gap:7px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid transparent;transition:all .12s;line-height:1.35}
   .fn-item:hover{background:var(--panel-2);color:var(--text)}
   .fn-item.active{color:var(--text);font-weight:700;border-left-color:var(--midstream);background:color-mix(in srgb,var(--midstream) 10%,transparent)}
   .fn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
@@ -486,15 +499,21 @@
   <div class="topbar">
     <div class="brand">
       <div class="logo">胡</div>
-      <div><h1>胡说·产业链投研</h1><div class="tag">AI人工智能 · 商业航天 · 机器人 · 创新药 核心标的总览</div></div>
+      <div><h1>胡说·产业链投研</h1><div class="tag">AI/半导体 · 商业航天 · 机器人 · 创新药 核心标的总览</div></div>
     </div>
     <div class="spacer"></div>
     <div class="controls">
-      <div class="toggle" id="layerFilter">
-        <button data-ind="ai" class="active">AI人工智能</button>
-        <button data-ind="space">商业航天</button>
-        <button data-ind="robot">机器人</button>
-        <button data-ind="bio">创新药</button>
+      <div class="main-nav" id="layerFilter">
+        <div class="nav-group">
+          <span class="nav-label">产业链</span>
+          <div class="sub-filter" id="indSubFilter">
+            <button data-ind="ai" class="active">AI/半导体</button>
+            <button data-ind="space">商业航天</button>
+            <button data-ind="robot">机器人</button>
+            <button data-ind="bio">创新药</button>
+          </div>
+        </div>
+        <button data-menu="prophet">预言家</button>
       </div>
       <div class="stock-search">
         <input id="stockSearch" type="search" placeholder="搜索代码/简称，如 600498、北方华创" autocomplete="off" aria-label="股票搜索" spellcheck="false">
@@ -516,7 +535,7 @@
 <footer>
   实时行情：腾讯证券（<code>qt.gtimg.cn</code>，JSONP 浏览器直连）；A 股 / 港股 / 美股前复权日 K 线：腾讯（<code>proxy.finance.qq.com</code>，浏览器直连）。区间涨跌为前复权收盘价口径。<br>
   日涨跌为实时报价，5/20/60 日为前复权区间涨跌幅；北交所仅有实时报价、无浏览器可直连的日 K 线源，故其 5/20/60 日显示「—」。本页为纯静态站点，可托管于 GitHub Pages 等任意静态空间，仅供信息展示，不构成投资建议。<br>
-  <span style="font-size:11px;color:var(--sub)">v2026.07.13-6</span>
+  <span style="font-size:11px;color:var(--sub)">v2026.07.13-13</span>
 </footer>
 <!-- 手机端底部产业链快捷栏（≤620px 显示） -->
 <div class="mob-ind-bar" id="mobIndBar"></div>
@@ -2124,7 +2143,7 @@ const BIO_LAYERS=[
   }
 ];
 const INDUSTRIES=[
-  {key:'ai',   label:'AI人工智能',  color:'#6366f1', layers:LAYERS},
+  {key:'ai',   label:'AI/半导体',  color:'#6366f1', layers:LAYERS},
   {key:'space',label:'商业航天',  color:'#f97316', layers:SPACE_LAYERS},
   {key:'robot',label:'机器人',color:'#06b6d4', layers:ROBOT_LAYERS},
   {key:'bio',  label:'创新药',  color:'#a855f7', layers:BIO_LAYERS},
@@ -3896,8 +3915,7 @@ function ca(s){return s.c||('na-'+s.n);}
 function render(){
   const app=document.getElementById('app');
   const etfRows=ETFS.map(s=>{const c=ca(s);const info=ETF_INFO[c]||{};const subExtra=info.index?('跟踪 '+info.index):'';return stockRowHTML(c,s.n,boardTag(s.c),s.c||'未覆盖',subExtra);}).join('');
-  let html=`<div class="ind-tabs" id="indTabs"></div>
-  <section class="toprow" id="top">
+  let html=`<section class="toprow" id="top">
     <section class="panel overview" id="overview"></section>
     <section class="panel etf-panel" data-industry="ai">
       <div class="card" style="--accent:var(--downstream)">
@@ -3914,8 +3932,16 @@ function render(){
     }
   }
   app.innerHTML=html;
-  buildIndTabs();
   buildFloatNav();
+  /* 初始化顶部二级栏目高亮色（与 setIndustry 同步） */
+  const initCol=(INDUSTRIES.find(i=>i.key===activeIndustry)||{}).color||'var(--midstream)';
+  document.querySelectorAll('#indSubFilter button').forEach(x=>{
+    const on=x.dataset.ind===activeIndustry;
+    x.classList.toggle('active',on);
+    x.style.background=on?initCol:'';
+    x.style.borderColor=on?initCol:'';
+    x.style.color=on?'#fff':'';
+  });
   document.querySelectorAll('.stock').forEach(el=>{
     const code=el.dataset.code;
     const g={row:el,price:el.querySelector('.price'),day:el.querySelector('.day'),p5:el.querySelector('.p5'),p20:el.querySelector('.p20'),p60:el.querySelector('.p60')};
@@ -3929,21 +3955,22 @@ function render(){
 function setIndustry(ind){
   if(!ind||ind===activeIndustry){/* 允许重复点击，仍刷新 */ }
   activeIndustry=ind;
-  document.querySelectorAll('#layerFilter button').forEach(x=>x.classList.toggle('active',x.dataset.ind===ind));
-  /* 同步总览上方产业链标签栏 */
-  document.querySelectorAll('#indTabs button').forEach(x=>{
+  const col=(INDUSTRIES.find(i=>i.key===ind)||{}).color||'var(--midstream)';
+  /* 同步顶部二级栏目（带行业色） */
+  document.querySelectorAll('#indSubFilter button').forEach(x=>{
     const on=x.dataset.ind===ind;
     x.classList.toggle('active',on);
-    const col=(INDUSTRIES.find(i=>i.key===ind)||{}).color||'var(--midstream)';
     x.style.background=on?col:'';
     x.style.borderColor=on?col:'';
-    x.style.color=on?'#fff':col;
+    x.style.color=on?'#fff':'';
   });
+  /* 取消预言家高亮（当前属于产业链） */
+  const prophetBtn=document.querySelector('#layerFilter button[data-menu="prophet"]');
+  if(prophetBtn)prophetBtn.classList.remove('active');
   /* 同步手机底部产业链栏 */
   document.querySelectorAll('#mobIndBar button').forEach(x=>{
     const on=x.dataset.ind===ind;
     x.classList.toggle('active',on);
-    const col=(INDUSTRIES.find(i=>i.key===ind)||{}).color||'var(--midstream)';
     x.style.background=on?col:'';
     x.style.borderColor=on?col:'';
     x.style.color=on?'#fff':col;
@@ -3966,15 +3993,30 @@ function buildFloatNav(){
       h+=`<div class="fn-item" data-target="#${sid}" style="padding-left:12px"><span class="fn-dot" style="background:${l.color||colors[l.key]||ind.color};opacity:.55"></span>${s.title}</div>`;
     });
   }
-  // 菜单默认折叠，只露出 toggle 按键；点击展开显示细分赛道
-  h=`<button class="fn-toggle" title="展开/收起菜单">☰</button>
-<div class="fn-item active" data-target="#top"><span class="fn-dot" style="background:var(--downstream)"></span>顶部总览</div>`+h;
-  nav.innerHTML=h;
-  // 默认折叠
-  nav.classList.add('collapsed');
+  // 菜单默认折叠；仅首次折叠，后续保持当前展开/收起状态
+  const indLinks=INDUSTRIES.map(i=>{
+    const on=i.key===activeIndustry;
+    return `<div class="fn-item fn-ind${on?' active':''}" data-ind="${i.key}"><span class="fn-dot" style="background:${i.color}"></span>${i.label}</div>`;
+  }).join('');
+  const wasCollapsed=nav.classList.contains('collapsed');
+  nav.innerHTML=`<div class="fn-header">
+  <span class="fn-title">快速导航</span>
+  <button class="fn-close" title="收起菜单">›</button>
+</div>
+<div class="fn-body">
+  <div class="fn-industry-group">
+    <div class="fn-group-title" style="border-left:3px solid var(--midstream)">产业链</div>
+    ${indLinks}
+  </div>
+  <div class="fn-item" data-target="#top"><span class="fn-dot" style="background:var(--downstream)"></span>顶部总览</div>`+h+`
+</div>
+<button class="fn-toggle" title="展开菜单">‹</button>`;
+  if(!nav.hasAttribute('data-fn-inited')){nav.classList.add('collapsed');nav.setAttribute('data-fn-inited','1');}
   nav.querySelectorAll('.fn-item').forEach(el=>{
     el.addEventListener('click',e=>{
       e.preventDefault();
+      const indKey=el.dataset.ind;
+      if(indKey){setIndustry(indKey);return;}
       const target=el.dataset.target;
       document.querySelectorAll('.fn-item').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
@@ -3983,22 +4025,18 @@ function buildFloatNav(){
       if(el2){const off=el2.getBoundingClientRect().top+window.scrollY-60;window.scrollTo({top:off,behavior:'smooth'});}
     });
   });
-  // toggle button
-  const tb=nav.querySelector('.fn-toggle');
-  if(tb)tb.addEventListener('click',()=>{
-    const collapsed=nav.classList.toggle('collapsed');
-    tb.textContent=collapsed?'☰':'✕';
-    tb.title=collapsed?'展开菜单':'收起菜单';
+  // 展开/收起：toggle（收起态）与 close（展开态）
+  nav.querySelectorAll('.fn-toggle,.fn-close').forEach(btn=>{
+    if(btn)btn.addEventListener('click',()=>nav.classList.toggle('collapsed'));
   });
   // 手机端底部产业链栏
   const mbar=document.getElementById('mobIndBar');
   if(mbar){
-    const indLabels={ai:'AI智能',space:'航天',robot:'机器人',bio:'创新药'};
     mbar.innerHTML=INDUSTRIES.map(i=>{
       const on=i.key===activeIndustry;
       const col=i.color;
       const style=on?`background:${col};border-color:${col};color:#fff`:`color:${col}`;
-      return `<button data-ind="${i.key}" style="${style}">${indLabels[i.key]||i.label}</button>`;
+      return `<button data-ind="${i.key}" style="${style}">${i.label}</button>`;
     }).join('')+`<button class="mob-layer-btn" id="mobLayerBtn">赛道</button>`;
     mbar.querySelectorAll('button[data-ind]').forEach(b=>{
       b.addEventListener('click',()=>setIndustry(b.dataset.ind));
@@ -4015,20 +4053,6 @@ function buildFloatNav(){
   }
   // scroll-spy
   requestAnimationFrame(()=>initScrollSpy());
-}
-function buildIndTabs(){
-  const box=document.getElementById('indTabs');
-  if(!box)return;
-  const indLabels={ai:'AI',space:'航天',robot:'机器人',bio:'创新药'};
-  box.innerHTML=INDUSTRIES.map(i=>{
-    const on=i.key===activeIndustry;
-    const col=i.color;
-    const style=on?`background:${col};border-color:${col};color:#fff`:`color:${col}`;
-    return `<button class="${on?'active':''}" data-ind="${i.key}" style="${style}" title="${i.label}">${indLabels[i.key]||i.label}</button>`;
-  }).join('');
-  box.querySelectorAll('button').forEach(b=>{
-    b.addEventListener('click',()=>setIndustry(b.dataset.ind));
-  });
 }
 /* 手机端细分赛道抽屉 */
 function buildMobLayerPanel(){
@@ -4153,14 +4177,24 @@ function parseStr(code,raw){
   const p=raw.split('~');
   const price=parseFloat(p[3]);
   let dtIdx=-1;
-  for(let i=0;i<p.length;i++){if(/^\d{14}$/.test(p[i])||/^\d{4}\/\d{2}\/\d{2}/.test(p[i])){dtIdx=i;break;}}
+  for(let i=0;i<p.length;i++){if(/^\d{14}$/.test(p[i])||/^\d{4}\/\d{2}\/\d{2}/.test(p[i])||/^\d{4}-\d{2}-\d{2}/.test(p[i])){dtIdx=i;break;}}
   let amt=0,pct=0;
   if(dtIdx>=0){amt=parseFloat(p[dtIdx+1])||0;pct=parseFloat(p[dtIdx+2])||0;}
   else{pct=parseFloat(p[32])||0;amt=parseFloat(p[31])||0;}
   const pe=parseFloat(p[39]);   // p[39] = 市盈率(TTM)，已用茅台(18.14)/工行(7.02)核对
   const mv=parseFloat(p[45]);   // p[45] = 总市值(亿元)，用于亏损股 PS(TTM)=总市值/营收 的计算
+  // 实时 OHLC/成交量，用于在日 K 线末尾追加当日未收盘的实时柱
+  const open=parseFloat(p[5]); const high=parseFloat(p[33]); const low=parseFloat(p[34]); const vol=parseFloat(p[6]);
+  let quoteDate='';
+  if(dtIdx>=0){
+    const ds=p[dtIdx];
+    if(/^\d{14}$/.test(ds)) quoteDate=ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8);
+    else if(/^\d{4}-\d{2}-\d{2}/.test(ds)) quoteDate=ds.slice(0,10);
+    else if(/^\d{4}\/\d{2}\/\d{2}/.test(ds)) quoteDate=ds.replace(/\//g,'-');
+  }
   if(isNaN(price))return null;
-  return {code,price,dayAmt:amt,day:pct,pe:isFinite(pe)?pe:null,mv:isFinite(mv)&&mv>0?mv:null};
+  return {code,price,open:isFinite(open)?open:price,high:isFinite(high)?high:price,low:isFinite(low)?low:price,vol:isFinite(vol)?vol:0,quoteDate,
+          dayAmt:amt,day:pct,pe:isFinite(pe)?pe:null,mv:isFinite(mv)&&mv>0?mv:null};
 }
 function jsonpFetch(codes){
   return new Promise(resolve=>{
@@ -4816,6 +4850,19 @@ function subKDJ(m){const k=lastVal(m.kdj.k),d=lastVal(m.kdj.d),j=lastVal(m.kdj.j
 function subRSI(m){const r=lastVal(m.rsi12);if(r==null)return 0;if(r>70)return -1;if(r<30)return 1;return r>=50?0.5:-0.5;}
 function subBOLL(m){const c=m.c,bU=lastVal(m.boll.up),bL=lastVal(m.boll.low);if(!bU||!bL||bU===bL)return 0;const pb=(c-bL)/(bU-bL);if(pb>1)return 0.5;if(pb<0)return 0.5;if(pb>0.8)return -0.3;if(pb<0.2)return 0.3;return 0;}
 
+function todayStr(){const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
+function appendRealtimeBar(code,dates,opens,closes,highs,lows,vols){
+  const d=data[code];if(!d||d.price==null||!dates.length)return;
+  const qd=d.quoteDate||todayStr();
+  const last=dates[dates.length-1];
+  if(!qd||qd<=last)return;          // K 线已包含当日，或行情日期不新
+  const o=d.open!=null?d.open:d.price;
+  const c=d.price;
+  const h=d.high!=null?Math.max(d.high,o,c):Math.max(o,c);
+  const l=d.low!=null?Math.min(d.low,o,c):Math.min(o,c);
+  const v=d.vol!=null?d.vol:0;
+  dates.push(qd);opens.push(o);closes.push(c);highs.push(h);lows.push(l);vols.push(v);
+}
 function analyzeTech(code){
   const d=data[code];if(!d||!d.kline||d.kline.length<2)return null;
   const arr=d.kline.slice(-1300);  // 5 年窗口（约 1300 交易日），容纳真实估值分位
@@ -4825,6 +4872,8 @@ function analyzeTech(code){
   const highs=arr.map(e=>parseFloat(e[3]));
   const lows=arr.map(e=>parseFloat(e[4]));
   const vols=arr.map(e=>parseFloat(e[5]||0));
+  // 追加当日实时柱：用腾讯实时行情的 open/high/low/close(现价)/volume
+  appendRealtimeBar(code,dates,opens,closes,highs,lows,vols);
   return analyzeTechArrays(dates,opens,closes,highs,lows,vols,d.pe,d.price,d.pb, (d&&d.fund)||null, (d&&d.perf&&d.perf.revPeriods)||null, (d&&d.mv)||null);
 }
 /* 技术指标（接受数组，供个股与合成指数复用） */
@@ -6226,7 +6275,27 @@ function start(){
   let savedTheme='init'; try{savedTheme=localStorage.getItem('ai_theme')||'init';}catch(e){}
   if(!THEMES[savedTheme])savedTheme='init';
   applyTheme(savedTheme);
-  document.getElementById('layerFilter').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setIndustry(b.dataset.ind);});
+  document.getElementById('layerFilter').addEventListener('click',e=>{
+    const b=e.target.closest('button');
+    if(!b)return;
+    const menu=b.dataset.menu;
+    if(menu==='prophet'){
+      // 预言家：占位入口，后续可接专题页
+      const msg=document.createElement('div');
+      msg.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:70;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 18px;box-shadow:0 8px 32px rgba(0,0,0,.35);font-size:13px;color:var(--sub)';
+      msg.textContent='预言家模块开发中，敬请期待';
+      document.body.appendChild(msg);
+      setTimeout(()=>msg.remove(),2000);
+      // 高亮预言家，取消二级栏目 active
+      b.classList.add('active');
+      document.querySelectorAll('#indSubFilter button').forEach(x=>{
+        x.classList.remove('active');
+        x.style.background='';x.style.borderColor='';x.style.color='';
+      });
+      return;
+    }
+    setIndustry(b.dataset.ind);
+  });
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInterval(timer);}else{tick();timer=setInterval(tick,10000);}});
   // 详情弹层交互
   document.addEventListener('click',e=>{
