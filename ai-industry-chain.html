@@ -425,12 +425,17 @@
   .risk-live-box .rl-reason{font-size:11.5px;color:var(--sub);line-height:1.7;margin-top:8px}
 
   /* ═══ 浮动导航菜单（页面定位） ═══ */
+  /* 总览上方产业链标签栏（桌面端显示） */
+  .ind-tabs{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .ind-tabs button{font-size:13px;font-weight:700;padding:9px 20px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);transition:.12s}
+  .ind-tabs button:hover{border-color:var(--midstream)}
+  .ind-tabs button.active{color:#fff !important}
+  @media(max-width:1100px){.ind-tabs{display:none}}
+
   .float-nav{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:40;width:222px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:8px 6px;max-height:calc(100vh - 110px);overflow-y:auto;transition:width .22s,opacity .2s}
   .float-nav::-webkit-scrollbar{width:0}
-  .float-nav.collapsed{width:46px;overflow:hidden}
-  .float-nav.collapsed .fn-group-title,.float-nav.collapsed .fn-item span:not(.fn-dot){display:none}
-  .float-nav.collapsed:hover{width:222px;overflow-y:auto}
-  .float-nav.collapsed:hover .fn-group-title,.float-nav.collapsed:hover .fn-item span:not(.fn-dot){display:block}
+  .float-nav.collapsed{width:46px;padding:8px 2px;overflow:hidden}
+  .float-nav.collapsed .fn-group-title,.float-nav.collapsed .fn-item{display:none}
   .fn-toggle{display:grid;place-items:center;width:32px;height:30px;margin:0 auto 6px;border:none;background:var(--panel-2);border-radius:8px;color:var(--sub);cursor:pointer;font-size:15px;line-height:1;transition:background .15s,color .15s}
   .fn-toggle:hover{background:var(--line);color:var(--text)}
   .fn-group-title{font-size:10.5px;letter-spacing:.5px;color:var(--sub);font-weight:700;padding:8px 6px 3px;border-top:1px solid var(--line);margin:4px 2px 2px;cursor:default}
@@ -439,12 +444,6 @@
   .fn-item:hover{background:var(--panel-2);color:var(--text)}
   .fn-item.active{color:var(--text);font-weight:700;border-left-color:var(--midstream);background:color-mix(in srgb,var(--midstream) 10%,transparent)}
   .fn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-  /* 右侧菜单顶部：产业链切换按键 */
-  .fn-ind-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:2px 2px 9px;border-bottom:1px solid var(--line);margin-bottom:6px}
-  .fn-ind-switch button{font-size:11.5px;font-weight:600;padding:7px 4px;border-radius:8px;cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.12s}
-  .fn-ind-switch button:hover{border-color:var(--midstream)}
-  .fn-ind-switch button.active{color:#fff;font-weight:700}
-  .float-nav.collapsed .fn-ind-switch{display:none}
   @media(max-width:1100px){.float-nav{display:none}}
   /* 手机端底部产业链快捷栏 */
   .mob-ind-bar{display:none}
@@ -517,7 +516,7 @@
 <footer>
   实时行情：腾讯证券（<code>qt.gtimg.cn</code>，JSONP 浏览器直连）；A 股 / 港股 / 美股前复权日 K 线：腾讯（<code>proxy.finance.qq.com</code>，浏览器直连）。区间涨跌为前复权收盘价口径。<br>
   日涨跌为实时报价，5/20/60 日为前复权区间涨跌幅；北交所仅有实时报价、无浏览器可直连的日 K 线源，故其 5/20/60 日显示「—」。本页为纯静态站点，可托管于 GitHub Pages 等任意静态空间，仅供信息展示，不构成投资建议。<br>
-  <span style="font-size:11px;color:var(--sub)">v2026.07.13-5</span>
+  <span style="font-size:11px;color:var(--sub)">v2026.07.13-6</span>
 </footer>
 <!-- 手机端底部产业链快捷栏（≤620px 显示） -->
 <div class="mob-ind-bar" id="mobIndBar"></div>
@@ -3897,7 +3896,8 @@ function ca(s){return s.c||('na-'+s.n);}
 function render(){
   const app=document.getElementById('app');
   const etfRows=ETFS.map(s=>{const c=ca(s);const info=ETF_INFO[c]||{};const subExtra=info.index?('跟踪 '+info.index):'';return stockRowHTML(c,s.n,boardTag(s.c),s.c||'未覆盖',subExtra);}).join('');
-  let html=`<section class="toprow" id="top">
+  let html=`<div class="ind-tabs" id="indTabs"></div>
+  <section class="toprow" id="top">
     <section class="panel overview" id="overview"></section>
     <section class="panel etf-panel" data-industry="ai">
       <div class="card" style="--accent:var(--downstream)">
@@ -3914,6 +3914,7 @@ function render(){
     }
   }
   app.innerHTML=html;
+  buildIndTabs();
   buildFloatNav();
   document.querySelectorAll('.stock').forEach(el=>{
     const code=el.dataset.code;
@@ -3929,7 +3930,8 @@ function setIndustry(ind){
   if(!ind||ind===activeIndustry){/* 允许重复点击，仍刷新 */ }
   activeIndustry=ind;
   document.querySelectorAll('#layerFilter button').forEach(x=>x.classList.toggle('active',x.dataset.ind===ind));
-  document.querySelectorAll('#floatNav .fn-ind-btn').forEach(x=>{
+  /* 同步总览上方产业链标签栏 */
+  document.querySelectorAll('#indTabs button').forEach(x=>{
     const on=x.dataset.ind===ind;
     x.classList.toggle('active',on);
     const col=(INDUSTRIES.find(i=>i.key===ind)||{}).color||'var(--midstream)';
@@ -3957,14 +3959,6 @@ function buildFloatNav(){
   const ind=INDUSTRIES.find(i=>i.key===activeIndustry)||INDUSTRIES[0];
   let h='';
   const colors={up:'var(--upstream)',mid:'var(--midstream)',down:'var(--downstream)'};
-  // 产业链切换按键（顶部）
-  const indLabels={ai:'AI',space:'航天',robot:'机器人',bio:'创新药'};
-  h+=`<div class="fn-ind-switch">`+INDUSTRIES.map(i=>{
-    const on=i.key===activeIndustry;
-    const col=i.color;
-    const style=on?`background:${col};border-color:${col};color:#fff`:`color:${col}`;
-    return `<button class="fn-ind-btn${on?' active':''}" data-ind="${i.key}" style="${style}" title="${i.label}">${indLabels[i.key]||i.label}</button>`;
-  }).join('')+`</div>`;
   for(const l of ind.layers){
     h+=`<div class="fn-group-title" style="border-left:3px solid ${l.color||colors[l.key]||ind.color}">${l.name.replace(/[:：].*/,'')}</div>`;
     l.sectors.forEach((s,i)=>{
@@ -3972,10 +3966,12 @@ function buildFloatNav(){
       h+=`<div class="fn-item" data-target="#${sid}" style="padding-left:12px"><span class="fn-dot" style="background:${l.color||colors[l.key]||ind.color};opacity:.55"></span>${s.title}</div>`;
     });
   }
-  // ETF quick link at top
-  h=`<button class="fn-toggle" title="收起/展开">☰</button>
+  // 菜单默认折叠，只露出 toggle 按键；点击展开显示细分赛道
+  h=`<button class="fn-toggle" title="展开/收起菜单">☰</button>
 <div class="fn-item active" data-target="#top"><span class="fn-dot" style="background:var(--downstream)"></span>顶部总览</div>`+h;
   nav.innerHTML=h;
+  // 默认折叠
+  nav.classList.add('collapsed');
   nav.querySelectorAll('.fn-item').forEach(el=>{
     el.addEventListener('click',e=>{
       e.preventDefault();
@@ -3989,10 +3985,10 @@ function buildFloatNav(){
   });
   // toggle button
   const tb=nav.querySelector('.fn-toggle');
-  if(tb)tb.addEventListener('click',()=>nav.classList.toggle('collapsed'));
-  // 产业链切换按键
-  nav.querySelectorAll('.fn-ind-btn').forEach(b=>{
-    b.addEventListener('click',()=>setIndustry(b.dataset.ind));
+  if(tb)tb.addEventListener('click',()=>{
+    const collapsed=nav.classList.toggle('collapsed');
+    tb.textContent=collapsed?'☰':'✕';
+    tb.title=collapsed?'展开菜单':'收起菜单';
   });
   // 手机端底部产业链栏
   const mbar=document.getElementById('mobIndBar');
@@ -4019,6 +4015,20 @@ function buildFloatNav(){
   }
   // scroll-spy
   requestAnimationFrame(()=>initScrollSpy());
+}
+function buildIndTabs(){
+  const box=document.getElementById('indTabs');
+  if(!box)return;
+  const indLabels={ai:'AI',space:'航天',robot:'机器人',bio:'创新药'};
+  box.innerHTML=INDUSTRIES.map(i=>{
+    const on=i.key===activeIndustry;
+    const col=i.color;
+    const style=on?`background:${col};border-color:${col};color:#fff`:`color:${col}`;
+    return `<button class="${on?'active':''}" data-ind="${i.key}" style="${style}" title="${i.label}">${indLabels[i.key]||i.label}</button>`;
+  }).join('');
+  box.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>setIndustry(b.dataset.ind));
+  });
 }
 /* 手机端细分赛道抽屉 */
 function buildMobLayerPanel(){
