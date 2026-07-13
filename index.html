@@ -4946,8 +4946,9 @@ function valTier(q, peCur){
   return {word:'很高', cls:'down'};
 }
 function buildValAnalysis(m){
-  // 估值分析：文字形式，只展示 PE / PEG(今年增速) / PS 三个维度。
-  // 结论精度与估值水位窗 valTier 保持一致（5 档：很低/偏低/中性/偏高/很高）。
+  // 估值分析：文字形式，展示 PE / PB / PEG(今年增速) / PS 维度。
+  // 主结论与标尺统一使用单一可解释分位：PE 有效时优先用 PE 分位；否则用 PB；亏损股用 PS。
+  // 文字区仍列出各分项，便于交叉核对。
   if(m.valMode!=='real'){
     return `<div class="val-analysis none"><h4>估值分析</h4><div class="d-note">该标的无历史逐日财报（港股/美股无可用财报源，或 A 股财报拉取失败），无法做真实 PE/PB 估值分析，判定为"无"。</div></div>`;
   }
@@ -4961,15 +4962,12 @@ function buildValAnalysis(m){
   const pbQ=(m.pbStats&&m.pbStats.q)||null;
   if(usePS){
     posQ=m.psStats.q; const t=valTier(posQ,null); verdict=t.word; vcls=t.cls;
-  } else if(hasPE && hasPB){
-    const avg=(peQ+pbQ)/2; posQ=avg;
-    const tt=valTier(avg, peCur); verdict=tt.word; vcls=tt.cls;
-  } else if(hasPB){
-    posQ=pbQ;
-    const tt=valTier(pbQ, null); verdict=tt.word; vcls=t.cls;
   } else if(hasPE){
     posQ=peQ;
-    const tt=valTier(peQ, null); verdict=tt.word; vcls=t.cls;
+    const t=valTier(peQ, peCur); verdict=t.word; vcls=t.cls;
+  } else if(hasPB){
+    posQ=pbQ;
+    const t=valTier(pbQ,null); verdict=t.word; vcls=t.cls;
   } else {
     verdict='无有效估值';vcls='flat';
   }
@@ -4978,19 +4976,39 @@ function buildValAnalysis(m){
   if(hasPE && peCur!=null){
     parts.push(`<li>PE(TTM) 当前 <b>${f(peCur,1)}</b>，近5年 <b>${(peQ*100).toFixed(0)}%</b> 分位</li>`);
   }
+  // PB 行
+  if(hasPB && m.pbStats.cur>0){
+    parts.push(`<li>PB(LF) 当前 <b>${f(m.pbStats.cur,2)}</b>，近5年 <b>${(m.pbStats.q*100).toFixed(0)}%</b> 分位</li>`);
+  }
   // PEG 行：今年增速（最新年报 EPS 同比）+ PEG 判定
   if(usePS===false && hasPE && peCur && isFinite(peCur)){
+    let yoy=null;
     if(m.valSummary && isFinite(m.valSummary.epsYoY) && m.valSummary.epsYoY>0){
-      const yoy=m.valSummary.epsYoY, peg=peCur/yoy;
+      yoy=m.valSummary.epsYoY;
+    }
+    // 如果 fund 没给出最新年报 EPS 增速，再尝试实时业绩中的最新年报归母净利增速
+    if(yoy==null && typeof detailCode!=='undefined'){
+      const perf=data[detailCode] && data[detailCode].perf;
+      if(perf && perf.reported){
+        const years=Object.keys(perf.reported).filter(k=>k.slice(5,10)==='12-31').sort();
+        if(years.length){
+          const txt=perf.reported[years[years.length-1]];
+          const m2=txt.match(/归母净利.*?同比([+-]?)(\d+(?:\.\d+)?)%/);
+          if(m2) yoy=+( (m2[1]==='-'?-1:1)*parseFloat(m2[2]) ).toFixed(1);
+        }
+      }
+    }
+    if(yoy!=null && yoy>0){
+      const peg=peCur/yoy;
       let pegNote='';
       if(peg<0.5) pegNote='，增速远超估值，PEG 较低';
       else if(peg<1) pegNote='，估值与增速基本匹配';
       else if(peg<1.5) pegNote='，估值略高于增速';
       else if(peg<2) pegNote='，估值偏高';
       else pegNote='，估值明显偏高';
-      parts.push(`<li>最新年报 EPS 同比 ≈ <b>${yoy.toFixed(0)}%</b>（今年增速），PE/G ≈ <b>${peg.toFixed(1)}</b><span style="color:var(--color-text-secondary);font-weight:400">${pegNote}</span></li>`);
+      parts.push(`<li>最新年报净利润同比 ≈ <b>${yoy.toFixed(0)}%</b>（今年增速），PE/G ≈ <b>${peg.toFixed(1)}</b><span style="color:var(--sub);font-weight:400">${pegNote}</span></li>`);
     } else {
-      parts.push(`<li style="color:var(--color-text-secondary)">PE/G <span style="color:var(--color-text-tertiary)">—（暂无最新年报同比增速数据，无法测算）</span></li>`);
+      parts.push(`<li style="color:var(--sub)">PE/G <span style="color:var(--sub)">—（暂无最新年报同比增速数据，无法测算）</span></li>`);
     }
   }
   // PS 行
@@ -5316,8 +5334,9 @@ function loadRiskBlock(code, m){
   const wlPct=(m.waterLevel!=null&&isFinite(m.waterLevel))?m.waterLevel/100:null;
   const peQ=m.peStats&&m.peConform?m.peStats.q:null;
   let score=0; const reasons=[];
+  // 价格位置：高位追高风险；低位本身不额外加分，避免“底部”被误判为“高风险”
   if(pos>85){score+=2;reasons.push('现价处近60日高位（'+pos.toFixed(0)+'%分位），追高风险');}
-  else if(pos<15){score+=1;reasons.push('现价处近60日低位（'+pos.toFixed(0)+'%分位），趋势偏弱');}
+  else if(pos<15){reasons.push('现价处近60日低位（'+pos.toFixed(0)+'%分位），短期偏弱或超跌');}
   if(dd>30){score+=2;reasons.push('近60日最大回撤'+dd.toFixed(0)+'%，下行波动较大');}
   else if(dd>15){score+=1;reasons.push('近60日回撤'+dd.toFixed(0)+'%，有一定回撤');}
   if(vol>60){score+=2;reasons.push('年化波动率约'+vol.toFixed(0)+'%，高波动');}
@@ -5330,7 +5349,7 @@ function loadRiskBlock(code, m){
   }
   if(m.score<=-2){score+=1;reasons.push('技术面'+m.verdict+'（综合评分 '+m.score.toFixed(1)+'）');}
   if(m.peStats && !m.peConform){ reasons.push(m.peReason||'PE 不适用'); }
-  const level=score>=5?'高':score>=2?'中':'低';
+  const level=score>=5?'高':score>=3?'中':'低';
   const lvlCls=level==='高'?'up':level==='中'?'flat':'down';
   const wlDisplay=(m.waterLevel!=null)?m.waterLevel.toFixed(0)+'%':
     (m.peConform&&peQ!=null?(peQ*100).toFixed(0)+'%':(m.peStats?'亏损/不适用':'—'));
