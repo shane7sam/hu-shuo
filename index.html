@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>胡说·产业链投研 · 总览</title>
 <style>
   :root{
@@ -313,14 +316,11 @@
     border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid #185FA5;
     transform:translateX(-50%);transition:left .25s}
   .val-gauge .vg-cap{font-size:11px;font-weight:700;color:var(--text);min-width:60px;text-align:right;display:flex;align-items:center;height:9px}
-  .val-gauge .vg-scale{display:block;position:relative;height:18px;font-size:10px;color:var(--sub);margin-top:5px}
-  .val-gauge .vg-scale span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;padding-top:7px}
+  .val-gauge .vg-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:5px;position:relative;height:18px}
+  .val-gauge .vg-scale span{position:relative;padding-top:7px;white-space:nowrap}
   .val-gauge .vg-scale span::before{content:'';position:absolute;top:0;left:50%;width:1px;height:5px;background:var(--line);transform:translateX(-50%)}
-  .val-gauge .vg-scale span:first-child{left:0;transform:none}
-  .val-gauge .vg-scale span:nth-child(2){left:25%}
-  .val-gauge .vg-scale span:nth-child(3){left:50%}
-  .val-gauge .vg-scale span:nth-child(4){left:75%}
-  .val-gauge .vg-scale span:last-child{left:100%;transform:none}
+  .val-gauge .vg-scale span:first-child{transform:translateX(0)}
+  .val-gauge .vg-scale span:last-child{transform:translateX(0)}
   .val-gauge .vg-link{font-size:10.5px;color:var(--sub);margin:2px 0 6px 0;line-height:1.4}
   @media(max-width:620px){
     .modal-panel{width:100%;height:100%;max-height:100vh}
@@ -477,7 +477,7 @@
     .mob-layer-panel .mob-layer-group h5{font-size:12px;color:var(--sub);margin:8px 0 6px;padding-left:6px;border-left:3px solid var(--midstream)}
     .mob-layer-panel .mob-layer-group button{display:block;width:100%;text-align:left;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px 12px;margin:5px 0;font-size:13px;cursor:pointer}
     .mob-layer-panel .mob-layer-group button:hover{border-color:var(--midstream);background:var(--panel)}
-    .mob-layer-btn{flex:0 0 auto!important;min-width:48px;padding:9px 8px!important}
+    .mob-layer-btn{flex:0 0 auto!important;min-width:48px;padding:9px 8px!important;background:var(--panel);border-color:var(--midstream);color:var(--midstream);font-weight:700}
     main{padding-bottom:72px}/* 为底部栏留空间 */
   }
 </style>
@@ -516,7 +516,8 @@
 <nav id="floatNav" class="float-nav"></nav>
 <footer>
   实时行情：腾讯证券（<code>qt.gtimg.cn</code>，JSONP 浏览器直连）；A 股 / 港股 / 美股前复权日 K 线：腾讯（<code>proxy.finance.qq.com</code>，浏览器直连）。区间涨跌为前复权收盘价口径。<br>
-  日涨跌为实时报价，5/20/60 日为前复权区间涨跌幅；北交所仅有实时报价、无浏览器可直连的日 K 线源，故其 5/20/60 日显示「—」。本页为纯静态站点，可托管于 GitHub Pages 等任意静态空间，仅供信息展示，不构成投资建议。
+  日涨跌为实时报价，5/20/60 日为前复权区间涨跌幅；北交所仅有实时报价、无浏览器可直连的日 K 线源，故其 5/20/60 日显示「—」。本页为纯静态站点，可托管于 GitHub Pages 等任意静态空间，仅供信息展示，不构成投资建议。<br>
+  <span style="font-size:11px;color:var(--sub)">v2026.07.13-1</span>
 </footer>
 <!-- 手机端底部产业链快捷栏（≤620px 显示） -->
 <div class="mob-ind-bar" id="mobIndBar"></div>
@@ -5038,7 +5039,7 @@ const THEMES={
       tipBg:'#1d212b',tipBorder:'#2a2f3a',tipText:'#e6e9ef',
       ma5:'#f5a623',ma10:'#3b82f6',ma20:'#a855f7',ma60:'#22d3ee',
       pe:'#fbbf24',band:'#f472b6',mark:'#5d6675',cross:'rgba(59,130,246,.2)',
-      waterLevel:{high:'rgba(224,72,72,.25)',mid:'rgba(255,255,255,.08)',low:'rgba(34,211,153,.20)'}}},
+      waterLevel:{high:'rgba(239,68,68,.32)',mid:'rgba(255,255,255,.14)',low:'rgba(34,211,153,.32)'}}},
   b:{name:'暖纸米色',vars:{
       '--bg':'#f7f3ec','--panel':'#ffffff','--panel-2':'#faf6ef','--line':'#eae2d4',
       '--text':'#2a2620','--sub':'#7a7065',
@@ -5049,7 +5050,7 @@ const THEMES={
       tipBg:'#ffffff',tipBorder:'#eae2d4',tipText:'#2a2620',
       ma5:'#c2761b',ma10:'#2563eb',ma20:'#9333ea',ma60:'#0d9488',
       pe:'#fbbf24',band:'#f472b6',mark:'#9a9183',cross:'rgba(217,119,6,.16)',
-      waterLevel:{high:'rgba(224,59,78,.15)',mid:'rgba(122,112,101,.08)',low:'rgba(17,168,109,.14)'}}},
+      waterLevel:{high:'rgba(220,38,38,.22)',mid:'rgba(120,110,100,.14)',low:'rgba(17,168,109,.22)'}}},
   c:{name:'薄荷科技',vars:{
       '--bg':'#eef7f4','--panel':'#ffffff','--panel-2':'#f0f7f5','--line':'#d9e8e3',
       '--text':'#173a33','--sub':'#5f8077',
@@ -5060,7 +5061,7 @@ const THEMES={
       tipBg:'#ffffff',tipBorder:'#d9e8e3',tipText:'#173a33',
       ma5:'#d97706',ma10:'#0d9488',ma20:'#8b5cf6',ma60:'#0891b2',
       pe:'#fbbf24',band:'#f472b6',mark:'#8aa39c',cross:'rgba(13,148,136,.16)',
-      waterLevel:{high:'rgba(224,69,123,.15)',mid:'rgba(95,128,119,.08)',low:'rgba(17,168,109,.14)'}}},
+      waterLevel:{high:'rgba(219,39,119,.22)',mid:'rgba(95,128,119,.14)',low:'rgba(17,168,109,.22)'}}},
   p:{name:'深石墨金',vars:{
       '--bg':'#1c1c1f','--panel':'#26262a','--panel-2':'#2e2e33','--line':'#3a3a40',
       '--text':'#ece9e2','--sub':'#a8a39a',
@@ -5071,7 +5072,7 @@ const THEMES={
       tipBg:'#26262a',tipBorder:'#3a3a40',tipText:'#ece9e2',
       ma5:'#d98e32',ma10:'#3b82f6',ma20:'#a855f7',ma60:'#e0b341',
       pe:'#fbbf24',band:'#f472b6',mark:'#8a857d',cross:'rgba(224,179,65,.20)',
-      waterLevel:{high:'rgba(255,107,107,.25)',mid:'rgba(255,255,255,.08)',low:'rgba(52,211,153,.20)'}}}
+      waterLevel:{high:'rgba(255,92,92,.32)',mid:'rgba(255,255,255,.14)',low:'rgba(52,211,153,.32)'}}}
 };
 let curTheme='init';
 let chartPalette=THEMES.init.chart;
