@@ -531,8 +531,8 @@
     if (app) app.classList.add('hidden');
     if (fn) fn.classList.add('hidden');
     if (pv) { pv.classList.remove('hidden'); ensureProphetShell(pv); renderSub(pv); }
-    var tab = document.getElementById('prophetTab');
-    if (tab) tab.classList.add('active');
+    if (window.setTopNav) window.setTopNav('prophet');
+    if (typeof topView !== 'undefined') topView = 'prophet';
   }
 
   // ---------------- 新闻库（聚合可用新闻源，全部浏览器端直连/JSONP） ----------------
@@ -810,8 +810,10 @@
     if (app) app.classList.remove('hidden');
     if (fn) fn.classList.remove('hidden');
     if (pv) pv.classList.add('hidden');
-    var tab = document.getElementById('prophetTab');
-    if (tab) tab.classList.remove('active');
+    if (window.setTopNav) window.setTopNav('chain');
+    if (typeof topView !== 'undefined') topView = 'chain';
+    // 恢复产业链子视图（主页总览 / 具体赛道详情）
+    if (window.renderChain) window.renderChain();
   }
 
   function wire() {
@@ -824,11 +826,6 @@
       } else {
         showProphet();
       }
-    });
-    // 点击产业链任一细分按钮即切回产业链视图
-    var subs = document.querySelectorAll('#indSubFilter button[data-ind]');
-    Array.prototype.forEach.call(subs, function (b) {
-      b.addEventListener('click', showChain);
     });
     // 事件条目点击 → 打开详情弹层
     var pv = document.getElementById('prophetView');

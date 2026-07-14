@@ -491,6 +491,43 @@
     .mob-layer-btn{flex:0 0 auto!important;min-width:48px;padding:9px 8px!important;background:var(--panel);border-color:var(--midstream);color:var(--midstream);font-weight:700}
     main{padding-bottom:72px}/* 为底部栏留空间 */
   }
+
+  /* ===== 一级导航：产业链 / 预言家 ===== */
+  .top-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .top-tab{font-size:13px;font-weight:700;padding:9px 22px;border-radius:10px;color:var(--sub);background:var(--panel);border:1px solid var(--line);cursor:pointer;transition:.14s}
+  .top-tab:hover{border-color:var(--midstream);color:var(--text)}
+  .top-tab.active{background:linear-gradient(135deg,var(--midstream),color-mix(in srgb,var(--midstream) 72%,#000));border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+
+  /* ===== 产业链主页：二级栏目 + 赛道总览仪表盘 ===== */
+  .chain-subnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .chain-subnav button{font-size:13px;font-weight:600;padding:8px 18px;border-radius:20px;color:var(--sub);background:var(--panel);border:1px solid var(--line);cursor:pointer;transition:.14s}
+  .chain-subnav button:hover{border-color:var(--midstream);color:var(--text)}
+  .chain-subnav button.active{color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+  .home-dash{padding:4px 0 8px}
+  .home-dash.hidden{display:none}
+  .dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .dash-card{background:linear-gradient(160deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:16px;padding:16px 18px 14px;box-shadow:0 8px 24px rgba(0,0,0,.12);cursor:pointer;transition:.16s;position:relative;overflow:hidden;border-top:3px solid var(--c)}
+  .dash-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.2);border-color:var(--c)}
+  .dc-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .dc-dot{width:10px;height:10px;border-radius:50%}
+  .dc-head h3{font-size:16px;font-weight:700;margin:0;flex:1}
+  .dc-avg{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+  .dc-dist{margin-bottom:12px}
+  .dist-bar{display:flex;height:8px;border-radius:6px;overflow:hidden;background:var(--panel-2)}
+  .dist-bar .seg.up{background:var(--up)}
+  .dist-bar .seg.down{background:var(--down)}
+  .dist-bar .seg.flat{background:var(--flat)}
+  .dist-legend{display:flex;gap:12px;font-size:12px;margin-top:6px;color:var(--sub);flex-wrap:wrap;align-items:center}
+  .dist-legend .up{color:var(--up)}.dist-legend .down{color:var(--down)}.dist-legend .flat{color:var(--flat)}
+  .dc-cnt{margin-left:auto}
+  .dc-movers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+  .dc-col h5{font-size:12px;color:var(--sub);margin:0 0 6px;font-weight:600}
+  .d-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;font-size:13px}
+  .d-row.clickable{cursor:pointer}.d-row.clickable:hover .d-nm{color:var(--text);text-decoration:underline}
+  .d-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)}
+  .d-pct{font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .dc-go{width:100%;text-align:center;font-size:13px;font-weight:600;padding:9px;border-radius:10px;background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 40%,transparent);cursor:pointer;transition:.14s}
+  .dc-go:hover{background:color-mix(in srgb,var(--c) 26%,transparent)}
 </style>
 </head>
 <body>
@@ -498,24 +535,13 @@
   <div class="topbar">
     <div class="brand">
       <div class="logo">胡</div>
-      <div><h1>胡说·产业链投研</h1><div class="tag">AI/半导体 · 商业航天 · 机器人 · 创新药 核心标的总览</div></div>
+      <div><h1>胡说·产业链投研</h1><div class="tag">产业链投资图谱 · 实时行情总览</div></div>
     </div>
     <div class="spacer"></div>
     <div class="controls">
-      <div class="main-nav" id="layerFilter">
-        <div class="nav-group">
-          <span class="nav-label">产业链</span>
-          <div class="sub-filter" id="indSubFilter">
-            <button data-ind="ai" class="active">AI/半导体</button>
-            <button data-ind="space">商业航天</button>
-            <button data-ind="robot">机器人</button>
-            <button data-ind="bio">创新药</button>
-          </div>
-        </div>
-      <div class="nav-group">
-        <span class="nav-label">预言家</span>
-        <button id="prophetTab" data-view="prophet">事件日历 · 新闻库</button>
-      </div>
+      <div class="top-nav" id="topNav">
+        <button class="top-tab active" data-view="chain" id="chainTab">产业链</button>
+        <button class="top-tab" data-view="prophet" id="prophetTab">预言家</button>
       </div>
       <div class="stock-search">
         <input id="stockSearch" type="search" placeholder="搜索代码/简称，如 600498、北方华创" autocomplete="off" aria-label="股票搜索" spellcheck="false">
@@ -3870,6 +3896,13 @@ const data={};
 const rowEls={};
 const codeMeta={};
 let activeIndustry='ai', searchTerm='', timer=null;
+/* 视图状态：topView = 'chain' | 'prophet'；chainSub = 'home' | 产业链 key（二级栏目下钻） */
+let topView='chain', chainSub='home';
+function setTopNav(view){
+  const ct=document.getElementById('chainTab'), pt=document.getElementById('prophetTab');
+  if(ct)ct.classList.toggle('active', view==='chain');
+  if(pt)pt.classList.toggle('active', view==='prophet');
+}
 
 /* ============== 工具 ============== */
 function boardTag(code){
@@ -3919,7 +3952,17 @@ function ca(s){return s.c||('na-'+s.n);}
 function render(){
   const app=document.getElementById('app');
   const etfRows=ETFS.map(s=>{const c=ca(s);const info=ETF_INFO[c]||{};const subExtra=info.index?('跟踪 '+info.index):'';return stockRowHTML(c,s.n,boardTag(s.c),s.c||'未覆盖',subExtra);}).join('');
-  let html=`<section class="toprow" id="top">
+  let html=`<div class="chain-subnav" id="chainSubNav">
+      <button data-ind="home" class="active">赛道总览</button>
+      <button data-ind="ai">AI/半导体</button>
+      <button data-ind="space">商业航天</button>
+      <button data-ind="robot">机器人</button>
+      <button data-ind="bio">创新药</button>
+    </div>
+    <section class="home-dash" id="homeDash">
+      <div class="dash-grid" id="dashGrid"></div>
+    </section>`;
+  html+=`<section class="toprow" id="top">
     <section class="panel overview" id="overview"></section>
     <section class="panel etf-panel" data-industry="ai">
       <div class="card" style="--accent:var(--downstream)">
@@ -3937,9 +3980,9 @@ function render(){
   }
   app.innerHTML=html;
   buildFloatNav();
-  /* 初始化顶部二级栏目高亮色（与 setIndustry 同步） */
+  /* 初始化顶部二级栏目高亮（与 setIndustry 同步） */
   const initCol=(INDUSTRIES.find(i=>i.key===activeIndustry)||{}).color||'var(--midstream)';
-  document.querySelectorAll('#indSubFilter button').forEach(x=>{
+  document.querySelectorAll('#chainSubNav button').forEach(x=>{
     const on=x.dataset.ind===activeIndustry;
     x.classList.toggle('active',on);
     x.style.background=on?initCol:'';
@@ -3961,7 +4004,7 @@ function setIndustry(ind){
   activeIndustry=ind;
   const col=(INDUSTRIES.find(i=>i.key===ind)||{}).color||'var(--midstream)';
   /* 同步顶部二级栏目（带行业色） */
-  document.querySelectorAll('#indSubFilter button').forEach(x=>{
+  document.querySelectorAll('#chainSubNav button').forEach(x=>{
     const on=x.dataset.ind===ind;
     x.classList.toggle('active',on);
     x.style.background=on?col:'';
@@ -3979,6 +4022,84 @@ function setIndustry(ind){
   applyFilter();buildOverview();buildFloatNav();
   if(document.getElementById('mobLayerPanel')&&!document.getElementById('mobLayerPanel').classList.contains('hidden')) buildMobLayerPanel();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============== 产业链视图编排（主页总览 + 二级栏目下钻） ============== */
+function refreshHome(){
+  if(chainSub==='home' && document.getElementById('dashGrid')) buildHomeDash();
+}
+/* 主页：赛道总览仪表盘（各产业链赛道的总览卡片） */
+function buildHomeDash(){
+  const grid=document.getElementById('dashGrid'); if(!grid)return;
+  const all=Object.entries(data).filter(([c,d])=>d&&d.okRt).map(([c,d])=>({...d,code:c}));
+  let cards='';
+  INDUSTRIES.forEach(ind=>{
+    const indAll=all.filter(d=>d.industry===ind.key);
+    const us=indAll.filter(d=>d.board==='美股');
+    const stocks=indAll.filter(d=>d.layer!=='etf' && d.board!=='美股');
+    const up=stocks.filter(d=>d.day>0).length, down=stocks.filter(d=>d.day<0).length, flat=stocks.length-up-down;
+    const avg=stocks.length?stocks.reduce((s,d)=>s+d.day,0)/stocks.length:null;
+    const total=stocks.length||1;
+    const pUp=up/total*100,pDn=down/total*100,pFl=flat/total*100;
+    const sorted=[...stocks].filter(d=>d.day!=null).sort((a,b)=>b.day-a.day);
+    const top=sorted.slice(0,3), bottom=sorted.slice(-3).reverse();
+    const mover=d=>`<div class="d-row clickable" data-detail="${d.code}"><span class="d-nm">${escHtml(d.name||d.code)}</span><span class="d-pct ${cls(d.day)}">${sign(d.day)}${d.day.toFixed(2)}%</span></div>`;
+    cards+=`<div class="dash-card" data-ind="${ind.key}" style="--c:${ind.color}">
+      <div class="dc-head"><span class="dc-dot" style="background:${ind.color}"></span><h3>${ind.label}</h3><span class="dc-avg ${cls(avg)}">${avg==null?'—':sign(avg)+avg.toFixed(2)+'%'}</span></div>
+      <div class="dc-dist"><div class="dist-bar"><span class="seg up" style="width:${pUp}%"></span><span class="seg down" style="width:${pDn}%"></span><span class="seg flat" style="width:${pFl}%"></span></div><div class="dist-legend"><span class="up">▲ ${up}</span><span class="down">▼ ${down}</span><span class="flat">→ ${flat}</span><span class="dc-cnt">${stocks.length} 只${us.length?` · 美股 ${us.length}`:''}</span></div></div>
+      <div class="dc-movers"><div class="dc-col"><h5>领涨</h5>${top.length?top.map(mover).join(''):'<div class="d-row"><span class="d-nm" style="color:var(--sub)">暂无涨幅数据</span></div>'}</div><div class="dc-col"><h5>领跌</h5>${bottom.length?bottom.map(mover).join(''):'<div class="d-row"><span class="d-nm" style="color:var(--sub)">暂无跌幅数据</span></div>'}</div></div>
+      <button class="dc-go" data-ind="${ind.key}">查看赛道详情 →</button>
+    </div>`;
+  });
+  grid.innerHTML=cards;
+}
+/* 切换产业链子视图（home=总览仪表盘；key=具体赛道详情） */
+function renderChain(){
+  const home=document.getElementById('homeDash');
+  const top=document.getElementById('top');
+  const fn=document.getElementById('floatNav');
+  const isHome = chainSub==='home';
+  document.querySelectorAll('#chainSubNav button').forEach(b=>{
+    const on=b.dataset.ind===chainSub;
+    b.classList.toggle('active',on);
+    const ind=INDUSTRIES.find(i=>i.key===b.dataset.ind);
+    const col= ind?ind.color:'var(--midstream)';
+    b.style.background=on?col:'';
+    b.style.borderColor=on?col:'';
+    b.style.color=on?'#fff':'';
+  });
+  if(isHome){
+    if(home)home.classList.remove('hidden');
+    if(top)top.classList.add('hidden');
+    if(fn)fn.classList.add('hidden');
+    document.querySelectorAll('.layer').forEach(l=>l.classList.add('hidden'));
+    buildHomeDash();
+  } else {
+    if(home)home.classList.add('hidden');
+    if(top)top.classList.remove('hidden');
+    if(fn)fn.classList.remove('hidden');
+  }
+}
+function showChainHome(){
+  topView='chain';
+  const app=document.getElementById('app'), pv=document.getElementById('prophetView');
+  if(app)app.classList.remove('hidden');
+  if(pv)pv.classList.add('hidden');
+  if(window.closeProphetDetail)window.closeProphetDetail();
+  chainSub='home';
+  setTopNav('chain');
+  renderChain();
+}
+function showChainTrack(key){
+  topView='chain';
+  const app=document.getElementById('app'), pv=document.getElementById('prophetView');
+  if(app)app.classList.remove('hidden');
+  if(pv)pv.classList.add('hidden');
+  if(window.closeProphetDetail)window.closeProphetDetail();
+  chainSub=key;
+  setTopNav('chain');
+  setIndustry(key);
+  renderChain();
 }
 
 function buildFloatNav(){
@@ -4040,7 +4161,7 @@ function buildFloatNav(){
       return `<button data-ind="${i.key}" style="${style}">${i.label}</button>`;
     }).join('')+`<button class="mob-layer-btn" id="mobLayerBtn">赛道</button>`;
     mbar.querySelectorAll('button[data-ind]').forEach(b=>{
-      b.addEventListener('click',()=>setIndustry(b.dataset.ind));
+      b.addEventListener('click',()=>showChainTrack(b.dataset.ind));
     });
     const lb=document.getElementById('mobLayerBtn');
     if(lb)lb.addEventListener('click',()=>toggleMobLayerPanel());
@@ -6084,7 +6205,7 @@ async function fetchProxy(base){
     const kFields=prev?{p5:prev.p5,p20:prev.p20,p60:prev.p60,kline:prev.kline,pe:prev.pe,pb:prev.pb,klineSrc:prev.klineSrc}:{p5:null,p20:null,p60:null,kline:null,pe:null,pb:null,klineSrc:null};
     data[code]={code,...(codeMeta[code]||{}),...q,...kFields,okRt:true,okK:prev?prev.okK:true};
   }
-  applyRealtime();applyKline();buildOverview();
+  applyRealtime();applyKline();buildOverview();refreshHome();
   return j.updated||'';
 }
 async function tick(){
@@ -6277,11 +6398,25 @@ function start(){
   let savedTheme='init'; try{savedTheme=localStorage.getItem('ai_theme')||'init';}catch(e){}
   if(!THEMES[savedTheme])savedTheme='init';
   applyTheme(savedTheme);
-  document.getElementById('layerFilter').addEventListener('click',e=>{
-    const b=e.target.closest('button');
-    if(!b)return;
-    setIndustry(b.dataset.ind);
+  // 一级导航：产业链 / 预言家
+  const chainTab=document.getElementById('chainTab');
+  if(chainTab)chainTab.addEventListener('click',showChainHome);
+  // 二级栏目（产业链主页）：赛道总览 + 4 个赛道下钻
+  const sn=document.getElementById('chainSubNav');
+  if(sn)sn.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    const ind=b.dataset.ind;
+    if(ind==='home')showChainHome(); else showChainTrack(ind);
   });
+  // 主页仪表盘卡片点击 → 进入对应赛道详情
+  const appEl=document.getElementById('app');
+  if(appEl)appEl.addEventListener('click',e=>{
+    if(e.target.closest('[data-detail]')||e.target.closest('.stock'))return; // 个股交给全局处理
+    const card=e.target.closest('.dash-card[data-ind]');
+    if(card)showChainTrack(card.dataset.ind);
+  });
+  // 初始进入产业链主页（赛道总览仪表盘）
+  showChainHome();
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInterval(timer);}else{tick();timer=setInterval(tick,10000);}});
   // 详情弹层交互
   document.addEventListener('click',e=>{
