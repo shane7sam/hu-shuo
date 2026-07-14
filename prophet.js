@@ -54,17 +54,48 @@
   }
 
   // ---------- 财联社 ----------
+  // 网页端：cls.cn 开放 CORS(access-control-allow-origin: *)，直接 fetch 无需 Worker
+  // 本地端：走同源 /api/prophet/cls (server.py)
   async function fetchCLS() {
-    var url = pickURL('/api/prophet/cls');
-    if (!url) { console.warn('[Prophet] 网页端未配置 PROPHET_PROXY，无法拉取财联社'); return []; }
+    if (isLocal) {
+      var url = pickURL('/api/prophet/cls');
+      try {
+        var r = await fetch(url, { cache: 'no-store' });
+        var j = await r.json();
+        if (j && Array.isArray(j.events)) return j.events;
+        return [];
+      } catch (e) {
+        console.warn('[Prophet] cls fetch failed:', e);
+        return [];
+      }
+    }
     try {
-      var r = await fetch(url, { cache: 'no-store' });
-      var j = await r.json();
-      if (j && Array.isArray(j.events)) return j.events;
-      if (j && j.error) console.warn('[Prophet] cls:', j.error);
-      return [];
+      var r2 = await fetch('https://www.cls.cn/api/calendar/web/list', {
+        cache: 'no-store', headers: { 'Accept': 'application/json' }
+      });
+      if (!r2.ok) { console.warn('[Prophet] cls http', r2.status); return []; }
+      var j2 = await r2.json();
+      var days = Array.isArray(j2 && j2.data) ? j2.data : null;
+      if (!days) return [];
+      var out = [];
+      days.forEach(function (day) {
+        var d = (day.calendar_day || '').slice(0, 10);
+        (day.items || []).forEach(function (it) {
+          var ev = it.event || {};
+          out.push({
+            src: 'cls',
+            date: d,
+            time: (it.calendar_time || '').slice(11, 16) || '',
+            title: it.title || ev.title || '',
+            country: ev.country || '',
+            importance: ev.star || 0,
+            cat: it.type === 1 ? 'macro' : 'event'
+          });
+        });
+      });
+      return out;
     } catch (e) {
-      console.warn('[Prophet] cls fetch failed:', e);
+      console.warn('[Prophet] cls direct failed:', e);
       return [];
     }
   }
@@ -510,6 +541,36 @@
   var NEWS_ORDER = ['wscn', 'emflash', 'jin10', 'policy', 'commodity'];
   var newsCache = {};
 
+  // ---------- 华尔街见闻 直连（网页端：WSCN 开放 CORS，精确白名单 github.io 源，无需 Worker） ----------
+  function fetchWSCNDirect() {
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish(arr) { if (done) return; done = true; resolve(Array.isArray(arr) ? arr : []); }
+      var api = 'https://api-one-wscn.awtmt.com/apiv1/content/lives?channel=global&client=pc&cursor=0&limit=30';
+      fetch(api, { cache: 'no-store', headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var items = (j && j.data && Array.isArray(j.data.items)) ? j.data.items : [];
+          var out = items.map(function (it) {
+            var dt = Number(it.display_time) || 0;
+            return {
+              src: 'wscn',
+              ts: dt * 1000,
+              time: String(it.showTime || ''),
+              title: String(it.title || it.content_text || '').replace(/<[^>]+>/g, '').trim(),
+              content: String(it.content_text || '').replace(/<[^>]+>/g, '').trim(),
+              tags: Array.isArray(it.tags) ? it.tags.map(function (t) { return (t && t.name) || t; }).filter(Boolean) : [],
+              symbols: Array.isArray(it.symbols) ? it.symbols : [],
+              url: it.uri || (it.article && it.article.uri) || ''
+            };
+          });
+          finish(out);
+        })
+        .catch(function (e) { console.warn('[Prophet] wscn direct failed:', e); finish([]); });
+      setTimeout(function () { finish([]); }, 12000);
+    });
+  }
+
   // ---------- 东财7×24 JSONP 直连（网页端兜底：不依赖 Worker） ----------
   // 利用东财 search-api-web JSONP 搜索最新财经要闻，模拟 7×24 快讯流
   function fetchEmFlashJsonp() {
@@ -590,6 +651,24 @@
         }
       } catch (e) {
         console.warn('[Prophet] emflash JSONP failed, fallback to Worker:', e);
+      }
+    }
+
+    // 网页端：wscn 走直连（WSCN 开放 CORS，精确白名单 github.io 源，无需 Worker）
+    if (!isLocal && key === 'wscn') {
+      try {
+        var wItems = await fetchWSCNDirect();
+        if (wItems && wItems.length) {
+          console.log('[Prophet] wscn via direct CORS:', wItems.length, 'items');
+          return wItems.map(function (it) {
+            return { srcLabel: meta.label, srcCls: meta.cls, ts: it.ts || 0,
+              timeText: it.ts ? fmtTs(it.ts) : (it.date || ''),
+              title: it.title || '', content: (it.content && it.content !== it.title) ? it.content : '',
+              url: it.url || '', tags: it.tags || [], symbols: it.symbols || [], extra: '' };
+          });
+        }
+      } catch (e) {
+        console.warn('[Prophet] wscn direct failed, fallback to Worker:', e);
       }
     }
 
