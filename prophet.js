@@ -86,15 +86,16 @@
 
   // CLS 日历直连解析（网页端主路径 + 本地端 fallback 共用）
   async function fetchCLSDirect() {
-    var r2 = await fetch('https://www.cls.cn/api/calendar/web/list', {
-      cache: 'no-store', headers: { 'Accept': 'application/json' }
-    });
-    if (!r2.ok) { console.warn('[Prophet] cls http', r2.status); return []; }
-    var j2 = await r2.json();
-    var days = Array.isArray(j2 && j2.data) ? j2.data : null;
-    if (!days) return [];
-    var out = [];
-    days.forEach(function (day) {
+    try {
+      var r2 = await fetch('https://www.cls.cn/api/calendar/web/list', {
+        cache: 'no-store', headers: { 'Accept': 'application/json' }
+      });
+      if (!r2.ok) { console.warn('[Prophet] cls http', r2.status); return []; }
+      var j2 = await r2.json();
+      var days = Array.isArray(j2 && j2.data) ? j2.data : null;
+      if (!days) return [];
+      var out = [];
+      days.forEach(function (day) {
         var d = (day.calendar_day || '').slice(0, 10);
         (day.items || []).forEach(function (it) {
           var ev = it.event || {};
