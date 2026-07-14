@@ -510,6 +510,59 @@
   var NEWS_ORDER = ['wscn', 'emflash', 'jin10', 'policy', 'commodity'];
   var newsCache = {};
 
+  // ---------- 东财7×24 JSONP 直连（网页端兜底：不依赖 Worker） ----------
+  // 利用东财 search-api-web JSONP 搜索最新财经要闻，模拟 7×24 快讯流
+  function fetchEmFlashJsonp() {
+    return new Promise(function (resolve) {
+      var cb = '__emflash_' + Date.now();
+      // 用多个宽泛关键词搜索财经新闻，取并集去重
+      var keywords = ['A股', '美联储', '市场', '政策'];
+      var all = [], done = 0, finished = false;
+      function finish() { if (finished) return; finished = true; resolve(all); }
+      keywords.forEach(function (kw, ki) {
+        var inner = {
+          uid: '', keyword: kw, type: ['cmsArticleWebOld'], client: 'web', clientType: 'web',
+          clientVersion: 'curr', param: {}
+        };
+        inner.param.cmsArticleWebOld = {
+          searchScope: 'default', sort: 'time', pageIndex: 1, pageSize: 15,
+          preTag: '<em>', postTag: '</em>'
+        };
+        var url = 'https://search-api-web.eastmoney.com/search/jsonp?cb=' + cb + '_k' + ki
+          + '&param=' + encodeURIComponent(JSON.stringify(inner));
+        window[cb + '_k' + ki] = function (json) {
+          try {
+            var arr = ((json && json.result) || {}).cmsArticleWebOld || [];
+            arr.forEach(function (it) {
+              var title = (it.title || '').replace(/<[^>]+>/g, '');
+              if (!title) return;
+              var dateStr = (it.date || '').slice(0, 10);
+              var ts = dateStr ? parseDateTs(dateStr + ' 12:00') : 0;
+              // 去重（同一标题只保留一条）
+              if (all.some(function (a) { return a.title === title; })) return;
+              all.push({
+                ts: ts,
+                title: title,
+                content: ((it.content || '').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim().slice(0, 300),
+                date: dateStr,
+                url: it.url || '',
+                tags: [kw],
+                symbols: []
+              });
+            });
+          } catch (e) {}
+          done++;
+          if (done >= keywords.length) finish();
+        };
+        var s = document.createElement('script');
+        s.src = url;
+        s.onerror = function () { done++; if (done >= keywords.length) finish(); };
+        (document.head || document.body).appendChild(s);
+      });
+      setTimeout(function () { finish(); }, 12000);
+    });
+  }
+
   function parseDateTs(s) {
     if (!s) return 0;
     var t = Date.parse(String(s).replace(/-/g, '/'));
@@ -517,14 +570,36 @@
   }
 
   // 拉取单个新闻源并归一化为统一结构
+  // 网页端优先尝试 JSONP 直连（绕过 Worker），失败再走 Worker 代理
   async function fetchNews(key) {
     var meta = NEWS_SRC[key];
     if (!meta) return [];
+
+    // 网页端：emflash 优先走 JSONP 直连（东财 search-api-web 支持回调）
+    if (!isLocal && key === 'emflash') {
+      try {
+        var items = await fetchEmFlashJsonp();
+        if (items && items.length) {
+          console.log('[Prophet] emflash via JSONP:', items.length, 'items');
+          return items.map(function (it) {
+            return { srcLabel: meta.label, srcCls: meta.cls, ts: it.ts || 0,
+              timeText: it.ts ? fmtTs(it.ts) : (it.date || ''),
+              title: it.title || '', content: (it.content && it.content !== it.title) ? it.content : '',
+              url: it.url || '', tags: it.tags || [], symbols: it.symbols || [], extra: '' };
+          });
+        }
+      } catch (e) {
+        console.warn('[Prophet] emflash JSONP failed, fallback to Worker:', e);
+      }
+    }
+
     var url = pickURL(meta.path);
     if (!url) { console.warn('[Prophet] 未配置代理，无法拉取', key); return []; }
     try {
       var r = await fetch(url, { cache: 'no-store' });
+      console.log('[Prophet] worker', key, 'status:', r.status);
       var j = await r.json();
+      console.log('[Prophet] worker', key, 'keys:', j ? Object.keys(j).join(',') : 'null');
       var items = (j && Array.isArray(j.items)) ? j.items : [];
       return items.map(function (it) {
         var nativeTs = it.ts || 0;
