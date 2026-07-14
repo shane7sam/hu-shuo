@@ -1,7 +1,7 @@
 /* 预言家栏目 · 前端客户端与渲染（事件日历·财联社 / 新闻库·多源聚合）
  * - fetchCLS(): 网页端 CORS 直连 cls.cn（access-control-allow-origin: *），本地端走同源 /api/prophet/cls
  * - renderCalendar(): 只渲染财联社事件日历（不再合并东财）
- * - fetchNews(): 多源新闻聚合——华尔街见闻(CORS) / 东财7×24(JSONP) / 新浪财经(JSONP)
+ * - fetchNews(): 多源新闻聚合——华尔街见闻(CORS) / 东财7×24(JSONP)
  * - 事件详情：每条事件可点击，弹出复用「个股窗口」CSS 模板的详情弹层（#prophetDetail），内容先做占位
  * - 视图切换：与顶部「产业链」导航并列，点击「事件日历」切换主视图
  * 归一化事件结构: {src:'cls',date,time,title,country,importance,cat}
@@ -481,7 +481,6 @@
       '.flash-item .f-src{font-size:11px;font-weight:700;padding:1px 8px;border-radius:9px;}',
       '.flash-item .f-src.wscn{color:#e0a93b;background:rgba(224,169,59,.14);}',
       '.flash-item .f-src.em{color:#5b9bd5;background:rgba(91,155,213,.14);}',
-      '.flash-item .f-src.sina{color:#e0504d;background:rgba(224,80,77,.14);}',
       '.flash-item .f-time{font-size:12px;color:var(--sub);font-weight:600;}',
       '.flash-item .f-link{font-size:12px;color:#5b9bd5;text-decoration:none;font-weight:600;}',
       '.flash-item .f-link:hover{text-decoration:underline;}',
@@ -537,13 +536,12 @@
   }
 
   // ---------------- 新闻库（聚合可用新闻源，全部浏览器端直连/JSONP） ----------------
-  // 实时快讯类：华尔街见闻(CORS直连) / 东财7×24(JSONP) / 新浪财经(JSONP)
+  // 实时快讯类：华尔街见闻(CORS直连) / 东财7×24(JSONP)
   var NEWS_SRC = {
     wscn:      { label: '华尔街见闻', path: '/api/prophet/wscn',      cls: 'wscn' },
-    emflash:   { label: '东财7×24',   path: '/api/prophet/emflash',   cls: 'em' },
-    sina:      { label: '新浪财经',   path: '/api/prophet/sina',      cls: 'sina' }
+    emflash:   { label: '东财7×24',   path: '/api/prophet/emflash',   cls: 'em' }
   };
-  var NEWS_ORDER = ['wscn', 'emflash', 'sina'];
+  var NEWS_ORDER = ['wscn', 'emflash'];
   var newsCache = {};
 
   // 带超时的 fetch 封装（防止网络不通时永久挂起）
@@ -645,44 +643,6 @@
     });
   }
 
-  // ---------- 新浪财经 JSONP 直连（网页端：feed.mix.sina.com.cn 支持 callback=，完美绕过 CORS） ----------
-  // 覆盖 A 股/港股/美股/期货/外汇/基金等全品类财经新闻
-  function fetchSinaJsonp() {
-    return new Promise(function (resolve) {
-      var cb = '__sina_' + Date.now();
-      var api = 'https://feed.mix.sina.com.cn/api/roll/get'
-        + '?pageid=153&lid=2509&num=30&page=1&versionNumber=1.2.4&encode=utf-8'
-        + '&callback=' + cb;
-      var done = false;
-      function finish(arr) { if (done) return; done = true; resolve(Array.isArray(arr) ? arr : []); }
-      window[cb] = function (j) {
-        try {
-          var data = (j && j.result && j.result.data) || [];
-          var out = data.map(function (it) {
-            // ctime/intime 为 Unix 秒级时间戳
-            var ts = Number(it.ctime || it.intime || 0);
-            if (ts > 0 && ts < 1e12) ts *= 1000; // 秒→毫秒
-            return {
-              ts: ts,
-              title: (it.title || '').trim(),
-              content: (it.intro || '').replace(/\s+/g, ' ').trim(),
-              url: it.url || '',
-              tags: [],
-              symbols: [],
-              extra: it.media_name || ''
-            };
-          });
-          finish(out);
-        } catch (e) { finish([]); }
-      };
-      var s = document.createElement('script');
-      s.src = api;
-      s.onerror = function () { finish([]); };
-      (document.head || document.body).appendChild(s);
-      setTimeout(function () { finish([]); }, 12000);
-    });
-  }
-
   function parseDateTs(s) {
     if (!s) return 0;
     var t = Date.parse(String(s).replace(/-/g, '/'));
@@ -691,7 +651,7 @@
 
   // 拉取单个新闻源并归一化为统一结构
   // 网页端走 JSONP/CORS 直连；本地端先尝试直连，失败 fallback 到 server.py 同源代理。
-  // 注意：JSONP（<script>注入）与 CORS 无关 → emflash/sina 在网页+本地两端均可用；
+  // 注意：JSONP（<script>注入）与 CORS 无关 → emflash 在网页+本地两端均可用；
   //       wscn 受 CORS 精确白名单限制（仅放行 github.io），本地尝试直连→失败则走 server.py。
   // 所有 fetch 均带 AbortController 超时（8~10s），防止永久挂起。
   async function fetchNews(key) {
@@ -732,24 +692,6 @@
         }
       } catch (e) {
         console.warn('[Prophet] wscn direct failed, fallback to proxy:', e);
-      }
-    }
-
-    // sina：JSONP 直连（feed.mix.sina.com.cn 支持 callback=，与源无关，网页与本地均可用）
-    if (key === 'sina') {
-      try {
-        var sItems = await fetchSinaJsonp();
-        if (sItems && sItems.length) {
-          console.log('[Prophet] sina via JSONP:', sItems.length, 'items');
-          return sItems.map(function (it) {
-            return { srcLabel: meta.label, srcCls: meta.cls, ts: it.ts || 0,
-              timeText: it.ts ? fmtTs(it.ts) : '',
-              title: it.title || '', content: (it.content && it.content !== it.title) ? it.content : '',
-              url: it.url || '', tags: it.tags || [], symbols: it.symbols || [], extra: it.extra || '' };
-          });
-        }
-      } catch (e) {
-        console.warn('[Prophet] sina JSONP failed, fallback to Worker:', e);
       }
     }
 
@@ -814,7 +756,7 @@
     });
     bar += '</div>';
     c.innerHTML = '<div class="prophet-head">新闻库 · 财经快讯聚合'
-      + '<span class="plegend"><i class="lg em">华尔街见闻 / 东财 / 新浪</i></span></div>'
+      + '<span class="plegend"><i class="lg em">华尔街见闻 / 东财7×24</i></span></div>'
       + bar + '<div id="newsList" class="flash-list"><div class="news-loading">加载中…</div></div>';
     var list = c.querySelector('#newsList');
     Array.prototype.forEach.call(c.querySelectorAll('.flash-bar .fbtn'), function (b) {
