@@ -1,9 +1,10 @@
-/* 预言家栏目 · 前端客户端与渲染（事件日历·财联社 / 新闻库·多源聚合）
+/* 预言家栏目 · 前端客户端与渲染（事件日历 / 新闻库·7×24）
  * - fetchCLS(): 网页端 CORS 直连 cls.cn（access-control-allow-origin: *），本地端走同源 /api/prophet/cls
- * - renderCalendar(): 只渲染财联社事件日历（不再合并东财）
- * - fetchNews(): 多源新闻聚合——华尔街见闻(CORS) / 东财7×24(JSONP)
+ * - renderCalendar(): 事件日历（未来30天）
+ * - fetchNews(): 多源新闻聚合（华尔街见闻CORS / 东财7×24 JSONP）—— 对用户透明，不展示来源名
+ * - 新闻库按话题筛选：全部实况 / 美伊冲突 / 俄乌战线 / 贸易壁垒（关键词过滤 title+content）
  * - 事件详情：每条事件可点击，弹出复用「个股窗口」CSS 模板的详情弹层（#prophetDetail），内容先做占位
- * - 视图切换：与顶部「产业链」导航并列，点击「事件日历」切换主视图
+ * - 视图切换：与顶部「产业链」导航并列，点击切换主视图
  * 归一化事件结构: {src:'cls',date,time,title,country,importance,cat}
  * 归一化新闻结构: {srcLabel,srcCls,ts,timeText,title,content,url,tags,symbols,extra}
  */
@@ -209,15 +210,12 @@
     // 按来源统计
     var clsCount = (events || []).length;
     if (!events || !events.length) {
-      el.innerHTML = '<div class="prophet-empty">事件日历暂不可用（网络异常或财联社接口变更）。'
-        + '网页端 CORS 直连 cls.cn；本地端由 server.py 提供。</div>';
+      el.innerHTML = '<div class="prophet-empty">事件日历暂不可用（网络异常或接口变更）。</div>';
       return;
     }
     var groups = groupByDate(events);
-    var srcHint = '（财联社 ' + clsCount + ' 条）';
-    var html = '<div class="prophet-head">事件日历 · 财联社（未来 30 天）'
-      + '<span class="plegend"><i class="lg cls">财联社</i>'
-      + '<span class="psrc-count">' + srcHint + '</span></span></div>';
+    var html = '<div class="prophet-head">事件日历（未来 30 天）'
+      + '<span class="psrc-count">' + clsCount + ' 条</span></div>';
     groups.forEach(function (g) {
       html += '<div class="pday"><div class="pdate">' + escapeHtml(g.date) + '</div><div class="pitems">';
       g.items.slice().sort(function (a, b) {
@@ -535,14 +533,24 @@
     if (typeof topView !== 'undefined') topView = 'prophet';
   }
 
-  // ---------------- 新闻库（聚合可用新闻源，全部浏览器端直连/JSONP） ----------------
-  // 实时快讯类：华尔街见闻(CORS直连) / 东财7×24(JSONP)
+  // ---------------- 新闻库（7×24 实时快讯，多源聚合 + 话题筛选） ----------------
+  // 数据源：华尔街见闻(CORS直连) / 东财7×24(JSONP) —— 对用户透明，不展示来源名
+  // 筛选维度：按话题关键词过滤（全部实况 / 美伊冲突 / 俄乌战线 / 贸易壁垒）
   var NEWS_SRC = {
     wscn:      { label: '华尔街见闻', path: '/api/prophet/wscn',      cls: 'wscn' },
     emflash:   { label: '东财7×24',   path: '/api/prophet/emflash',   cls: 'em' }
   };
   var NEWS_ORDER = ['wscn', 'emflash'];
   var newsCache = {};
+
+  // 话题筛选配置：每个话题一组关键词，匹配新闻 title+content
+  var NEWS_TOPICS = {
+    all:       { label: '全部实照', keywords: [] },          // 空关键词 = 不过滤
+    iran:      { label: '美伊冲突', keywords: ['伊朗','以色列','美伊','核设施','中东局势','霍尔木兹','德黑兰','特拉维夫','导弹袭击'] },
+    ukraine:   { label: '俄乌战线', keywords: ['俄乌','乌克兰','俄罗斯','基辅','莫斯科','顿涅茨克','北约援乌','泽连斯基','普京','停火谈判','前线'] },
+    trade:     { label: '贸易壁垒', keywords: ['关税','贸易战','出口管制','芯片禁令','制裁','反制','301条款','科技封锁','稀土','供应链脱钩','WTO','倾销调查'] }
+  };
+  var TOPIC_ORDER = ['all', 'iran', 'ukraine', 'trade'];
 
   // 带超时的 fetch 封装（防止网络不通时永久挂起）
   function fetchTimeout(url, opts, ms) {
@@ -741,7 +749,7 @@
     var extra = it.extra ? '<span class="f-tag">' + escapeHtml(it.extra) + '</span>' : '';
     var link = it.url ? ' <a class="f-link" href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener">原文↗</a>' : '';
     return '<div class="flash-item">'
-      + '<div class="f-meta"><span class="f-src ' + it.srcCls + '">' + escapeHtml(it.srcLabel) + '</span>'
+      + '<div class="f-meta">'
       + '<span class="f-time">' + escapeHtml(it.timeText || '') + '</span>' + link + '</div>'
       + '<div class="f-title">' + escapeHtml(it.title || '') + '</div>'
       + (it.content ? '<div class="f-content">' + escapeHtml(it.content) + '</div>' : '')
@@ -750,56 +758,64 @@
   }
 
   function renderNews(pv, c) {
-    var bar = '<div class="flash-bar"><button class="fbtn active" data-nsrc="all">全部</button>';
-    NEWS_ORDER.forEach(function (k) {
-      bar += '<button class="fbtn" data-nsrc="' + k + '">' + escapeHtml(NEWS_SRC[k].label) + '</button>';
+    var bar = '<div class="flash-bar">';
+    TOPIC_ORDER.forEach(function (t) {
+      var topic = NEWS_TOPICS[t];
+      var lbl = topic ? topic.label : t;
+      bar += '<button class="fbtn' + (t === 'all' ? ' active' : '') + '" data-ntopic="' + t + '">' + escapeHtml(lbl) + '</button>';
     });
     bar += '</div>';
-    c.innerHTML = '<div class="prophet-head">新闻库 · 财经快讯聚合'
-      + '<span class="plegend"><i class="lg em">华尔街见闻 / 东财7×24</i></span></div>'
+    c.innerHTML = '<div class="prophet-head">新闻库 · 7×24</div>'
       + bar + '<div id="newsList" class="flash-list"><div class="news-loading">加载中…</div></div>';
     var list = c.querySelector('#newsList');
     Array.prototype.forEach.call(c.querySelectorAll('.flash-bar .fbtn'), function (b) {
       b.addEventListener('click', function () {
         c.querySelectorAll('.flash-bar .fbtn').forEach(function (x) { x.classList.toggle('active', x === b); });
-        loadNews(b.dataset.nsrc, list);
+        loadNews(b.dataset.ntopic, list);
       });
     });
     loadNews('all', list);
   }
 
-  async function loadNews(filter, list) {
+  async function loadNews(topic, list) {
     if (!list) return;
     list.innerHTML = '<div class="news-loading">加载中…</div>';
-    var keys = filter === 'all' ? NEWS_ORDER.slice() : [filter];
-    var results;
+
+    // 1) 先拉全量数据（所有源），仅首次拉取时缓存
+    var allItems = [];
     try {
-      results = await Promise.all(keys.map(function (k) {
+      var results = await Promise.all(NEWS_ORDER.map(function (k) {
         if (newsCache[k]) return newsCache[k];
         return fetchNews(k).then(function (items) { newsCache[k] = items; return items; });
       }));
+      results.forEach(function (items) { (items || []).forEach(function (it) { allItems.push(it); }); });
+      // 按时间倒序
+      allItems.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+      window.__allNews = allItems; // 缓存全量供话题切换秒切
     } catch (e) {
       list.innerHTML = '<div class="news-loading">获取失败：' + escapeHtml((e && e.message) || e) + '</div>';
       return;
     }
-    // 按源诊断（便于排查全空问题）
-    var diag = [];
-    keys.forEach(function (k, i) {
-      var n = (results[i] || []).length;
-      diag.push(NEWS_SRC[k].label + '(' + n + ')');
-    });
-    console.log('[Prophet] news source stats: ' + diag.join(', '));
-    var all = [];
-    results.forEach(function (items) { (items || []).forEach(function (it) { all.push(it); }); });
-    all.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
-    if (!all.length) {
-      // 更详细的空结果提示：列出各源状态
-      var detail = keys.map(function (k) { return NEWS_SRC[k].label; }).join(' / ');
-      var tip = '以下源均无数据返回：' + detail + '。请检查网络连接。';
-      list.innerHTML = '<div class="news-loading">暂无可显示的新闻（' + tip + '）。</div>';
+
+    // 2) 话题关键词过滤
+    var topicCfg = NEWS_TOPICS[topic];
+    var kwList = (topicCfg && topicCfg.keywords) ? topicCfg.keywords : [];
+    var filtered = allItems;
+    if (kwList.length > 0) {
+      filtered = allItems.filter(function (it) {
+        var text = (it.title + ' ' + (it.content || '') + ' ' + (it.extra || '')).toLowerCase();
+        return kwList.some(function (kw) { return text.indexOf(kw.toLowerCase()) !== -1; });
+      });
+    }
+
+    // 诊断日志
+    console.log('[Prophet] news total=' + allItems.length + ' topic=' + (topicCfg ? topicCfg.label : topic) + ' filtered=' + filtered.length);
+
+    if (!filtered.length) {
+      list.innerHTML = '<div class="news-loading">暂无可显示的新闻（' + escapeHtml((topicCfg && topicCfg.label) || topic) + '）。</div>';
       return;
     }
-    list.innerHTML = all.map(newsCardHTML).join('');
+    list.innerHTML = filtered.map(newsCardHTML).join('');
   }
 
   function showChain() {
