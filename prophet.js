@@ -317,93 +317,392 @@
     }
   };
 
-  // ---- 从全局 PROFILES 构建个股名称→代码映射 ----
-  function buildStockNameMap() {
-    var map = {}; // name_lower → {code, name}
-    try {
-      var profiles = (typeof window !== 'undefined' && window.PROFILES) || {};
-      Object.keys(profiles).forEach(function (code) {
-        var p = profiles[code];
-        if (!p || !p.one_liner) return;
-        // 从 one_liner 或 biz 中提取公司简称（通常第一个逗号前的部分）
-        var name = '';
-        if (p.one_liner) {
-          var m = p.one_liner.match(/^([^，,（(]+)/);
-          if (m) name = m[1].trim();
+
+  // ---- 泛词黑名单：这些词太通用，作为独立搜索词会引入大量无关结果 ----
+  // 分两级：
+  //   A) 绝对泛词（停用词级别）：绝不搜、打分极低权重
+  //   B) 宽行业词（如"人工智能""芯片"）：不单独搜（会引入整行业噪声），
+  //      但打分时可作辅助确认实体（generic 权重）
+  var GENERIC_TERMS = ['开源','全量','发布','上线','数据','报告','技术','发展',
+    '建设','推动','促进','提升','加强','深化','完善','优化','加快','实施',
+    '落实','推进','支持','保障','关于','对于','通过','进行','开展','工作',
+    '研究','规划','方案','措施','意见','通知','说明','解读','分析','会议',
+    '服务','平台','系统','产品','应用','项目','业务','能力','模式','生态',
+    '创新','智能','数字','信息','网络','安全','管理','运营','合作','战略',
+    '投资','融资','资本','市场','经济','产业','企业','公司','集团','股份',
+    '中国','国内','全球','国际','年度','季度','月份','今日','近期','未来',
+    // ---- 宽行业词（B级）：事件辅助确认用，但绝不单独搜索 ----
+    '人工智能','大模型','芯片','半导体','新能源','光伏','风电','储能','锂电',
+    '医药','创新药','医疗器械','机器人','人形机器人','具身智能','电动车','新能源汽车',
+    '房地产','楼市','券商','证券','银行','保险','非银','金融','消费','零售',
+    '白酒','食品饮料','旅游','免税','商业航天','卫星','低空经济','低空','eVTOL',
+    'CPI','PPI','GDP','PMI','社融','M2','降息','加息','LPR','MLF',
+    '科创板','北交所','注册制','IPO','再融资','美联储','央行','发改委','工信部',
+    'GPT','LLM','AIGC','生成式','算力','GPU','光刻机','存储器'];
+
+  // ---- 实体提取：从事件标题中提取核心实体用于精准检索 ----
+  // 返回 { core, full, short, known, distinctive, generic }
+  //   distinctive = 高特异性词（不在泛词黑名单中，指向性强的实体）
+  //   generic     = 泛词（出现频率高、单独搜索会引入噪声的词）
+  function extractEventEntities(title) {
+    var t = (title || '').trim();
+    if (!t) return { core: [], full: t, short: t, known: [], distinctive: [], generic: [] };
+    // 常见事件模式匹配
+    var entities = [];
+    var known = [];
+    // 1. 中文引号/书名号内的名称：《xxx》或"xxx"
+    var quoted = t.match(/[\u300A\u300B\u201C\u201D]([^\u300A\u300B\u201C\u201D]{2,20})[\u300A\u300B\u201C\u201D]/g);
+    if (quoted) quoted.forEach(function(q) { entities.push(q.replace(/[\u300A\u300B\u201C\u201D]/g, '')); });
+    // 2. 已知技术名词/产品名（高频实体库）
+    var techPatterns = [
+      /(?:星闪|OpenHarmony|鸿蒙|HarmonyOS|NearLink|SparkLink|SLE|SLB|协议栈)/g,
+      /(?:人工智能|AI拟人化|互动服务|管理办法|暂行办法)/g,
+      /(?:GPT|LLM|大模型|算力|GPU|芯片|半导体|光刻机|存储器)/g,
+      /(?:商业航天|卫星|火箭|发射|低空经济|eVTOL|无人机)/g,
+      /(?:机器人|人形机器人|具身智能|伺服电机|减速器)/g,
+      /(?:创新药|ADC|GLP-1|临床试验|IND|NDA|FDA)/g,
+      /(?:CPI|PPI|GDP|PMI|社融|M2|降息|加息|LPR|MLF)/g,
+      /(?:科创板|北交所|注册制|IPO|再融资|减持|回购|增持)/g,
+      /(?:美联储|欧央行|日本央行|央行|国新办|发改委|工信部)/g,
+      /(?:华为|百度|阿里|腾讯|字节|小米|苹果|英伟达|特斯拉)/g,
+      /(?:宁德时代|比亚迪|贵州茅台|工商银行|中国石油)/g,
+      /(?:半导体设备|晶圆代工|光模块|PCB|CPO|液冷)/g,
+      /(?:碳达峰|碳中和|新能源|光伏|风电|储能|锂电)/g,
+      /(?:房地产|房贷|限购|首付|公积金|保交楼)/g,
+      /(?:医保|集采|DRG[\/]DIP|创新药|医疗器械)/g
+    ];
+    techPatterns.forEach(function(pat) { var m; while ((m = pat.exec(t)) !== null) { if (entities.indexOf(m[0]) === -1) { entities.push(m[0]); known.push(m[0]); } } });
+    // 3. 长中文词组（3-8字的连续中文，排除常见虚词）
+    var longCn = t.match(/[\u4e00-\u9fa5]{3,8}/g);
+    if (longCn) longCn.forEach(function(w) {
+      var skipWords = ['关于','对于','根据','按照','通过','经过','以及','或者',
+        '如果','因为','所以','但是','然而','因此','其中','之后','之前','期间',
+        '办法','规定','通知','公告','报告','会议','发布会','说明','解读'];
+      if (skipWords.indexOf(w) === -1 && entities.indexOf(w) === -1) entities.push(w);
+    });
+    // 核心实体 = 引号内 + 技术名词（最精准）
+    var core = entities.filter(function(e) { return e.length >= 2; });
+    // 短检索词：取前2个最长实体（若标题>15字则截断）
+    var shortKw = t.length > 18 ? (core.length >= 2 ? core.slice(0, 2).join(' ') : core[0] || t.slice(0, 12)) : t;
+    // ---- 实体分级：distinctive（高特异）vs generic（泛词）----
+    var distinctive = [], generic = [];
+    var genSet = {};
+    GENERIC_TERMS.forEach(function(g){ genSet[g] = 1; });
+    core.forEach(function(e){
+      if (genSet[e]) generic.push(e);
+      else distinctive.push(e);
+    });
+    return { core: core, full: t, short: shortKw, known: known, distinctive: distinctive, generic: generic };
+  }
+
+
+  // ---- 多维相关性打分：评估单条新闻与目标事件的相关度（V7：标志性实体硬门槛）----
+  // 返回 { score: 0~1, reasons: string[], level: 'high'|'mid'|'low'|'none' }
+  // 核心改进：
+  //   - 实体分两级：distinctive(高特异) vs generic(泛词)
+  //   - 硬门槛：不含任何 distinctive 实体的新闻 → score 封顶 0.12（最高 mid）
+  //   - Dim B 英文子串修复：跳过纯 ASCII <4 字符的子串（避免 "OpenHarmony"→"open" 命中 OpenAI）
+  function scoreRelevance(newsItem, evTitle, entities) {
+    var title = (newsItem.title || '').toLowerCase();
+    var content = (newsItem.summary || newsItem.content || '').toLowerCase();
+    var combined = title + ' ' + content;
+    var evLower = (evTitle || '').toLowerCase();
+    var score = 0;
+    var reasons = [];
+    var distinctList = (entities && entities.distinctive) || [];
+    var genericList = (entities && entities.generic) || [];
+
+    // ════════════════════════════════════════
+    // 维度A：标题是否包含事件核心实体（权重 0~0.54）
+    //   distinctive hit = 0.15 each (cap 0.45) —— 高特异实体命中权重大
+    //   generic hit     = 0.03 each (cap 0.09) —— 泛词命中权重低
+    // ════════════════════════════════════════
+    var distHitCount = 0;
+    distinctList.forEach(function(ent) {
+      var el = ent.toLowerCase();
+      if (title.indexOf(el) !== -1) { distHitCount++; reasons.push('标志性:' + ent); }
+    });
+    if (distHitCount > 0) score += Math.min(distHitCount * 0.15, 0.45);
+
+    var genHitCount = 0;
+    genericList.forEach(function(ent) {
+      var el = ent.toLowerCase();
+      if (title.indexOf(el) !== -1) { genHitCount++; reasons.push('泛词:' + ent); }
+    });
+    if (genHitCount > 0) score += Math.min(genHitCount * 0.03, 0.09);
+
+    // ════════════════════════════════════════
+    // 维度B：标题是否包含事件本身的关键片段（权重 0~0.20）
+    //   取事件标题的 3~6 字片段做模糊匹配
+    //   【V7修复】跳过纯 ASCII 且长度<4 的子串（防止 "Open" 命中 OpenAI 等）
+    // ════════════════════════════════════════
+    var evSegments = [];
+    for (var sl = 6; sl >= 3; sl--) {  // 最短3字符（V7：不再取2字符片段）
+      for (var si = 0; si <= evLower.length - sl; si++) {
+        var seg = evLower.slice(si, si + sl);
+        if (seg.replace(/\s/g, '').length >= sl) {
+          // V7：跳过纯英文ASCII子串（长度>=3但全是字母的，如 "ope"/"pen"/"nHa"）
+          if (!/^[a-zA-Z]+$/.test(seg)) evSegments.push(seg);
         }
-        if (name && name.length >= 2) map[name.toLowerCase()] = { code: code, name: name };
-      });
-    } catch (e) { console.warn('[Prophet] buildStockNameMap error:', e); }
-    return map;
-  }
-
-  // ---- 文本匹配：从文本中提取命中的产业链 ----
-  function matchIndustries(text) {
-    var t = (text || '').toLowerCase();
-    var hits = [];
-    Object.keys(CHAIN_KEYWORDS).forEach(function (k) {
-      var ci = CHAIN_KEYWORDS[k];
-      var matchedWords = ci.words.filter(function (w) { return t.indexOf(w.toLowerCase()) !== -1; });
-      if (matchedWords.length >= 1) { // 至少命中1个关键词即判定关联
-        hits.push({ key: ci.key, label: ci.label, color: ci.color, words: matchedWords });
       }
+    }
+    var segHits = 0;
+    evSegments.some(function(seg) {
+      if (seg.length < 3) return false;
+      if (title.indexOf(seg) !== -1) { segHits++; reasons.push('标题命中:' + seg); }
+      return segHits >= 3; // 最多计3个
     });
-    // 按命中词数降序
-    hits.sort(function (a, b) { return b.words.length - a.words.length; });
-    return hits;
-  }
+    score += Math.min(segHits * 0.06, 0.20);
 
-  // ---- 文本匹配：提取提到的上市公司 ----
-  function matchStocks(text, stockMap) {
-    var t = text || '';
-    var found = [];
-    // 按名称长度降序优先匹配（避免短名误匹配长名的子串）
-    var names = Object.keys(stockMap).sort(function (a, b) { return b.length - a.length; });
-    names.forEach(function (nameLower) {
-      if (t.indexOf(nameLower) !== -1) {
-        found.push(stockMap[nameLower]);
+    // ════════════════════════════════════════
+    // 维度C：正文实体密度（权重 0~0.16）
+    //   只计算 distinctive 实体的正文补充（泛词正文出现太普遍无区分度）
+    // ════════════════════════════════════════
+    var bodyDistHits = 0;
+    distinctList.forEach(function(ent) {
+      if (combined.indexOf(ent.toLowerCase()) !== -1) bodyDistHits++;
+    });
+    if (bodyDistHits > distHitCount) {
+      score += Math.min((bodyDistHits - distHitCount) * 0.04, 0.16);
+      reasons.push('正文标志性');
+    }
+
+    // ════════════════════════════════════════
+    // ★★★ V7 硬门槛：不含任何 distinctive 实体 → 封顶 0.12 ★★★
+    // ════════════════════════════════════════
+    if (distHitCount === 0 && bodyDistHits === 0) {
+      score = Math.min(score, 0.12);
+      reasons.push('无标志性实体[封顶]');
+    }
+
+    // 维度D：时间新鲜度奖励（权重 0~0.08，7天内线性递减）
+    if (newsItem.date) {
+      var nd = new Date(newsItem.date + 'T00:00:00');
+      var now = new Date(); now.setHours(0,0,0,0);
+      var daysDiff = Math.floor((now - nd) / 86400000);
+      if (daysDiff >= 0 && daysDiff <= 7) {
+        score += 0.08 * (1 - daysDiff / 7);
+        reasons.push('时效性+' + Math.round(8*(1-daysDiff/7)) + '%');
       }
-    });
-    // 去重（同一 code 只保留一次）
-    var seen = {};
-    found = found.filter(function (s) { if (seen[s.code]) return false; seen[s.code] = true; return true; });
-    return found.slice(0, 12); // 最多显示12个
+    }
+
+    // ---- 惩罚项（乘法衰减）----
+
+    // P1: 泛市场快讯惩罚（标题只包含大盘/指数类泛词而无具体实体）
+    var genericMarket = /^(?:大盘|沪指|深指|创业板|美股|港股|A股|三大股指|欧洲股市|亚太股市|收涨|收跌|震荡|反弹|跳水|拉升|V型)/;
+    if (genericMarket.test(title) && distHitCount === 0) {
+      score *= 0.08;
+      reasons.push('惩罚:泛市场快讯');
+    }
+
+    // P2: 个股业绩预告惩罚（除非事件本身就是某公司财报）
+    var earningsPattern = /(?:预告|业绩|营收|净利润|同比|环比|EPS|TTM).*?(?:增长|下降|预增|预减|扭亏|亏损)/;
+    if (earningsPattern.test(title) && distHitCount === 0) {
+      score *= 0.12;
+      reasons.push('惩罚:无关业绩预告');
+    }
+
+    // P3: 纯行情数据流（无任何实质内容）
+    if (/^\d+\.\d+%/.test(title) || /^涨\d+|跌\d+|收\d+/.test(title)) {
+      if (distHitCount === 0) { score *= 0.05; reasons.push('惩罚:纯行情数字'); }
+    }
+
+    // P4: >30天旧闻轻微惩罚
+    if (newsItem.date) {
+      var oldNd = new Date(newsItem.date + 'T00:00:00');
+      var oldDiff = Math.floor((new Date() - oldNd) / 86400000);
+      if (oldDiff > 30) { score *= Math.max(0.3, 1 - (oldDiff - 30) / 90); reasons.push('旧闻衰减'); }
+    }
+
+    score = Math.max(0, Math.min(1, score));
+
+    // 分级阈值（V7 提高：要求真正的标志性实体命中才能到 high）
+    var level = 'none';
+    if (score >= 0.20 && distHitCount > 0) level = 'high';   // V7: high 要求有标志性命中
+    else if (score >= 0.10) level = 'mid';
+    else if (score >= 0.03) level = 'low';
+
+    return { score: Math.round(score * 1000) / 1000, reasons: reasons, level: level,
+             entityHits: distHitCount + genHitCount, bodyHits: bodyDistHits,
+             distHits: distHitCount, genHits: genHitCount };
   }
 
-  // ---- 事件摘要生成：聚合新闻内容生成结构化要点 ----
-  function generateEventSummary(ev, newsItems) {
-    var parts = [];
-    // 1. 事件本身描述
-    parts.push({ type: 'ev', text: ev.title || '' });
 
-    // 2. 从新闻中提取关键要点（去重、精炼）
-    var points = [];
-    var seenPoints = {};
-    (newsItems || []).slice(0, 10).forEach(function (it) {
-      var txt = (it.summary || it.title || '').trim();
-      if (!txt || seenPoints[txt]) return;
-      seenPoints[txt] = true;
-      // 截取前120字作为要点
-      if (txt.length > 120) txt = txt.slice(0, 117) + '…';
-      points.push(txt);
-    });
+  // ---- 事件类型 → 产业链先验映射（基于标题关键词推断候选产业链） ----
 
-    // 3. 发酵度统计
+  // ---- 从文本抽取「关键事实」用于多源交叉验证 ----
+  function extractFacts(text) {
+    var t = (text || '').replace(/<[^>]+>/g, '');
+    var facts = [];
+    // 数字+单位
+    var numRe = /\d+(?:\.\d+)?\s*(?:万行|亿行|万|亿|倍|%|小时|天|年|个月|μs|毫秒|ms|公里|亿元|万元)/g;
+    var m; while ((m = numRe.exec(t)) !== null) facts.push(m[0].replace(/\s/g, ''));
+    // 日期
+    var dateRe = /(?:20\d{2}年)?\d{1,2}月\d{1,2}日/g;
+    while ((m = dateRe.exec(t)) !== null) facts.push(m[0]);
+    // 已知专有名词
+    var nouns = ['OpenHarmony','开源鸿蒙','鸿蒙','星闪','NearLink','蓝牙','WiFi','Wi-Fi','SLE','SLB','双模','物理层','应用层','协议栈','无芯片绑定','无授权费','标准库','OpenHarmony社区'];
+    nouns.forEach(function(n){ if (t.indexOf(n) !== -1) facts.push(n); });
+    var seen = {}; return facts.filter(function(f){ if(seen[f]) return false; seen[f]=true; return true; });
+  }
+  // ---- 多源交叉验证：核心报道的关键事实，被多少其他高相关源印证 ----
+  function crossValidate(coreItem, others) {
+    if (!coreItem) return null;
+    var coreText = (coreItem.title || '') + ' ' + (coreItem.summary || coreItem.content || '');
+    var facts = extractFacts(coreText);
     var srcSet = {};
-    var dateList = [];
-    (newsItems || []).forEach(function (it) {
-      if (it.src) srcSet[it.src] = (srcSet[it.src] || 0) + 1;
-      if (it.date) dateList.push(it.date);
+    (others || []).forEach(function(o){ if (o.item && o.item.src) srcSet[o.item.src] = 1; });
+    var corroborated = [];
+    facts.forEach(function(f){
+      var cnt = 0;
+      (others || []).forEach(function(o){
+        var ot = (o.item.title || '') + ' ' + (o.item.summary || o.item.content || '');
+        if (ot.indexOf(f) !== -1) cnt++;
+      });
+      if (cnt >= 1) corroborated.push(f); // 至少另1源印证
+    });
+    return { facts: facts, corroborated: corroborated, sources: Object.keys(srcSet).length };
+  }
+
+  // ---- 事件类型 → 产业链先验映射（基于标题关键词推断候选产业链） ----
+
+  var EVENT_INDUSTRY_MAP = [
+    { keys: ['星闪','OpenHarmony','鸿蒙','开源','协议栈','HarmonyOS','开源鸿蒙'],          ind: 'ai',   reason: '鸿蒙/星闪生态' },
+    { keys: ['人工智能','AI拟人化','大模型','GPT','生成式','AIGC','深度合成','算法推荐'],       ind: 'ai',   reason: 'AI技术政策' },
+    { keys: ['算力','GPU','芯片','半导体','光刻','晶圆','HBM','存储','CoWoS','先进封装'],     ind: 'ai',   reason: '半导体硬件' },
+    { keys: ['航天','卫星','发射','轨道','星座','SpaceX','星链','探月','载人航天','运载火箭'],ind: 'space', reason: '航天产业' },
+    { keys: ['机器人','人形','具身智能','伺服','减速器','灵巧手','协作机器人'],                ind: 'robot', reason: '机器人产业' },
+    { keys: ['创新药','ADC','GLP-1','临床','FDA','NMPA','CDE','PD-1','CAR-T','mRNA','疫苗'], ind: 'bio',   reason: '医药生物' },
+    { keys: ['医药','医疗','医保','集采','DRG','创新药','医疗器械'],                          ind: 'bio',   reason: '医疗健康' },
+    { keys: ['低空','无人机','eVTOL','飞行汽车','通航','低空经济'],                            ind: 'ai',   reason: '低空经济' },  // 归入AI(高端装备)
+    { keys: ['新能源汽车','电动车','电池','锂电','固态电池','充电桩','智能驾驶','自动驾驶'], ind: 'ai',   reason: '新能源车' },
+    { keys: ['光伏','风电','储能','硅料','组件','逆变器','碳中和','碳达峰','新能源'],         ind: 'ai',   reason: '新能源' },
+    { keys: ['房地产','楼市','房贷','首付','公积金','保交楼','房企','商品房'],               ind: 'ai',   reason: '地产' },  // 宏观归默认
+    { keys: ['消费','零售','社零','餐饮','旅游','免税','白酒','食品饮料'],                     ind: 'ai',   reason: '消费' },
+    { keys: ['券商','证券','非银','保险','银行','金融','LPR','利率','降息','加息','MLF'],     ind: 'ai',   reason: '金融' },
+    { keys: ['CPI','PPI','GDP','PMI','社融','M2','宏观经济','国民经济','统计局','数据发布'],    ind: 'ai',   reason: '宏观数据' }
+  ];
+  function inferIndustryFromTitle(title) {
+    var t = (title || '').toLowerCase();
+    var best = null, bestMatch = 0;
+    EVENT_INDUSTRY_MAP.forEach(function(rule) {
+      var hit = 0;
+      rule.keys.some(function(k) { if (t.indexOf(k.toLowerCase()) !== -1) { hit++; return hit >= 2; } });
+      if (hit > bestMatch) { bestMatch = hit; best = rule; }
+    });
+    return best;
+  }
+
+  // ---- 个股识别：复用顶部搜索框的 emSuggest（东财全市场实时搜索） ----
+  // 原则：不维护任何本地公司名库/别名映射。用户搜索框输入"阿斯麦"→返回 usASML；
+  // "长鑫科技"→返回 sh688825。同理这里从事件文本抽候选词 → 逐个问 emSuggest → 命中就收录。
+  function resolveCompaniesViaSearch(text, cb) {
+    cb = cb || function(){};
+    var t = text || '';
+    if (!t || typeof emSuggest !== 'function') { cb([]); return; }
+
+    var candidates = {};
+    var seenLower = {};
+
+    function addCand(word) {
+      var k = word.toLowerCase();
+      if (k.length < 2 || seenLower[k]) return;
+      seenLower[k] = true;
+      candidates[word] = true;
+    }
+
+    // 1) 中文候选：严格公司全称后缀（最可靠）
+    ['股份有限公司','集团有限公司','有限责任公司','集团股份有限公司','控股有限公司'].forEach(function(suf) {
+      try {
+        var re = new RegExp('([\u4e00-\u9fa5]{2,6})' + suf, 'g');
+        var m;
+        while ((m = re.exec(t)) !== null) { addCand(m[1]); }
+      } catch(e){}
+    });
+
+    // 2) 英文候选：大写开头的英文单词/缩写
+    var engMatches = t.match(/\b[A-Z][A-Za-z0-9]{1,15}\b/g);
+    if (engMatches) engMatches.forEach(function(w) {
+      if (w.length >= 2 && w.length <= 15 &&
+          !/^(The|A|An|In|On|At|To|For|Of|By|With|From|Is|Are|Was|Were|Be|It|This|That|These|Those|And|Or|But|Not|No|Yes|We|They|He|She|Its|Their|Our|Your|His|Her|My|I|Me|Us|All|Any|Each|Every|Some|More|Most|Such|Which|Who|What|When|Where|Why|How|Can|Could|Would|Should|May|Might|Will|Shall|Did|Do|Does|Has|Have|Had|If|Then|Else|Than|Also|Just|Only|Even|Still|Yet|Already|Always|Never|Often|Once|Here|There|Now|Today|Tomorrow|Yesterday|Please|Thank|Best|New|Old|Good|Bad|Big|Small|Long|Short|High|Low|First|Last|Next|Other|Another|Same|Different|Many|Much|Few|Little|Less|Own|Both|Fewer|Half|Double|Whole|Full|Empty|Open|Close|Free|True|False|Real|Right|Wrong|Sure|Clear|Safe|Easy|Hard|Fast|Slow|Early|Late|Over|Under|Above|Below|Around|Through|Across|Along|Into|Onto|Upon|Within|Without|Before|After|During|Since|Until|About|Against|Between|Among|Behind|Beyond|Inside|Outside|Up|Down|Off|Out|Back|Away|Near|Far|Apart|Aside|Together|Again|Once)$/.test(w)) {
+        addCand(w);
+      }
+    });
+
+    // 3) 短中文候选（2-6字，跳过纯虚词/泛词）
+    var cnMatches = t.match(/[\u4e00-\u9fa5]{2,6}/g);
+    if (cnMatches) cnMatches.forEach(function(w) {
+      if (/^(关于|对于|根据|按照|通过|进行|开展|工作|研究|规划|方案|措施|意见|通知|说明|解读|分析|会议|服务|平台|系统|产品|应用|项目|业务|能力|模式|生态|创新|智能|数字|信息|网络|安全|管理|运营|合作|战略|投资|融资|资本|市场|经济|产业|企业|公司|集团|股份|中国|国内|全球|国际|年度|季度|月份|今日|近期|未来|上述|其中|之后|之前|期间|相关|有关|涉及|包括|正式|后续|初始|最终|初步|完成|结束|开始|启动|业内|板块|概念|题材|指数|成分|发行|公告|披露|招股|申购|缴款|上市|挂牌|战略|询价|定价|募集|路演|审核|核准|注册|备案|登记|托管|超额|配售|选择权|行权|网上|网下|摇号|中签)$/.test(w)) return;
+      addCand(w);
+    });
+
+    var candList = Object.keys(candidates).slice(0, 12);
+    if (!candList.length) { cb([]); return; }
+
+    var out = {};
+    var pending = candList.length;
+    var done = false;
+    var gto = setTimeout(function () {
+      if (!done) { done = true; pending = 0; cb(Object.keys(out).map(function(k){ return out[k]; })); }
+    }, 8000);
+
+    function finish() {
+      pending--;
+      if (pending <= 0 && !done) { clearTimeout(gto); done = true; cb(Object.keys(out).map(function(k){ return out[k]; })); }
+    }
+
+    candList.forEach(function(q) {
+      try {
+        emSuggest(q, function(arr) {
+          if (arr && arr.length && arr[0] && arr[0].code) {
+            var best = arr[0];
+            out[best.code] = { code: best.code, name: best.name || q };
+          }
+          finish();
+        });
+      } catch(e) { finish(); }
+    });
+  }
+  // ---- 事件摘要生成：聚焦事件本体的报道（V5增强版） ----
+  // 只使用高相关度(high+mid)的新闻来构建事件详情，低相关度的扔到"延伸阅读"
+  function generateEventSummary(ev, newsItems, scoredItems, coreReport) {
+    // 1. 高相关新闻(high+mid)作为事件本体报道；核心报道置顶
+    var relevant = (scoredItems || []).filter(function(s) { return s.level === 'high' || s.level === 'mid'; });
+    var points = [];
+    var seenText = {};
+    function pushPt(it, core) {
+      var txt = (it.summary || it.content || it.title || '').trim();
+      if (!txt || seenText[txt]) return;
+      seenText[txt] = true;
+      if (txt.length > 160) txt = txt.slice(0, 157) + '…';
+      points.push({ txt: txt, core: !!core });
+    }
+    if (coreReport && coreReport.item) pushPt(coreReport.item, true);
+    relevant.forEach(function(si) { if (si !== coreReport) pushPt(si.item, false); });
+
+    // 2. 发酵度统计（基于全部结果）
+    var srcSet = {}, highCount = 0, midCount = 0, lowCount = 0;
+    (scoredItems || []).forEach(function(si) {
+      if (si.item.src) srcSet[si.item.src] = (srcSet[si.item.src] || 0) + 1;
+      if (si.level === 'high') highCount++;
+      else if (si.level === 'mid') midCount++;
+      else if (si.level === 'low') lowCount++;
     });
 
     return {
       title: ev.title || '',
       points: points,
+      coreTitle: (coreReport && coreReport.item) ? (coreReport.item.title || '') : '',
+      coreSrc: (coreReport && coreReport.item) ? (coreReport.item.src || '') : '',
+      noCore: points.length === 0,
       srcCount: Object.keys(srcSet).length,
       newsCount: (newsItems || []).length,
       sources: srcSet,
-      dates: dateList,
-      hasContent: points.length > 0
+      highCount: highCount,
+      midCount: midCount,
+      lowCount: lowCount,
+      hasContent: points.length > 0,
+      relevantCount: relevant.length
     };
   }
 
@@ -427,15 +726,13 @@
     var dt = ev.date + (ev.time && ev.time !== '00:00' ? ' ' + ev.time : '');
     px.innerHTML = '<div class="p">' + escapeHtml(dt) + '</div><div class="pe">事件时间</div>';
 
-    // 弹层正文：四区块（事件详情 / 关联产业链与个股 / 相关新闻紧凑滚动）
+    // 弹层正文：两区块（事件详情 / 关联产业链与个股）
     var body = document.getElementById('pDetBody');
     body.innerHTML =
         '<div class="d-section" id="pdSummary"><h3>事件详情</h3>'
       +   '<div class="pd-summary-loading">正在分析事件…</div></div>'
       + '<div class="d-section" id="pdChain"><h3>关联产业链与个股</h3>'
-      +   '<div class="d-note">正在匹配产业链与相关标的…</div></div>'
-      + '<div class="d-section"><div class="d-sec-h">相关新闻与公告 <span class="news-src" id="pdNewsSrc">加载中</span></div>'
-      +   '<div id="pdNews" class="pd-news-scroll"><div class="news-loading">正在获取…</div></div></div>';
+      +   '<div class="d-note">正在匹配产业链与相关标的…</div></div>';
 
     // 异步拉取新闻 → 分析 → 渲染全部区块
     loadProphetNewsAndAnalyze(ev);
@@ -443,63 +740,169 @@
     modal.classList.remove('hidden');
   }
 
-  // ---- 核心：拉取新闻 + 智能分析 + 渲染三区块 ----
+  // ---- 核心：拉取新闻 + 相关性打分 + 智能分析 + 渲染两区块（V7：泛词过滤+公告控制） ----
   function loadProphetNewsAndAnalyze(ev) {
     var kw = (ev && ev.title ? ev.title : '').trim();
     var summaryEl = document.getElementById('pdSummary');
     var chainEl = document.getElementById('pdChain');
-    var newsBox = document.getElementById('pdNews');
-    var srcLabel = document.getElementById('pdNewsSrc');
 
-    // 1) 并行拉取：东财新闻 + 东财公告（各3页，JSONP直连）
-    Promise.all([
-      searchEMNews(kw, 'cmsArticleWebOld', 3),
-      searchEMNews(kw, 'notice', 3)
-    ]).then(function (res) {
-      var allNews = mergeProphetNews(res[1], res[0], 30); // 合并去重，上限30条
+    // 0) 提取事件核心实体（含 distinctive/generic 分级）
+    var entities = extractEventEntities(kw);
+    // 事件类型先验（用于产业链推断偏置）
+    var priorIndustry = inferIndustryFromTitle(kw);
 
-      // 2) 生成事件摘要
-      var summary = generateEventSummary(ev, allNews);
-
-      // 3) 匹配产业链 & 个股
-      var stockMap = buildStockNameMap();
-      // 聚合所有新闻文本用于匹配
-      var fullText = [ev.title];
-      allNews.forEach(function (n) {
-        fullText.push(n.title || '');
-        fullText.push(n.summary || '');
+    // 1) 并行拉取：「高质量关键词精准检索」（V7：泛词不搜、公告受控）
+    //    原则：
+    //    a) 只用 distinctive（高特异）术语作为搜索词，generic 泒词绝不单独查
+    //    b) 整条标题超20字时截断或不用（东财长查询匹配差）
+    //    c) notice（公告）仅对"像公司名/股票代码"的词发起，泛词不搜公告
+    var queryTerms = [];
+    function addQ(k) { if (k && queryTerms.indexOf(k) === -1) queryTerms.push(k); }
+    // ★ distinctive 术语优先（这些是真正能定位到事件的词）
+    (entities.distinctive || []).forEach(function (e) {
+      if (e.length >= 2 && e.length <= 10) addQ(e);
+    });
+    // 如果 distinctive 太少，从 core 里补（但仍跳过泛词）
+    if (queryTerms.length < 2) {
+      entities.core.forEach(function (e) {
+        if (e && e.length >= 2 && e.length <= 8) {
+          var isGeneric = (entities.generic || []).indexOf(e) !== -1;
+          if (!isGeneric) addQ(e);
+        }
       });
-      var aggregateText = fullText.join(' ');
-      var industries = matchIndustries(aggregateText);
-      var stocks = matchStocks(aggregateText, stockMap);
+    }
+    // 构建最终查询集（整条标题仅当较短时使用；最多5个精准词）
+    var finalQs = [];
+    if (kw.length <= 22) finalQs.push(kw);  // 短标题保留整条查询
+    finalQs = finalQs.concat(queryTerms.slice(0, 5));
 
-      // 4) 渲染「事件详情」区块
-      renderSummaryBlock(summaryEl, summary);
+    // 判定哪些词"看起来像公司名/股票代码"（可用于搜公告）
+    function looksLikeCompany(term) {
+      if (!term || term.length < 2) return false;
+      // 英文proper noun / 股票代码模式
+      if (/^[A-Z]{2,6}$/.test(term)) return true;
+      // 中文公司名特征：含"科技/股份/软件/电子/生物/医药/证券/银行/保险/集团"
+      if (/科技|股份|软件|电子|生物|医药|证券|银行|保险|集团|控股|能源|材料|设备|重工|汽车|航空|航天|通信|网络|信息|数据/.test(term)) return true;
+      // known 公司名（大厂）
+      var bigCos = ['华为','百度','阿里','腾讯','字节','小米','苹果','英伟达','特斯拉',
+        '宁德时代','比亚迪','贵州茅台','工商银行','中国石油','中芯国际','隆基绿能',
+        '创耀科技','润和软件','科大国创','软通动力'];
+      return bigCos.indexOf(term) !== -1;
+    }
 
-      // 5) 渲染「关联产业链与个股」区块
-      renderChainBlock(chainEl, industries, stocks);
+    var seenQ = {};
+    var emQueries = [];
+    finalQs.forEach(function (q) {
+      if (!q || seenQ[q]) return; seenQ[q] = 1;
+      emQueries.push(searchEMNews(q, 'cmsArticleWebOld', 4)); // 新闻：4页
+      // V7 公告控制：只有"像公司名"的词才搜公告，避免基金招募书污染
+      if (looksLikeCompany(q)) {
+        emQueries.push(searchEMNews(q, 'notice', 2));
+      }
+    });
+    Promise.all(emQueries).then(function (res) {
+      // 1.5) 合并所有结果（大池子）+ 相关性打分
+      var allNews = mergeProphetNews(res, 150); // 先广撒网捞足，再筛
+      var scoredItems = allNews.map(function(item) {
+        var sr = scoreRelevance(item, kw, entities);
+        return { item: item, score: sr.score, level: sr.level, reasons: sr.reasons };
+      });
+      // 按相关度降序排列
+      scoredItems.sort(function(a, b) { return b.score - a.score; });
+      // 取 top 30 用于展示
+      var topNews = scoredItems.slice(0, 30).map(function(s) { return s.item; });
 
-      // 6) 渲染「相关新闻」紧凑滚动列表
-      renderCompactNews(newsBox, srcLabel, allNews, summary);
+      // 1.8) 核心报道识别 + 多源交叉验证（V7：必须含标志性实体）
+      var highItems = scoredItems.filter(function(s) { return s.level === 'high'; });
+      // V7：无标志性实体的 high 条目降级为 mid（泛词堆出来的高分不算）
+      scoredItems.forEach(function(s) {
+        if (s.level === 'high' && (s.distHits || 0) === 0) s.level = 'mid';
+      });
+      highItems = scoredItems.filter(function(s) { return s.level === 'high'; }); // 重新筛选
+
+      var coreReport = null, coreCentrality = -1;
+      highItems.forEach(function(s) {
+        // V7 新中心度：标志性实体权重极高，泛词几乎不计
+        var c = (s.distHits || 0) * 5 + (s.genHits || 0) * 1 + (s.bodyHits || 0) * 3;
+        if (c > coreCentrality) { coreCentrality = c; coreReport = s; }
+      });
+      var cross = (coreReport && coreReport.item)
+        ? crossValidate(coreReport.item, scoredItems.filter(function(s) { return s !== coreReport; }))
+        : null;
+
+      // 2) 生成事件摘要（核心报道置顶，只用 high+mid 级别）
+      var summary = generateEventSummary(ev, topNews, scoredItems.slice(0, 30), coreReport);
+
+      // 3) 匹配产业链 & 个股 —— 只用高相关新闻的聚合文本！
+      var relevantText = [kw];
+      scoredItems.forEach(function(si) {
+        if (si.level === 'high' || si.level === 'mid') {
+          relevantText.push(si.item.title || '');
+          relevantText.push(si.item.summary || si.item.content || '');
+        }
+      });
+      var relAggregate = relevantText.join(' ');
+      var industries = matchIndustries(relAggregate, priorIndustry);
+      // 个股识别：纯 emSuggest（与顶部搜索框同一套东财全市场数据）
+      resolveCompaniesViaSearch(relAggregate, function(stocks) {
+        stocks = (stocks||[]).slice(0, 15);
+        renderChainBlock(chainEl, industries, stocks, priorIndustry);
+      });
+
+      // 4) 渲染「事件详情」区块（不依赖个股，先画）
+      renderSummaryBlock(summaryEl, summary, coreReport, cross);
 
     }).catch(function (e) {
       if (summaryEl) summaryEl.querySelector('.pd-summary-loading')
         && (summaryEl.querySelector('.pd-summary-loading').textContent = '分析失败：' + escapeHtml((e && e.message) || e));
-      if (newsBox) newsBox.innerHTML = '<div class="news-loading">获取失败</div>';
-      if (srcLabel) srcLabel.textContent = '获取失败';
     });
   }
 
   // ---- 渲染：事件详情摘要 ----
-  function renderSummaryBlock(el, s) {
+  function renderSummaryBlock(el, s, coreReport, cross) {
     if (!el) return;
     var html = '';
     if (s.hasContent) {
-      html += '<ul class="pd-summary-list">';
-      s.points.forEach(function (pt) {
-        html += '<li>' + escapeHtml(pt) + '</li>';
-      });
-      html += '</ul>';
+      // 核心报道卡（置顶）
+      if (s.coreTitle) {
+        html += '<div class="pd-core-report">'
+          + '<span class="pd-core-badge">核心报道</span>'
+          + '<div class="pd-core-title">' + escapeHtml(s.coreTitle) + '</div>'
+          + (s.coreSrc ? '<div class="pd-core-src">' + escapeHtml(s.coreSrc) + '</div>' : '')
+          + '</div>';
+      }
+      // 多源交叉验证
+      if (cross && cross.corroborated && cross.corroborated.length) {
+        html += '<div class="pd-cross">'
+          + '<span class="pd-cross-lbl">多源交叉验证</span>'
+          + '<span class="pd-cross-txt">核心事实经 ' + cross.sources + ' 家媒体印证：'
+          + cross.corroborated.slice(0, 6).map(function(f){ return escapeHtml(f); }).join('、') + '</span>'
+          + '</div>';
+      }
+      // 相关报道列表（仅当有非核心条目时显示区域标题）
+      var relatedPoints = s.points.filter(function(p) { return !p.core; });
+      if (relatedPoints.length > 0) {
+        html += '<div class="pd-related-section">'
+          + '<span class="pd-related-lbl">相关报道</span>'
+          + '<ul class="pd-summary-list">';
+        relatedPoints.forEach(function (p) {
+          html += '<li>' + escapeHtml(p.txt) + '</li>';
+        });
+        html += '</ul></div>';
+      } else if (s.points.length > 0 && s.points[0].core) {
+        // 只有核心报道没有其他相关报道 → 不显示空列表
+      }
+      // （兼容：旧版无 core 标记的 points 全部归入相关报道）
+      var legacyPoints = s.points.filter(function(p) { return typeof p.core === 'undefined'; });
+      if (legacyPoints.length > 0) {
+        html += '<div class="pd-related-section">'
+          + '<span class="pd-related-lbl">相关报道</span>'
+          + '<ul class="pd-summary-list">';
+        legacyPoints.forEach(function (p) {
+          html += '<li>' + escapeHtml(p.txt) + '</li>';
+        });
+        html += '</ul></div>';
+      }
       // 发酵度指示器
       if (s.newsCount > 0) {
         html += '<div class="pd-ferment">'
@@ -509,7 +912,7 @@
           + '</span></div>';
       }
     } else {
-      html += '<div class="d-note">暂无详细报道，该事件可能为预告型或刚发布。</div>';
+      html += '<div class="d-note">暂无该事件的核心报道（已检索相关资讯，但未发现高相关内容；事件可能为预告型或刚发布）。</div>';
     }
     // 替换 loading 占位
     var loading = el.querySelector('.pd-summary-loading');
@@ -517,21 +920,35 @@
   }
 
   // ---- 渲染：关联产业链 + 个股标签 ----
-  function renderChainBlock(el, industries, stocks) {
+  function renderChainBlock(el, industries, stocks, priorIndustry) {
     if (!el) return;
     var html = '';
 
-    // 产业链标签
+    // 先验推断提示
+    if (priorIndustry && priorIndustry.ind) {
+      var piCh = CHAIN_KEYWORDS[priorIndustry.ind];
+      if (piCh) {
+        html += '<div class="pd-prior-hint" style="font-size:11.5px;color:var(--sub);margin-bottom:6px;padding:4px 10px;'
+          + 'background:var(--panel);border-radius:6px;border-left:3px solid ' + piCh.color + ';">'
+          + '事件推断 → ' + piCh.label
+          + (priorIndustry.reason ? ' (' + priorIndustry.reason + ')' : '')
+          + '</div>';
+      }
+    }
+
+    // 产链链标签（带命中词数和备注）
     if (industries.length > 0) {
       html += '<div class="pd-chain-tags">';
       industries.forEach(function (ind) {
-        html += '<span class="pd-chain-tag" data-ind="' + ind.key + '" style="border-color:' + ind.color + ';color:' + ind.color + '" title="点击进入' + ind.label + '板块">'
+        var titleExtra = '命中 ' + ind.words.length + '个关键词';
+        if (ind.note) titleExtra += ' ' + ind.note;
+        html += '<span class="pd-chain-tag" data-ind="' + ind.key + '" style="border-color:' + ind.color + ';color:' + ind.color + '" title="' + titleExtra + '">'
           + escapeHtml(ind.label)
           + '</span>';
       });
       html += '</div>';
     } else {
-      html += '<div class="d-note" style="font-size:12.5px;">未检测到明确的产业链关联（或该事件属宏观政策/市场层面）</div>';
+      html += '<div class="d-note" style="font-size:12.5px;">未检测到明确的产链链关联（或该事件属宏观政策/市场层面）</div>';
     }
 
     // 个股标签
@@ -546,9 +963,8 @@
       html += '</div>';
     }
 
-    el.innerHTML = '<h3>关联产业链与个股</h3>' + html;
+    el.innerHTML = '<h3>关联产链与个股</h3>' + html;
 
-    // 绑定点击事件：产业链标签 → 切到产业链对应赛道
     el.querySelectorAll('.pd-chain-tag[data-ind]').forEach(function (tag) {
       tag.addEventListener('click', function () {
         var indKey = tag.dataset.ind;
@@ -558,7 +974,6 @@
       });
     });
 
-    // 绑定点击事件：个股标签 → 打开个股详情
     el.querySelectorAll('.pd-stock-tag[data-code]').forEach(function (tag) {
       tag.addEventListener('click', function () {
         var code = tag.dataset.code;
@@ -568,10 +983,27 @@
     });
   }
 
-  // ---- 渲染：紧凑滚动新闻列表 ----
-  function renderCompactNews(box, srcLabel, items, summary) {
+
+  // ---- 渲染：紧凑滚动新闻列表（V5：带相关度等级标签+分级展示） ----
+  function renderCompactNews(box, srcLabel, items, summary, scoredItems, coreReport) {
+    var highCnt = 0, midCnt = 0, lowCnt = 0;
+    if (scoredItems) {
+      scoredItems.forEach(function(s) {
+        if (s.level === 'high') highCnt++;
+        else if (s.level === 'mid') midCnt++;
+        else if (s.level === 'low') lowCnt++;
+      });
+    }
     if (srcLabel) {
-      srcLabel.textContent = (summary && summary.newsCount ? summary.newsCount + '篇' : '') + ' 东方财富';
+      var total = (items || []).length;
+      var detail = '';
+      if (total > 0) {
+        detail = total + '篇';
+        if (highCnt > 0) detail += ' · <span style="color:#c0504d;font-weight:700">' + highCnt + '高关联</span>';
+        if (midCnt > 0) detail += ' ' + midCnt + '中';
+        if (lowCnt > 0) detail += ' ' + lowCnt + '低';
+      }
+      srcLabel.innerHTML = detail + ' <span style="font-weight:400;color:var(--sub)">东方财富</span>';
     }
     if (!box) return;
 
@@ -580,21 +1012,60 @@
       return;
     }
 
-    box.innerHTML = items.map(function (it) {
-      var tag = it.kind === 'ann'
-        ? '<span class="pd-nk ann">公告</span>'
-        : '<span class="pd-nk news">报道</span>';
-      var meta = [];
-      if (it.sec) meta.push(escapeHtml(it.sec));
-      if (it.date) meta.push(escapeHtml(it.date));
-      var inner = tag
-        + '<span class="pd-nt-c">' + escapeHtml(it.title) + '</span>'
-        + (meta.length ? '<span class="pd-nm-c">' + meta.join(' · ') + '</span>' : '');
-      if (it.url) {
-        return '<a class="pd-ni-c" href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener">' + inner + '</a>';
+    // 按相关度分级渲染，低关联默认折叠
+    var levels = { high: [], mid: [], low: [] };
+    (scoredItems || []).forEach(function(si, idx) {
+      if (idx >= items.length) return;
+      var lvl = si.level || 'low';
+      if (!levels[lvl]) levels[lvl] = [];
+      levels[lvl].push({ item: items[idx], si: si });
+    });
+
+    var levelLabels = {
+      high: '<span class="pd-rel-lbl high">高关联</span>',
+      mid: '<span class="pd-rel-lbl mid">中关联</span>',
+      low: '<span class="pd-rel-lbl low" style="display:none">低关联</span>'
+    };
+    var html = '';
+
+    ['high', 'mid', 'low'].forEach(function(lvl) {
+      var list = levels[lvl];
+      if (!list || !list.length) return;
+      html += '<div class="pd-news-level-group" data-level="' + lvl + '">';
+      html += levelLabels[lvl] || '';
+      list.forEach(function(entry) {
+        var it = entry.item;
+        var isCore = coreReport && coreReport.item === it;
+        var tag = (isCore ? '<span class="pd-nk core">核心</span>' : '')
+          + (it.kind === 'ann'
+          ? '<span class="pd-nk ann">公告</span>'
+          : '<span class="pd-nk news">报道</span>');
+        var meta = [];
+        if (it.sec) meta.push(escapeHtml(it.sec));
+        if (it.date) meta.push(escapeHtml(it.date));
+        var inner = tag
+          + '<span class="pd-nt-c">' + escapeHtml(it.title) + '</span>'
+          + (meta.length ? '<span class="pd-nm-c">' + meta.join(' · ') + '</span>' : '');
+        if (it.url) {
+          html += '<a class="pd-ni-c" href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener">' + inner + '</a>';
+        } else {
+          html += '<div class="pd-ni-c">' + inner + '</div>';
+        }
+      });
+      // 低关联折叠按钮
+      if (lvl === 'low' && list.length > 0) {
+html += '<button class="pd-show-low" data-act="sl">'
+      html += '\u5c55\u5f00 ' + list.length + ' \u6761\u4f4e\u5173\u8052\u2193</button>';
+        // 默认隐藏低关联条目
+        html = html.replace(/<a class="pd-ni-c"/g, '<a class="pd-ni-c" style="display:none"');
+        html = html.replace(/<div class="pd-ni-c"(?!.*?style="display:none")/g, '<div class="pd-ni-c" style="display:none"');
       }
-      return '<div class="pd-ni-c">' + inner + '</div>';
-    }).join('');
+      html += '</div>';
+    });
+
+    box.innerHTML = html || '<div class="news-loading">暂无相关报道</div>';
+
+    // 低关联展开按钮事件绑定（onclick已内联，无需额外bind）
   }
 
   function closeProphetDetail() {
@@ -615,7 +1086,7 @@
             uid: '', keyword: keyword, type: [type], client: 'web', clientType: 'web',
             clientVersion: 'curr', param: {}
           };
-          inner.param[type] = { searchScope: 'default', sort: 'time', pageIndex: pi, pageSize: 12, preTag: '<em>', postTag: '</em>' };
+          inner.param[type] = { searchScope: 'default', sort: 'relevance', pageIndex: pi, pageSize: 20, preTag: '<em>', postTag: '</em>' };
           var url = 'https://search-api-web.eastmoney.com/search/jsonp?cb=' + cb
             + '&param=' + encodeURIComponent(JSON.stringify(inner));
           var timer = setTimeout(function () { pending--; if (pending <= 0) done(); }, 9000);
@@ -652,20 +1123,19 @@
     });
   }
 
-  // 合并 公告 + 新闻，按时间倒序、去重、限制条数
-  function mergeProphetNews(ann, news, limit) {
+  // 合并多路新闻/公告，按时间倒序、去重、限制条数
+  function mergeProphetNews(lists, limit) {
     var seen = {}, out = [];
-    function pick(list) {
+    (lists || []).forEach(function (list) {
       (list || []).forEach(function (it) {
         if (!it || !it.title) return;
         var k = (it.url || '') + '|' + it.title;
         if (seen[k]) return;
         seen[k] = 1; out.push(it);
       });
-    }
-    pick(news); pick(ann); // 新闻优先置顶
+    });
     out.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
-    return out.slice(0, limit || 14);
+    return out.slice(0, limit || 60);
   }
 
   async function load(pv) {
@@ -722,7 +1192,7 @@
       // ===== 事件详情智能分析（新增） =====
       // 事件摘要列表
       '.pd-summary-list{margin:8px 0 0;padding-left:18px;}',
-      '.pd-summary-list li{font-size:13.5px;color:var(--text);line-height:1.65;margin-bottom:6px;'
+      '.pd-summary-list li{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:5px;'
         + 'list-style-type:disc;list-style-position:outside;}',
       // 发酵度指示器
       '.pd-ferment{display:inline-flex;align-items:center;gap:8px;margin-top:10px;'
@@ -741,7 +1211,43 @@
         + 'color:#c0504d;background:rgba(192,80,77,.10);border:1px solid rgba(192,80,77,.25);'
         + 'cursor:pointer;transition:all .15s;}',
       '.pd-stock-tag:hover{background:rgba(192,80,77,.22);border-color:rgba(192,80,77,.45);}',
-      // 紧凑滚动新闻列表（替代旧版 pd-news-list）
+            // 相关度等级标签
+      '.pd-rel-lbl{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:8px;margin-right:6px;vertical-align:middle;}',
+      '.pd-rel-lbl.high{color:#fff;background:#c0504d;}',
+      '.pd-rel-lbl.mid{color:#d98b2b;background:rgba(217,139,43,.14);}',
+      '.pd-rel-lbl.low{color:var(--sub);background:var(--panel);}',
+      // 核心报道卡
+      '.pd-core-report{margin:10px 0 12px;padding:12px 14px;border-radius:12px;'
+        + 'background:linear-gradient(135deg,rgba(192,80,77,.10),rgba(224,169,59,.08));'
+        + 'border:1px solid rgba(192,80,77,.35);position:relative;}',
+      '.pd-core-badge{display:inline-block;font-size:11px;font-weight:800;color:#fff;'
+        + 'background:linear-gradient(135deg,#c0504d,#e0a93b);padding:2px 10px;border-radius:20px;margin-bottom:7px;letter-spacing:.5px;}',
+      '.pd-core-title{font-size:15px;font-weight:800;color:var(--text);line-height:1.5;}',
+      '.pd-core-src{font-size:12px;color:var(--sub);margin-top:4px;}',
+      // 多源交叉验证
+      '.pd-cross{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 12px;padding:9px 12px;'
+        + 'background:var(--panel);border-left:3px solid #5b9bd5;border-radius:8px;}',
+      '.pd-cross-lbl{font-size:11.5px;font-weight:800;color:#5b9bd5;flex:0 0 auto;}',
+      '.pd-cross-txt{font-size:12.5px;color:var(--text);line-height:1.5;}',
+      // 摘要列表：核心条目高亮
+      '.pd-summary-list li.pd-li-core{color:var(--text);font-weight:600;}'
+        + '.pd-summary-list li.pd-li-core::marker{color:#c0504d;}',
+      // 相关报道区域（与核心报道卡视觉分隔）
+      '.pd-related-section{margin-top:14px;padding-top:10px;border-top:1px solid var(--line);}',
+      '.pd-related-lbl{display:inline-block;font-size:11.5px;font-weight:800;color:var(--midstream);'
+        + 'letter-spacing:1px;margin-bottom:6px;padding:0 2px;}',
+      // 新闻列表：核心报道标
+      '.pd-nk.core{color:#fff;background:linear-gradient(135deg,#c0504d,#e0a93b);}',
+      // 新闻分组容器
+      '.pd-news-level-group{margin-bottom:6px;}',
+      '.pd-news-level-group .pd-rel-lbl{margin-bottom:4px;display:inline-block;}',
+      // 展开/折叠低关联
+      '.pd-show-low{font-size:11.5px;color:var(--midstream);background:var(--panel-2);border:1px solid var(--line);'
+        + 'border-radius:6px;padding:3px 12px;cursor:pointer;width:100%;text-align:center;margin-top:4px;}',
+      '.pd-show-low:hover{background:var(--panel);border-color:var(--midstream);}',
+      // 先验推断提示
+      '.pd-prior-hint{line-height:1.4;}',
+// 紧凑滚动新闻列表（替代旧版 pd-news-list）
       '.pd-news-scroll{display:flex;flex-direction:column;gap:4px;margin-top:8px;'
         + 'max-height:360px;overflow-y:auto;padding-right:4px;}'
         + '/* 滚动条美化 */'
