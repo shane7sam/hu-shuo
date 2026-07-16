@@ -26,10 +26,12 @@ jobs:
       # 仓库中已有 index.html 则直接使用；否则从 ai-industry-chain.html 复制。
       - name: Prepare index.html
         run: |
-          if [ -f ai-industry-chain.html ]; then
+          if [ -f "hu·shuo.html" ]; then
+            cp "hu·shuo.html" index.html
+          elif [ -f ai-industry-chain.html ]; then
             cp ai-industry-chain.html index.html
           elif [ ! -f index.html ]; then
-            echo "Error: Neither ai-industry-chain.html nor index.html found!" >&2
+            echo "Error: Neither hu·shuo.html, ai-industry-chain.html, nor index.html found!" >&2
             exit 1
           fi
 
